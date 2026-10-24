@@ -31,7 +31,7 @@ jobs:
         env:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
-          ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
+          ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
         run: python3 .github/scripts/alpaca_snapshot.py site/trader-skill/trader-skill/data/portfolio.json
 
       # Scans the US market (~5000 observed, 500 shortlisted), runs the 4 checks and
@@ -42,7 +42,7 @@ jobs:
         env:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
-          ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
+          ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
           AGENT_WATCHLIST: ${{ vars.AGENT_WATCHLIST || '' }}
           AGENT_MAX_POSITION_PCT: ${{ vars.AGENT_MAX_POSITION_PCT || '10' }}
           AGENT_CASH_BUFFER_PCT: ${{ vars.AGENT_CASH_BUFFER_PCT || '10' }}
