@@ -52,6 +52,26 @@ jobs:
           python3 .github/scripts/agent_check.py site/trader-skill/trader-skill/data/agent.json \
             --portfolio site/trader-skill/trader-skill/data/portfolio.json --previous "$prev"
 
+      # AUTO-TRADER. Places REAL orders when ALPACA_PAPER is false.
+      # Kill switch: repository variable or secret AUTOTRADE = on | sell-only | off (default off).
+      - name: Auto-trader (kill switch AUTOTRADE)
+        timeout-minutes: 4
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
+          AUTOTRADE: ${{ vars.AUTOTRADE || secrets.AUTOTRADE || 'off' }}
+          AUTOTRADE_SLOTS: ${{ vars.AUTOTRADE_SLOTS || '12' }}
+          AUTOTRADE_STOP_LOSS_PCT: ${{ vars.AUTOTRADE_STOP_LOSS_PCT || '8' }}
+          AUTOTRADE_TAKE_PROFIT_PCT: ${{ vars.AUTOTRADE_TAKE_PROFIT_PCT || '20' }}
+          AUTOTRADE_DAILY_LOSS_PCT: ${{ vars.AUTOTRADE_DAILY_LOSS_PCT || '5' }}
+          AUTOTRADE_ALLOW_ETF: ${{ vars.AUTOTRADE_ALLOW_ETF || 'false' }}
+        run: |
+          owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          prev="https://${owner}.github.io/${{ github.event.repository.name }}/trader-skill/trader-skill/data/trades.json"
+          python3 .github/scripts/autotrader.py site/trader-skill/trader-skill/data/trades.json \
+            --agent site/trader-skill/trader-skill/data/agent.json --previous "$prev"
+
       - name: Assemble site
         run: |
           rsync -a --exclude '.git' --exclude '.github' --exclude 'site' ./ site/

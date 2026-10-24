@@ -268,6 +268,25 @@ a { color: var(--accent); }
 .mark.skip { background: var(--soft); color: var(--muted); } .mark.skip::before { content: "–"; }
 .pips i.skip { background: var(--line); opacity: 0.6; }
 
+/* ---------- auto-trader (right) ---------- */
+.atop { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px; border-bottom: 1px solid var(--line); }
+.atstate { display: inline-flex; align-items: center; gap: 8px; font: 700 0.9rem/1 var(--body); letter-spacing: 0.04em; text-transform: uppercase; padding: 8px 11px; border-radius: 6px; }
+.atstate.on { background: var(--up-soft); color: var(--up); }
+.atstate.sell-only { background: var(--warn-soft); color: var(--warn); }
+.atstate.off { background: var(--soft); color: var(--muted); }
+.atstate .dot { width: 9px; height: 9px; }
+.atop p { margin: 0; font-size: 0.74rem; color: var(--muted); max-width: 34ch; }
+.atnotes { list-style: none; margin: 0; padding: 10px 12px; display: grid; gap: 4px; font-size: 0.76rem; color: var(--ink-2); border-bottom: 1px solid var(--line); }
+.atnotes li::before { content: "· "; color: var(--muted); }
+.atnotes li.err { color: var(--down); }
+.trow { display: grid; grid-template-columns: 44px 58px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 12px; border-bottom: 1px solid var(--grid); font-size: 0.76rem; }
+.trow:last-child { border-bottom: 0; }
+.trow .sd { font: 600 0.66rem/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase; }
+.trow .sd.buy { color: var(--up); } .trow .sd.sell { color: var(--down); }
+.trow b { font-weight: 600; }
+.trow small { color: var(--muted); display: block; font-size: 0.7rem; }
+.trow .num { text-align: right; white-space: nowrap; }
+
 /* ---------- portfolio ---------- */
 .hero { padding: 14px; display: grid; gap: 10px; }
 .eq .v { font: 600 clamp(1.7rem, 2.6vw, 2.3rem)/1.05 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
@@ -514,6 +533,16 @@ footer p { margin: 0; max-width: 120ch; }
         <p class="rule" id="sig-rule">Signals only. You place every trade yourself in Alpaca.</p>
       </article>
 
+      <article class="panel" id="autotrader">
+        <div class="ph"><h3>Auto-trader</h3><small id="at-upd">kill switch: AUTOTRADE</small></div>
+        <div class="atop">
+          <span class="atstate off" id="at-state"><span class="dot"></span><span id="at-label">Off</span></span>
+          <p id="at-rules">Buys only 4/4 green stocks, one equal slot each. You switch it on or off with the AUTOTRADE setting in GitHub.</p>
+        </div>
+        <ul class="atnotes" id="at-notes"><li>Waiting for the first run…</li></ul>
+        <div class="siglist"><h4>Orders placed by the auto-trader</h4><div id="at-hist"><div class="empty">No orders yet.</div></div></div>
+      </article>
+
       <article class="panel">
         <div class="ph"><h3>Holdings</h3><small>dot = agent verdict</small></div>
         <div class="hold" id="hold">
@@ -563,6 +592,7 @@ const CONFIG = {
   ],
   portfolioUrl: "data/portfolio.json",
   agentUrl: "data/agent.json",
+  tradesUrl: "data/trades.json",
   refreshSeconds: 60
 };
 /* ======================================== */
@@ -1217,9 +1247,28 @@ async function loadAgent() {
   AGENT = ag; renderAgent(); renderHoldings();
 }
 
+/* ================================================================ AUTO-TRADER */
+async function loadTrades() {
+  let t;
+  try { t = await fetchJSON(CONFIG.tradesUrl); }
+  catch (e) { t = DEMO_ALLOWED && SNAP?.demo ? { demo: true, mode: "off", generated_at: new Date().toISOString(), rules: { slots: 12, slot_pct: 8.33, stop_loss_pct: 8, take_profit_pct: 20, daily_loss_pct: 5 }, notes: ["Switched off. No orders placed. Set AUTOTRADE to on (or sell-only) to start."], history: [] } : null; }
+  if (!t) { $("at-notes").innerHTML = "<li>The auto-trader hasn't run yet.</li>"; return; }
+  const mode = t.mode || "off", R = t.rules || {};
+  $("at-state").className = "atstate " + mode;
+  $("at-state").querySelector(".dot").className = "dot " + (mode === "on" ? "on" : mode === "sell-only" ? "mid" : "");
+  $("at-label").textContent = { on: "On · trading", "sell-only": "Sell-only", off: "Off" }[mode];
+  $("at-upd").textContent = (t.demo ? "example · " : "last run ") + ago(t.generated_at);
+  $("at-rules").textContent = `Buys 4/4 green stocks, ${R.slots || 12} equal slots of ${R.slot_pct || 8.33}% each, cash only. Exits: 3 green sell half, 2 or fewer sell all, stop-loss −${R.stop_loss_pct ?? 8}%, take profit +${R.take_profit_pct ?? 20}%. Only touches positions it bought.`;
+  $("at-notes").innerHTML = (t.error ? [`<li class="err">Last run failed: ${esc(t.error)}</li>`] : []).concat((t.notes || []).map(n => `<li>${esc(n)}</li>`)).join("") || "<li>No notes.</li>";
+  const H = (t.history || []).slice().reverse().slice(0, 15);
+  $("at-hist").innerHTML = H.length ? H.map(a => `<div class="trow"><span class="sd ${a.side}">${a.side}</span><b>${esc(a.symbol)}</b>
+      <span>${esc(a.reason || "")}<small>${new Date(a.time).toLocaleString("en-GB", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })} · ${esc(a.status || "")}${a.error ? " · " + esc(a.error) : ""}</small></span>
+      <span class="num">${a.notional ? "$" + a.notional : a.qty ? a.qty + " sh" : ""}</span></div>`).join("") : '<div class="empty">No orders yet.</div>';
+}
+
 mountAll();
-(async () => { await loadPortfolio(); await loadAgent(); })();
-setInterval(async () => { await loadPortfolio(); await loadAgent(); }, CONFIG.refreshSeconds * 1000);
+(async () => { await loadPortfolio(); await loadAgent(); await loadTrades(); })();
+setInterval(async () => { await loadPortfolio(); await loadAgent(); await loadTrades(); }, CONFIG.refreshSeconds * 1000);
 </script>
 </body>
 </html>
