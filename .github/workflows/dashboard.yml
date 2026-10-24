@@ -66,11 +66,21 @@ jobs:
           AUTOTRADE_TAKE_PROFIT_PCT: ${{ vars.AUTOTRADE_TAKE_PROFIT_PCT || '20' }}
           AUTOTRADE_DAILY_LOSS_PCT: ${{ vars.AUTOTRADE_DAILY_LOSS_PCT || '5' }}
           AUTOTRADE_ALLOW_ETF: ${{ vars.AUTOTRADE_ALLOW_ETF || 'false' }}
+          AUTOTRADE_NO_BUY_MINUTES: ${{ vars.AUTOTRADE_NO_BUY_MINUTES || '30' }}
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
-          prev="https://${owner}.github.io/${{ github.event.repository.name }}/trader-skill/trader-skill/data/trades.json"
+          base="https://${owner}.github.io/${{ github.event.repository.name }}/trader-skill/trader-skill/data"
           python3 .github/scripts/autotrader.py site/trader-skill/trader-skill/data/trades.json \
-            --agent site/trader-skill/trader-skill/data/agent.json --previous "$prev"
+            --agent site/trader-skill/trader-skill/data/agent.json --previous "$base/trades.json" \
+            --journal site/trader-skill/trader-skill/data/journal.json --journal-previous "$base/journal.json"
+
+      # Trade journal: every auto-trader order with full details, as Excel and A4-landscape PDF.
+      - name: Trade journal (Excel + PDF)
+        continue-on-error: true
+        run: |
+          python3 -m pip install --quiet --break-system-packages openpyxl reportlab 2>/dev/null || python3 -m pip install --quiet openpyxl reportlab
+          python3 .github/scripts/journal_report.py site/trader-skill/trader-skill/data/journal.json \
+            site/trader-skill/trader-skill/data/trades.json site/trader-skill/trader-skill/data
 
       - name: Assemble site
         run: |

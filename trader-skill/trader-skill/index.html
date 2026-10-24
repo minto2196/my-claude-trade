@@ -281,6 +281,9 @@ a { color: var(--accent); }
 .atnotes li.err { color: var(--down); }
 .trow { display: grid; grid-template-columns: 44px 58px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 12px; border-bottom: 1px solid var(--grid); font-size: 0.76rem; }
 .trow:last-child { border-bottom: 0; }
+.dl { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.dlbtn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border: 1px solid var(--accent); border-radius: 6px; color: var(--accent); text-decoration: none; font: 600 0.76rem var(--body); }
+.dlbtn:hover { background: var(--accent); color: var(--panel); }
 .trow .sd { font: 600 0.66rem/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase; }
 .trow .sd.buy { color: var(--up); } .trow .sd.sell { color: var(--down); }
 .trow b { font-weight: 600; }
@@ -540,6 +543,10 @@ footer p { margin: 0; max-width: 120ch; }
           <p id="at-rules">Buys only 4/4 green stocks, one equal slot each. You switch it on or off with the AUTOTRADE setting in GitHub.</p>
         </div>
         <ul class="atnotes" id="at-notes"><li>Waiting for the first run…</li></ul>
+        <div class="dl">
+          <a class="dlbtn" href="data/trade-journal.xlsx" download id="dl-xlsx">⤓ Trade journal · Excel</a>
+          <a class="dlbtn" href="data/trade-journal.pdf" target="_blank" rel="noopener" id="dl-pdf">⤓ Trade journal · PDF</a>
+        </div>
         <div class="siglist"><h4>Orders placed by the auto-trader</h4><div id="at-hist"><div class="empty">No orders yet.</div></div></div>
       </article>
 
@@ -1258,7 +1265,7 @@ async function loadTrades() {
   $("at-state").querySelector(".dot").className = "dot " + (mode === "on" ? "on" : mode === "sell-only" ? "mid" : "");
   $("at-label").textContent = { on: "On · trading", "sell-only": "Sell-only", off: "Off" }[mode];
   $("at-upd").textContent = (t.demo ? "example · " : "last run ") + ago(t.generated_at);
-  $("at-rules").textContent = `Buys 4/4 green stocks, ${R.slots || 12} equal slots of ${R.slot_pct || 8.33}% each, cash only. Exits: 3 green sell half, 2 or fewer sell all, stop-loss −${R.stop_loss_pct ?? 8}%, take profit +${R.take_profit_pct ?? 20}%. Only touches positions it bought.`;
+  $("at-rules").textContent = `Buys 4/4 green stocks, ${R.slots || 12} equal slots of ${R.slot_pct || 8.33}% each, cash only, no buys in the last ${R.no_buy_minutes_before_close ?? 30} min before the close. Exits: 3 green sell half, 2 or fewer sell all, stop-loss −${R.stop_loss_pct ?? 8}%, take profit +${R.take_profit_pct ?? 20}%. Only touches positions it bought.`;
   $("at-notes").innerHTML = (t.error ? [`<li class="err">Last run failed: ${esc(t.error)}</li>`] : []).concat((t.notes || []).map(n => `<li>${esc(n)}</li>`)).join("") || "<li>No notes.</li>";
   const H = (t.history || []).slice().reverse().slice(0, 15);
   $("at-hist").innerHTML = H.length ? H.map(a => `<div class="trow"><span class="sd ${a.side}">${a.side}</span><b>${esc(a.symbol)}</b>
