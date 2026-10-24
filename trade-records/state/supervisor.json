@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-24T19:13:06+00:00",
- "next_check": "2026-10-24T20:13:06+00:00",
- "overall": "ok",
+ "generated_at": "2026-10-24T21:39:18+00:00",
+ "next_check": "2026-10-24T22:39:18+00:00",
+ "overall": "warn",
  "supervisors": [
   {
    "name": "Data watch",
@@ -29,22 +29,30 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,187 \u2192 5,000 \u2192 500 \u2192 30 with 4/4 green."
+     "text": "Funnel normal: 13,187 \u2192 5,000 \u2192 500 \u2192 88 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
      "text": "96% of stocks pass 'data is real'."
+    },
+    {
+     "status": "ok",
+     "text": "Time machine judged the shortlist: 148 of 500 have a green past."
     }
    ]
   },
   {
    "name": "Trade watch",
    "role": "Auto-trader rules, positions and orders",
-   "status": "ok",
+   "status": "warn",
    "checks": [
     {
      "status": "ok",
      "text": "Auto-trader switch is ON on a paper account."
+    },
+    {
+     "status": "warn",
+     "text": "Master switch OFF: the 6-month replay returned -2.79%. Buying is paused, exits still run."
     },
     {
      "status": "ok",
@@ -71,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 0.4 MB of 1 GB."
+     "text": "Repository storage 0.5 MB of 1 GB."
     }
    ]
   },
@@ -82,10 +90,16 @@
    "checks": [
     {
      "status": "ok",
-     "text": "2 run(s) in the last 3 hours, none failed, longest gap 140 min."
+     "text": "3 run(s) in the last 3 hours, none failed, longest gap 146 min."
     }
    ]
   }
  ],
- "comments": []
+ "comments": [
+  {
+   "level": "warn",
+   "supervisor": "Trade watch",
+   "text": "Master switch OFF: the 6-month replay returned -2.79%. Buying is paused, exits still run."
+  }
+ ]
 }
