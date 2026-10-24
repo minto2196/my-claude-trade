@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trade Desk Live</title>
+<meta name="description" content="Live market dashboard: indices, heatmap, movers, news and the Berkshire top-5 watchlist.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: a trading desk — status strip on top, then a 12-column grid of
+   live panels; the chart and heatmap get the width, lists sit in the rails. */
+:root {
+  --bg: #eef1f4;
+  --panel: #ffffff;
+  --ink: #142230;
+  --muted: #5b6b7b;
+  --line: #d6dde4;
+  --accent: #0d6e8a;      /* harbour teal */
+  --up: #12805c;
+  --down: #c2362f;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c141c; --panel: #121d28; --ink: #e3eaf0; --muted: #8a9bab;
+    --line: #22313f; --accent: #3fb6d6; --up: #34c08f; --down: #f0695f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c141c; --panel: #121d28; --ink: #e3eaf0; --muted: #8a9bab;
+  --line: #22313f; --accent: #3fb6d6; --up: #34c08f; --down: #f0695f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 32px;
+}
+.wrap { max-width: 1480px; margin: 0 auto; display: grid; gap: 16px; }
+
+header.top {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 12px 24px; padding-top: 22px;
+}
+.brand h1 {
+  font: 800 clamp(1.6rem, 3.2vw, 2.3rem)/1 var(--display);
+  letter-spacing: -0.02em; margin: 0; text-wrap: balance;
+}
+.brand h1 span { color: var(--accent); }
+.brand p { margin: 6px 0 0; color: var(--muted); font-size: 0.9rem; }
+
+.sessions { display: flex; flex-wrap: wrap; gap: 8px; }
+.session {
+  display: grid; gap: 2px; min-width: 132px;
+  padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel);
+}
+.session .name {
+  font: 600 0.7rem/1.2 var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.session .row { display: flex; align-items: center; gap: 8px; }
+.session .time { font: 500 1.05rem/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+.pill {
+  font: 600 0.68rem/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 4px 7px; border-radius: 999px; border: 1px solid currentColor;
+}
+.pill.open { color: var(--up); }
+.pill.closed { color: var(--muted); }
+.pill.open::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 5px;
+  border-radius: 50%; background: currentColor; vertical-align: 1px; animation: blink 1.6s infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .pill.open::before { animation: none; } }
+
+.tape { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); min-height: 46px; }
+
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; }
+.panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+}
+.panel > h2 {
+  margin: 0; padding: 12px 14px 10px; border-bottom: 1px solid var(--line);
+  font: 600 0.74rem/1.2 var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  display: flex; justify-content: space-between; gap: 8px;
+}
+.panel > h2 small { font: 400 0.72rem/1.2 var(--mono); letter-spacing: 0; text-transform: none; }
+.panel .body { flex: 1; min-height: 0; position: relative; }
+.panel .body > .tradingview-widget-container { height: 100%; width: 100%; }
+
+.span-8 { grid-column: span 8; } .span-4 { grid-column: span 4; }
+.span-6 { grid-column: span 6; } .span-12 { grid-column: span 12; }
+.h-chart { height: 560px; } .h-tall { height: 560px; } .h-mid { height: 480px; } .h-heat { height: 540px; }
+
+@media (max-width: 1080px) {
+  .span-8, .span-4, .span-6 { grid-column: span 12; }
+  .h-chart { height: 460px; } .h-tall, .h-mid { height: 440px; } .h-heat { height: 460px; }
+}
+
+.loading {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: var(--muted); font: 400 0.85rem var(--mono); pointer-events: none;
+}
+
+footer { color: var(--muted); font-size: 0.8rem; display: grid; gap: 4px; padding-top: 8px; }
+footer p { margin: 0; max-width: 90ch; }
+footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <h1>Trade Desk <span>Live</span></h1>
+      <p>Indices, sectors, movers and headlines, streaming in your browser. <span id="updated"></span></p>
+    </div>
+    <div class="sessions" id="sessions" aria-live="polite"></div>
+  </header>
+
+  <div class="tape" id="w-tape"></div>
+
+  <section class="grid">
+    <article class="panel span-8 h-chart">
+      <h2>Chart <small>switch symbol inside the chart</small></h2>
+      <div class="body" id="w-chart"></div>
+    </article>
+    <article class="panel span-4 h-chart">
+      <h2>World indices <small>1D</small></h2>
+      <div class="body" id="w-overview"></div>
+    </article>
+
+    <article class="panel span-12 h-heat">
+      <h2>S&amp;P 500 heatmap <small>size = market cap · colour = % change today</small></h2>
+      <div class="body" id="w-heatmap"></div>
+    </article>
+
+    <article class="panel span-4 h-tall">
+      <h2>Top movers <small>US stocks</small></h2>
+      <div class="body" id="w-movers"></div>
+    </article>
+    <article class="panel span-4 h-tall">
+      <h2>My watchlist <small>Berkshire top 5 · Q2 2026 13F</small></h2>
+      <div class="body" id="w-watch"></div>
+    </article>
+    <article class="panel span-4 h-tall">
+      <h2>Market news</h2>
+      <div class="body" id="w-news"></div>
+    </article>
+
+    <article class="panel span-12 h-mid">
+      <h2>Economic calendar <small>US &amp; Eurozone · high &amp; medium impact</small></h2>
+      <div class="body" id="w-calendar"></div>
+    </article>
+  </section>
+
+  <footer>
+    <p>Market data and widgets by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a>. Quotes on free feeds can be delayed up to 15 minutes depending on the exchange.</p>
+    <p>Not financial advice. Session clocks ignore exchange holidays.</p>
+  </footer>
+</div>
+
+<script>
+/* ===== EDIT HERE: add or swap symbols for future updates ===== */
+const CONFIG = {
+  tape: [
+    { proName: "FOREXCOM:SPXUSD", title: "S&P 500" },
+    { proName: "FOREXCOM:NSXUSD", title: "Nasdaq 100" },
+    { proName: "FOREXCOM:DJI",    title: "Dow 30" },
+    { proName: "INDEX:DEU40",     title: "DAX" },
+    { proName: "FX_IDC:EURUSD",   title: "EUR/USD" },
+    { proName: "BITSTAMP:BTCUSD", title: "Bitcoin" },
+    { proName: "TVC:GOLD",        title: "Gold" },
+    { proName: "TVC:USOIL",       title: "WTI Oil" },
+    { proName: "TVC:VIX",         title: "VIX" },
+    { proName: "TVC:US10Y",       title: "US 10Y" }
+  ],
+  chartSymbol: "FOREXCOM:SPXUSD",
+  indices: [
+    { s: "FOREXCOM:SPXUSD", d: "S&P 500" },
+    { s: "FOREXCOM:NSXUSD", d: "Nasdaq 100" },
+    { s: "FOREXCOM:DJI",    d: "Dow 30" },
+    { s: "INDEX:DEU40",     d: "DAX" },
+    { s: "FOREXCOM:UKXGBP", d: "FTSE 100" },
+    { s: "INDEX:NKY",       d: "Nikkei 225" }
+  ],
+  // Same five stocks /trader-copycat pulls from Berkshire's latest 13F
+  watchlist: [
+    { name: "NASDAQ:AAPL",  displayName: "Apple" },
+    { name: "NYSE:AXP",     displayName: "American Express" },
+    { name: "NASDAQ:GOOGL", displayName: "Alphabet" },
+    { name: "NYSE:KO",      displayName: "Coca-Cola" },
+    { name: "NYSE:BAC",     displayName: "Bank of America" }
+  ]
+};
+/* ============================================================== */
+
+const dark = (() => {
+  const t = document.documentElement.getAttribute("data-theme");
+  if (t) return t === "dark";
+  return window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches;
+})();
+const theme = dark ? "dark" : "light";
+const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin";
+
+function mount(id, widget, cfg) {
+  const host = document.getElementById(id);
+  host.innerHTML = '<div class="loading">loading live data…</div>';
+  const box = document.createElement("div");
+  box.className = "tradingview-widget-container";
+  const inner = document.createElement("div");
+  inner.className = "tradingview-widget-container__widget";
+  inner.style.height = "100%";
+  box.appendChild(inner);
+  const s = document.createElement("script");
+  s.type = "text/javascript";
+  s.async = true;
+  s.src = "https://s3.tradingview.com/external-embedding/embed-widget-" + widget + ".js";
+  s.textContent = JSON.stringify(Object.assign({ colorTheme: theme, isTransparent: true, locale: "en" }, cfg));
+  s.onload = () => { const l = host.querySelector(".loading"); if (l) setTimeout(() => l.remove(), 1200); };
+  s.onerror = () => { const l = host.querySelector(".loading"); if (l) l.textContent = "Could not load this panel. Check your connection or ad blocker."; };
+  box.appendChild(s);
+  host.appendChild(box);
+}
+
+mount("w-tape", "ticker-tape", {
+  symbols: CONFIG.tape, showSymbolLogo: true, displayMode: "adaptive"
+});
+
+mount("w-chart", "advanced-chart", {
+  autosize: true, symbol: CONFIG.chartSymbol, interval: "D", timezone: tz,
+  theme: theme, style: "1", allow_symbol_change: true, hide_side_toolbar: false,
+  withdateranges: true, calendar: false, support_host: "https://www.tradingview.com",
+  backgroundColor: "rgba(0,0,0,0)"
+});
+
+mount("w-overview", "market-overview", {
+  dateRange: "1D", showChart: true, width: "100%", height: "100%",
+  showSymbolLogo: true, showFloatingTooltip: true,
+  tabs: [
+    { title: "Indices", symbols: CONFIG.indices, originalTitle: "Indices" },
+    { title: "Crypto", symbols: [
+      { s: "BITSTAMP:BTCUSD", d: "Bitcoin" }, { s: "BITSTAMP:ETHUSD", d: "Ethereum" },
+      { s: "COINBASE:SOLUSD", d: "Solana" } ] },
+    { title: "Commodities", symbols: [
+      { s: "TVC:GOLD", d: "Gold" }, { s: "TVC:SILVER", d: "Silver" },
+      { s: "TVC:USOIL", d: "WTI Oil" }, { s: "TVC:UKOIL", d: "Brent" } ] }
+  ]
+});
+
+mount("w-heatmap", "stock-heatmap", {
+  exchanges: [], dataSource: "SPX500", grouping: "sector", blockSize: "market_cap_basic",
+  blockColor: "change", hasTopBar: true, isDataSetEnabled: true, isZoomEnabled: true,
+  hasSymbolTooltip: true, isMonoSize: false, width: "100%", height: "100%"
+});
+
+mount("w-movers", "hotlists", {
+  exchange: "US", dateRange: "1D", showChart: true, width: "100%", height: "100%",
+  showSymbolLogo: true, showFloatingTooltip: true
+});
+
+mount("w-watch", "market-quotes", {
+  width: "100%", height: "100%", showSymbolLogo: true,
+  symbolsGroups: [{ name: "Berkshire top 5", symbols: CONFIG.watchlist }]
+});
+
+mount("w-news", "timeline", {
+  feedMode: "market", market: "stock", displayMode: "regular", width: "100%", height: "100%"
+});
+
+mount("w-calendar", "events", {
+  width: "100%", height: "100%", importanceFilter: "0,1", countryFilter: "us,eu,de"
+});
+
+/* ===== Exchange session clocks (local time + open/closed) ===== */
+const EXCHANGES = [
+  { name: "NYSE · New York", tz: "America/New_York", open: 9*60+30, close: 16*60 },
+  { name: "Xetra · Frankfurt", tz: "Europe/Berlin",  open: 9*60,    close: 17*60+30 },
+  { name: "LSE · London",     tz: "Europe/London",   open: 8*60,    close: 16*60+30 },
+  { name: "TSE · Tokyo",      tz: "Asia/Tokyo",      open: 9*60,    close: 15*60+30 }
+];
+function parts(zone) {
+  const f = new Intl.DateTimeFormat("en-GB", { timeZone: zone, hour: "2-digit", minute: "2-digit", weekday: "short", hourCycle: "h23" });
+  const o = {}; f.formatToParts(new Date()).forEach(p => o[p.type] = p.value);
+  return o;
+}
+const box = document.getElementById("sessions");
+box.innerHTML = EXCHANGES.map((x, i) =>
+  `<div class="session"><span class="name">${x.name}</span><div class="row"><span class="time" id="t${i}">--:--</span><span class="pill" id="p${i}"></span></div></div>`
+).join("");
+function tick() {
+  EXCHANGES.forEach((x, i) => {
+    const p = parts(x.tz);
+    const mins = (+p.hour) * 60 + (+p.minute);
+    const weekday = !["Sat", "Sun"].includes(p.weekday);
+    const open = weekday && mins >= x.open && mins < x.close;
+    document.getElementById("t" + i).textContent = p.hour + ":" + p.minute;
+    const pill = document.getElementById("p" + i);
+    pill.textContent = open ? "Open" : "Closed";
+    pill.className = "pill " + (open ? "open" : "closed");
+  });
+  document.getElementById("updated").textContent =
+    "Your time: " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
+}
+tick(); setInterval(tick, 15000);
+</script>
+</body>
+</html>
