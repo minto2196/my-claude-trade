@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write      # commit trade records to the trade-records branch
+  contents: write      # commit trade records to the trade-records/ folder on main
   actions: read        # schedule supervisor reads recent workflow runs
   pages: write
   id-token: write
@@ -37,12 +37,6 @@ jobs:
       DATA: site/trader-skill/trader-skill/data
     steps:
       - uses: actions/checkout@v4
-
-      - name: Check out trade records (black box)
-        uses: actions/checkout@v4
-        with:
-          ref: trade-records
-          path: records
 
       - name: Snapshot Alpaca account (read-only)
         run: python3 .github/scripts/alpaca_snapshot.py $DATA/portfolio.json
@@ -76,41 +70,44 @@ jobs:
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
           base="https://${owner}.github.io/${{ github.event.repository.name }}/trader-skill/trader-skill/data"
-          mkdir -p records/journal records/state
+          mkdir -p trade-records/journal trade-records/state
           python3 .github/scripts/autotrader.py $DATA/trades.json --agent $DATA/agent.json --previous "$base/trades.json" \
-            --journal records/journal/journal.json --journal-previous records/journal/journal.json \
-            --state records/state/peaks.json
+            --journal trade-records/journal/journal.json --journal-previous trade-records/journal/journal.json \
+            --state trade-records/state/peaks.json
 
       # Weekly Excel (new file each Monday, newest 3 kept), weekly PDF from Saturday 10:00 UTC,
-      # monthly report on the month's last Saturday. Stored on the trade-records branch.
+      # monthly report on the month's last Saturday. Stored in the trade-records/ folder on main.
       - name: Trade records and reports
         continue-on-error: true
         run: |
           python3 -m pip install --quiet --break-system-packages openpyxl reportlab 2>/dev/null || python3 -m pip install --quiet openpyxl reportlab
-          python3 .github/scripts/records.py records $DATA/trades.json $DATA
+          python3 .github/scripts/records.py trade-records $DATA/trades.json $DATA
 
       # Five supervisors check everything once an hour; results show at the bottom of the dashboard.
       - name: Supervisors (hourly)
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python3 .github/scripts/supervisor.py $DATA records
+        run: python3 .github/scripts/supervisor.py $DATA trade-records
 
-      - name: Save trade records to GitHub
+      # Pushes made with the workflow's own token don't start another run, so this can't loop.
+      - name: Save trade records to GitHub (trade-records/ on main)
         continue-on-error: true
-        working-directory: records
         run: |
           git config user.name "trade-desk-bot"
           git config user.email "trade-desk-bot@users.noreply.github.com"
-          git add -A
+          git add trade-records
           if ! git diff --cached --quiet; then
             git commit -q -m "records: $(date -u +'%Y-%m-%d %H:%M UTC')"
-            git push -q origin HEAD:trade-records || (git pull -q --rebase origin trade-records && git push -q origin HEAD:trade-records)
+            for i in 1 2 3; do
+              git pull -q --rebase origin main && git push -q origin HEAD:main && break
+              sleep 5
+            done
           fi
 
       - name: Assemble site
         run: |
-          rsync -a --exclude '.git' --exclude '.github' --exclude 'site' --exclude 'records' ./ site/
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'site' --exclude 'trade-records' ./ site/
           touch site/.nojekyll
 
       - uses: actions/configure-pages@v5

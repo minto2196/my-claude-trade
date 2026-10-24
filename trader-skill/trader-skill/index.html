@@ -1312,7 +1312,7 @@ const REPO = (() => {
   const repo = location.hostname.endsWith(".github.io") ? (location.pathname.split("/")[1] || "my-claude-trade") : "my-claude-trade";
   return `${owner}/${repo}`;
 })();
-const rawLink = path => `https://github.com/${REPO}/raw/trade-records/${path.split("/").map(encodeURIComponent).join("/")}`;
+const rawLink = path => `https://github.com/${REPO}/raw/main/trade-records/${path.split("/").map(encodeURIComponent).join("/")}`;
 async function loadRecords() {
   let r;
   try { r = await fetchJSON(CONFIG.recordsUrl); } catch (e) { r = DEMO_ALLOWED ? { demo: true, generated_at: new Date().toISOString(), size_bytes: 412000, git_bytes: 230000, limit_bytes: 1073741824,
@@ -1323,7 +1323,7 @@ async function loadRecords() {
   const xl = pick("weekly_excel"), wp = pick("weekly_pdf"), mp = pick("monthly_pdf");
   const btn = (f, label) => f ? `<a class="dlbtn" href="${esc(rawLink(f.path))}" target="_blank" rel="noopener" title="${esc(f.name)}">⤓ ${label}</a>` : "";
   $("rec-links").innerHTML = (btn(xl, "This week · Excel") + btn(wp, "Last weekly PDF") + btn(mp, "Last monthly report") +
-    `<a class="dlbtn" href="https://github.com/${REPO}/tree/trade-records" target="_blank" rel="noopener">All records on GitHub</a>`) ;
+    `<a class="dlbtn" href="https://github.com/${REPO}/tree/main/trade-records" target="_blank" rel="noopener">All records on GitHub</a>`) ;
   $("rec-upd").textContent = (r.demo ? "example · " : "updated ") + ago(r.generated_at);
   const used = (r.size_bytes || 0) + (r.git_bytes || 0), lim = r.limit_bytes || 1073741824;
   $("rec-size").textContent = `${(used / 1048576).toFixed(1)} MB of 1 GB`;

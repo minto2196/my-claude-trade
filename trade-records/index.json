@@ -1,0 +1,25 @@
+{
+ "generated_at": "2026-10-24T11:45:59+00:00",
+ "branch": "trade-records",
+ "files": [
+  {
+   "path": "reports/2026/10-October/week-43_2026-10-19_to_2026-10-25.pdf",
+   "kind": "weekly_pdf",
+   "bytes": 2464,
+   "name": "week-43_2026-10-19_to_2026-10-25.pdf"
+  },
+  {
+   "path": "excel/2026-W43_2026-10-19.xlsx",
+   "kind": "weekly_excel",
+   "bytes": 9742,
+   "name": "2026-W43_2026-10-19.xlsx"
+  }
+ ],
+ "size_bytes": 15891,
+ "git_bytes": 43784,
+ "limit_bytes": 1073741824,
+ "warning": null,
+ "made_this_run": [],
+ "removed_this_run": [],
+ "journal_orders": 0
+}

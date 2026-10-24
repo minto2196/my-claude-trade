@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Keeps the trade records on the `trade-records` branch, like a black box.
+"""Keeps the trade records in the `trade-records/` folder of the repo, like a black box.
 
 Runs on every workflow run and catches up on anything that is due, so a late or skipped
 GitHub schedule never loses a report:
@@ -169,7 +169,7 @@ def main():
     files.sort(key=lambda x: x["path"], reverse=True)
     size = du(rec)
     git_size = du(os.path.join(rec, ".git"), skip_git=False) if os.path.isdir(os.path.join(rec, ".git")) else 0
-    index = {"generated_at": now.isoformat(timespec="seconds"), "branch": "trade-records", "files": files,
+    index = {"generated_at": now.isoformat(timespec="seconds"), "branch": "main", "folder": "trade-records", "files": files,
              "size_bytes": size, "git_bytes": git_size, "limit_bytes": LIMIT_BYTES,
              "warning": (f"Records use {(size + git_size) / 1024 ** 2:.0f} MB, close to 1 GB. Time to move them somewhere bigger."
                          if size + git_size >= WARN_BYTES else None),

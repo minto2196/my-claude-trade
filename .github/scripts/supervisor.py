@@ -214,10 +214,15 @@ def main():
             else:
                 s.ok("This week's PDF report is filed.")
         size = (index.get("size_bytes") or 0) + (index.get("git_bytes") or 0)
+        if GH_TOKEN and GH_REPO:
+            try:   # the whole repository on GitHub, history included (GitHub reports KB)
+                size = max(size, int(github("").get("size", 0)) * 1024)
+            except Exception:
+                pass
         if size >= 0.9 * 1024 ** 3:
-            s.alert(f"Records use {size / 1024 ** 2:.0f} MB, close to the 1 GB limit. Time to move them.")
+            s.alert(f"The repository uses {size / 1024 ** 2:.0f} MB, close to the 1 GB limit. Time to move the records.")
         else:
-            s.ok(f"Storage {size / 1024 ** 2:.1f} MB of 1 GB.")
+            s.ok(f"Repository storage {size / 1024 ** 2:.1f} MB of 1 GB.")
 
     def schedule(s):
         if not (GH_TOKEN and GH_REPO):

@@ -1,0 +1,91 @@
+{
+ "generated_at": "2026-10-24T11:44:39+00:00",
+ "next_check": "2026-10-24T12:44:39+00:00",
+ "overall": "ok",
+ "supervisors": [
+  {
+   "name": "Data watch",
+   "role": "Alpaca connection and portfolio snapshot",
+   "status": "ok",
+   "checks": [
+    {
+     "status": "ok",
+     "text": "Alpaca answers (paper account, status ACTIVE)."
+    },
+    {
+     "status": "ok",
+     "text": "Portfolio snapshot is fresh (0 min old)."
+    }
+   ]
+  },
+  {
+   "name": "Scan watch",
+   "role": "Market scan and the four checks",
+   "status": "ok",
+   "checks": [
+    {
+     "status": "ok",
+     "text": "Agent ran 0 min ago."
+    },
+    {
+     "status": "ok",
+     "text": "Funnel normal: 13,187 \u2192 5,000 \u2192 500 \u2192 30 with 4/4 green."
+    },
+    {
+     "status": "ok",
+     "text": "96% of stocks pass 'data is real'."
+    }
+   ]
+  },
+  {
+   "name": "Trade watch",
+   "role": "Auto-trader rules, positions and orders",
+   "status": "ok",
+   "checks": [
+    {
+     "status": "ok",
+     "text": "Auto-trader switch is ON on a paper account."
+    },
+    {
+     "status": "ok",
+     "text": "0 position(s), 0 open order(s), no stop-loss missed."
+    }
+   ]
+  },
+  {
+   "name": "Records watch",
+   "role": "Journal, Excel and PDF reports, storage",
+   "status": "ok",
+   "checks": [
+    {
+     "status": "ok",
+     "text": "Journal complete: 0 order(s) recorded."
+    },
+    {
+     "status": "ok",
+     "text": "This week's Excel journal exists."
+    },
+    {
+     "status": "ok",
+     "text": "This week's PDF report is filed."
+    },
+    {
+     "status": "ok",
+     "text": "Storage 0.0 MB of 1 GB."
+    }
+   ]
+  },
+  {
+   "name": "Schedule watch",
+   "role": "GitHub Actions runs and gaps",
+   "status": "ok",
+   "checks": [
+    {
+     "status": "ok",
+     "text": "10 run(s) in the last 3 hours, none failed, longest gap 32 min."
+    }
+   ]
+  }
+ ],
+ "comments": []
+}
