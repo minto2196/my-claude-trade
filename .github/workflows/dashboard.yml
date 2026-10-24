@@ -1,22 +1,26 @@
 name: Live dashboard
 
-# Refreshes the Alpaca snapshot and republishes the GitHub Pages site.
-# GitHub runs scheduled jobs about every 5 minutes at best (often later).
+# Every run: Alpaca snapshot -> market scan (4 checks) -> auto-trader -> records/reports -> supervisors -> site.
+# GitHub runs scheduled jobs about every 5 minutes at best (often later). The extra Saturday 10:00 UTC
+# schedule makes sure a run happens when the weekly report is due; the report logic itself catches up
+# on anything due, so a late or skipped run never loses a report.
 on:
   schedule:
     - cron: "*/5 * * * *"
+    - cron: "0 10 * * 6"
   push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write      # commit trade records to the trade-records branch
+  actions: read        # schedule supervisor reads recent workflow runs
   pages: write
   id-token: write
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false   # never cut a run off between placing an order and recording it
 
 jobs:
   deploy:
@@ -24,67 +28,89 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
+      AUTOTRADE_SLOTS: ${{ vars.AUTOTRADE_SLOTS || '12' }}
+      AUTOTRADE_STOP_LOSS_PCT: ${{ vars.AUTOTRADE_STOP_LOSS_PCT || '5' }}
+      DATA: site/trader-skill/trader-skill/data
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check out trade records (black box)
+        uses: actions/checkout@v4
+        with:
+          ref: trade-records
+          path: records
+
       - name: Snapshot Alpaca account (read-only)
-        env:
-          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
-          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
-          ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
-        run: python3 .github/scripts/alpaca_snapshot.py site/trader-skill/trader-skill/data/portfolio.json
+        run: python3 .github/scripts/alpaca_snapshot.py $DATA/portfolio.json
 
       # Scans the US market (~5000 observed, 500 shortlisted), runs the 4 checks and
       # writes buy / hold / start-selling signals. Read-only: it never places orders.
-      # The previous published agent.json carries the prediction log forward so calls get scored.
       - name: Verification agent (read-only)
         timeout-minutes: 8
         env:
-          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
-          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
-          ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
           AGENT_WATCHLIST: ${{ vars.AGENT_WATCHLIST || '' }}
           AGENT_MAX_POSITION_PCT: ${{ vars.AGENT_MAX_POSITION_PCT || '10' }}
           AGENT_CASH_BUFFER_PCT: ${{ vars.AGENT_CASH_BUFFER_PCT || '10' }}
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
           prev="https://${owner}.github.io/${{ github.event.repository.name }}/trader-skill/trader-skill/data/agent.json"
-          python3 .github/scripts/agent_check.py site/trader-skill/trader-skill/data/agent.json \
-            --portfolio site/trader-skill/trader-skill/data/portfolio.json --previous "$prev"
+          python3 .github/scripts/agent_check.py $DATA/agent.json --portfolio $DATA/portfolio.json --previous "$prev"
 
       # AUTO-TRADER. Places REAL orders when ALPACA_PAPER is false.
       # Kill switch: repository variable or secret AUTOTRADE = on | sell-only | off (default off).
       - name: Auto-trader (kill switch AUTOTRADE)
         timeout-minutes: 4
         env:
-          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
-          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
-          ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
           AUTOTRADE: ${{ vars.AUTOTRADE || secrets.AUTOTRADE || 'off' }}
-          AUTOTRADE_SLOTS: ${{ vars.AUTOTRADE_SLOTS || '12' }}
-          AUTOTRADE_STOP_LOSS_PCT: ${{ vars.AUTOTRADE_STOP_LOSS_PCT || '8' }}
           AUTOTRADE_TAKE_PROFIT_PCT: ${{ vars.AUTOTRADE_TAKE_PROFIT_PCT || '20' }}
+          AUTOTRADE_TRAIL_ARM_PCT: ${{ vars.AUTOTRADE_TRAIL_ARM_PCT || '4' }}
+          AUTOTRADE_TRAIL_PCT: ${{ vars.AUTOTRADE_TRAIL_PCT || '4' }}
+          AUTOTRADE_BAD_DAY_PCT: ${{ vars.AUTOTRADE_BAD_DAY_PCT || '3' }}
           AUTOTRADE_DAILY_LOSS_PCT: ${{ vars.AUTOTRADE_DAILY_LOSS_PCT || '5' }}
           AUTOTRADE_ALLOW_ETF: ${{ vars.AUTOTRADE_ALLOW_ETF || 'false' }}
           AUTOTRADE_NO_BUY_MINUTES: ${{ vars.AUTOTRADE_NO_BUY_MINUTES || '30' }}
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
           base="https://${owner}.github.io/${{ github.event.repository.name }}/trader-skill/trader-skill/data"
-          python3 .github/scripts/autotrader.py site/trader-skill/trader-skill/data/trades.json \
-            --agent site/trader-skill/trader-skill/data/agent.json --previous "$base/trades.json" \
-            --journal site/trader-skill/trader-skill/data/journal.json --journal-previous "$base/journal.json"
+          mkdir -p records/journal records/state
+          python3 .github/scripts/autotrader.py $DATA/trades.json --agent $DATA/agent.json --previous "$base/trades.json" \
+            --journal records/journal/journal.json --journal-previous records/journal/journal.json \
+            --state records/state/peaks.json
 
-      # Trade journal: every auto-trader order with full details, as Excel and A4-landscape PDF.
-      - name: Trade journal (Excel + PDF)
+      # Weekly Excel (new file each Monday, newest 3 kept), weekly PDF from Saturday 10:00 UTC,
+      # monthly report on the month's last Saturday. Stored on the trade-records branch.
+      - name: Trade records and reports
         continue-on-error: true
         run: |
           python3 -m pip install --quiet --break-system-packages openpyxl reportlab 2>/dev/null || python3 -m pip install --quiet openpyxl reportlab
-          python3 .github/scripts/journal_report.py site/trader-skill/trader-skill/data/journal.json \
-            site/trader-skill/trader-skill/data/trades.json site/trader-skill/trader-skill/data
+          python3 .github/scripts/records.py records $DATA/trades.json $DATA
+
+      # Five supervisors check everything once an hour; results show at the bottom of the dashboard.
+      - name: Supervisors (hourly)
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/supervisor.py $DATA records
+
+      - name: Save trade records to GitHub
+        continue-on-error: true
+        working-directory: records
+        run: |
+          git config user.name "trade-desk-bot"
+          git config user.email "trade-desk-bot@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -q -m "records: $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push -q origin HEAD:trade-records || (git pull -q --rebase origin trade-records && git push -q origin HEAD:trade-records)
+          fi
 
       - name: Assemble site
         run: |
-          rsync -a --exclude '.git' --exclude '.github' --exclude 'site' ./ site/
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'site' --exclude 'records' ./ site/
           touch site/.nojekyll
 
       - uses: actions/configure-pages@v5

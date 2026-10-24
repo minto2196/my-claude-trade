@@ -281,6 +281,25 @@ a { color: var(--accent); }
 .atnotes li.err { color: var(--down); }
 .trow { display: grid; grid-template-columns: 44px 58px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 12px; border-bottom: 1px solid var(--grid); font-size: 0.76rem; }
 .trow:last-child { border-bottom: 0; }
+.store { padding: 10px 12px; display: grid; gap: 6px; }
+.store-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.78rem; }
+.store .fine.warnline { color: var(--down); font-weight: 600; }
+.supgrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.sup { padding: 12px; border-right: 1px solid var(--line); display: grid; gap: 6px; align-content: start; min-width: 0; }
+.sup:last-child { border-right: 0; }
+.sup h4 { margin: 0; font: 600 0.84rem/1.2 var(--body); display: flex; justify-content: space-between; gap: 6px; align-items: center; }
+.sup p { margin: 0; font-size: 0.7rem; color: var(--muted); }
+.sup ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.72rem; }
+.sup li { display: grid; grid-template-columns: 12px minmax(0, 1fr); gap: 5px; color: var(--ink-2); }
+.sup li::before { font: 700 0.74rem/1.35 var(--mono); }
+.sup li.ok::before { content: "✓"; color: var(--up); } .sup li.warn::before { content: "!"; color: var(--warn); } .sup li.alert::before { content: "×"; color: var(--down); }
+.mark.warn { background: var(--warn-soft); color: var(--warn); } .mark.warn::before { content: "!"; }
+.supcomments { border-top: 1px solid var(--line); padding: 10px 14px 12px; }
+.supcomments h4 { margin: 0 0 6px; font: 600 0.66rem/1.2 var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.supcomments ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 0.8rem; }
+.supcomments li { display: flex; gap: 8px; align-items: baseline; }
+@media (max-width: 1100px) { .supgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sup { border-bottom: 1px solid var(--line); } }
+@media (max-width: 600px) { .supgrid { grid-template-columns: minmax(0, 1fr); } .sup { border-right: 0; } }
 .dl { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
 .dlbtn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border: 1px solid var(--accent); border-radius: 6px; color: var(--accent); text-decoration: none; font: 600 0.76rem var(--body); }
 .dlbtn:hover { background: var(--accent); color: var(--panel); }
@@ -543,11 +562,17 @@ footer p { margin: 0; max-width: 120ch; }
           <p id="at-rules">Buys only 4/4 green stocks, one equal slot each. You switch it on or off with the AUTOTRADE setting in GitHub.</p>
         </div>
         <ul class="atnotes" id="at-notes"><li>Waiting for the first run…</li></ul>
-        <div class="dl">
-          <a class="dlbtn" href="data/trade-journal.xlsx" download id="dl-xlsx">⤓ Trade journal · Excel</a>
-          <a class="dlbtn" href="data/trade-journal.pdf" target="_blank" rel="noopener" id="dl-pdf">⤓ Trade journal · PDF</a>
-        </div>
         <div class="siglist"><h4>Orders placed by the auto-trader</h4><div id="at-hist"><div class="empty">No orders yet.</div></div></div>
+      </article>
+
+      <article class="panel" id="records">
+        <div class="ph"><h3>Trade records</h3><small id="rec-upd">stored on GitHub</small></div>
+        <div class="dl" id="rec-links"><span class="fine">Waiting for the first records run…</span></div>
+        <div class="store">
+          <div class="store-top"><span class="k">Storage</span><span class="num" id="rec-size">—</span></div>
+          <div class="meter"><i id="rec-bar" style="width:0%;background:var(--accent)"></i></div>
+          <p class="fine" id="rec-warn">Weekly Excel: new file each Monday, newest 3 kept. Weekly PDF every Saturday 10:00 UTC; monthly report on the month's last Saturday. PDFs are kept forever.</p>
+        </div>
       </article>
 
       <article class="panel">
@@ -570,6 +595,12 @@ footer p { margin: 0; max-width: 120ch; }
       </article>
     </section>
   </div>
+
+  <section class="panel" id="supervisors" aria-labelledby="h-sup">
+    <div class="ph"><h3 id="h-sup">Supervisors · hourly system check</h3><small id="sup-upd">waiting for the first check</small></div>
+    <div class="supgrid" id="supgrid"></div>
+    <div class="supcomments"><h4>Comments to check</h4><ul id="supcomments"><li class="fine">No comments yet.</li></ul></div>
+  </section>
 
   <footer>
     <p>Portfolio and agent data from Alpaca, refreshed by a GitHub Action about every 5 minutes. Market widgets by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a>; free quotes can lag up to 15 minutes.</p>
@@ -600,6 +631,8 @@ const CONFIG = {
   portfolioUrl: "data/portfolio.json",
   agentUrl: "data/agent.json",
   tradesUrl: "data/trades.json",
+  recordsUrl: "data/records.json",
+  supervisorUrl: "data/supervisor.json",
   refreshSeconds: 60
 };
 /* ======================================== */
@@ -1233,7 +1266,7 @@ async function loadPortfolio() {
     if (!SNAP) { $("updated").textContent = "last try " + ago(snap.generated_at); return; }
   } else SNAP = snap;
   const c = SNAP.clock || {};
-  if (!snap.error) setDot("alp-dot", "alp-status", SNAP.demo ? "demo data" : c.is_open ? "live · market open" : "live · market closed", SNAP.demo ? "mid" : c.is_open ? "on" : "mid");
+  if (!snap.error) setDot("alp-dot", "alp-status", SNAP.demo ? "demo data" : c.is_open ? "connected · market open" : "connected · market closed", SNAP.demo ? "mid" : c.is_open ? "on" : "mid");
   $("mode").hidden = !(SNAP.paper || SNAP.demo);
   $("mode").textContent = SNAP.demo ? "Demo data" : "Paper"; $("mode").classList.toggle("demo", !!SNAP.demo);
   $("updated").textContent = (SNAP.demo ? "example numbers · " : "updated ") + ago(SNAP.generated_at);
@@ -1265,7 +1298,7 @@ async function loadTrades() {
   $("at-state").querySelector(".dot").className = "dot " + (mode === "on" ? "on" : mode === "sell-only" ? "mid" : "");
   $("at-label").textContent = { on: "On · trading", "sell-only": "Sell-only", off: "Off" }[mode];
   $("at-upd").textContent = (t.demo ? "example · " : "last run ") + ago(t.generated_at);
-  $("at-rules").textContent = `Buys 4/4 green stocks, ${R.slots || 12} equal slots of ${R.slot_pct || 8.33}% each, cash only, no buys in the last ${R.no_buy_minutes_before_close ?? 30} min before the close. Exits: 3 green sell half, 2 or fewer sell all, stop-loss −${R.stop_loss_pct ?? 8}%, take profit +${R.take_profit_pct ?? 20}%. Only touches positions it bought.`;
+  $("at-rules").textContent = `Buys 4/4 green stocks, ${R.slots || 12} equal slots of ${R.slot_pct || 8.33}% each, cash only, no buys in the last ${R.no_buy_minutes_before_close ?? 30} min before the close. Exits: stop-loss −${R.stop_loss_pct ?? 5}%, trailing stop −${R.trail_pct ?? 4}% from the best price once up ${R.trail_arm_pct ?? 4}%, bad day −${R.bad_day_pct ?? 3}% if not 4/4 green, 3 green sell half, 2 or fewer sell all, take profit +${R.take_profit_pct ?? 20}%. Only touches positions it bought.`;
   $("at-notes").innerHTML = (t.error ? [`<li class="err">Last run failed: ${esc(t.error)}</li>`] : []).concat((t.notes || []).map(n => `<li>${esc(n)}</li>`)).join("") || "<li>No notes.</li>";
   const H = (t.history || []).slice().reverse().slice(0, 15);
   $("at-hist").innerHTML = H.length ? H.map(a => `<div class="trow"><span class="sd ${a.side}">${a.side}</span><b>${esc(a.symbol)}</b>
@@ -1273,9 +1306,55 @@ async function loadTrades() {
       <span class="num">${a.notional ? "$" + a.notional : a.qty ? a.qty + " sh" : ""}</span></div>`).join("") : '<div class="empty">No orders yet.</div>';
 }
 
+/* ================================================================ RECORDS + SUPERVISORS */
+const REPO = (() => {
+  const owner = location.hostname.endsWith(".github.io") ? location.hostname.split(".")[0] : "minto2196";
+  const repo = location.hostname.endsWith(".github.io") ? (location.pathname.split("/")[1] || "my-claude-trade") : "my-claude-trade";
+  return `${owner}/${repo}`;
+})();
+const rawLink = path => `https://github.com/${REPO}/raw/trade-records/${path.split("/").map(encodeURIComponent).join("/")}`;
+async function loadRecords() {
+  let r;
+  try { r = await fetchJSON(CONFIG.recordsUrl); } catch (e) { r = DEMO_ALLOWED ? { demo: true, generated_at: new Date().toISOString(), size_bytes: 412000, git_bytes: 230000, limit_bytes: 1073741824,
+    files: [{ path: "excel/2026-W44_2026-10-26.xlsx", kind: "weekly_excel", name: "2026-W44_2026-10-26.xlsx" }, { path: "reports/2026/10-October/monthly-report_2026-10_October.pdf", kind: "monthly_pdf", name: "monthly-report_2026-10_October.pdf" },
+      { path: "reports/2026/10-October/week-44_2026-10-26_to_2026-11-01.pdf", kind: "weekly_pdf", name: "week-44_2026-10-26_to_2026-11-01.pdf" }] } : null; }
+  if (!r) return;
+  const F = r.files || [], pick = k => F.filter(f => f.kind === k).sort((a, b) => b.path.localeCompare(a.path))[0];
+  const xl = pick("weekly_excel"), wp = pick("weekly_pdf"), mp = pick("monthly_pdf");
+  const btn = (f, label) => f ? `<a class="dlbtn" href="${esc(rawLink(f.path))}" target="_blank" rel="noopener" title="${esc(f.name)}">⤓ ${label}</a>` : "";
+  $("rec-links").innerHTML = (btn(xl, "This week · Excel") + btn(wp, "Last weekly PDF") + btn(mp, "Last monthly report") +
+    `<a class="dlbtn" href="https://github.com/${REPO}/tree/trade-records" target="_blank" rel="noopener">All records on GitHub</a>`) ;
+  $("rec-upd").textContent = (r.demo ? "example · " : "updated ") + ago(r.generated_at);
+  const used = (r.size_bytes || 0) + (r.git_bytes || 0), lim = r.limit_bytes || 1073741824;
+  $("rec-size").textContent = `${(used / 1048576).toFixed(1)} MB of 1 GB`;
+  $("rec-bar").style.width = Math.max(0.5, used / lim * 100).toFixed(2) + "%";
+  $("rec-bar").style.background = used >= 0.9 * lim ? "var(--down)" : used >= 0.7 * lim ? "var(--warn)" : "var(--accent)";
+  if (r.warning) { $("rec-warn").textContent = r.warning; $("rec-warn").classList.add("warnline"); }
+}
+async function loadSupervisors() {
+  let s;
+  try { s = await fetchJSON(CONFIG.supervisorUrl); } catch (e) { s = DEMO_ALLOWED ? { demo: true, generated_at: new Date(Date.now() - 20 * 60000).toISOString(), overall: "warn",
+    supervisors: [["Data watch", "Alpaca connection and portfolio snapshot", "ok", [["ok", "Alpaca answers (paper account, status ACTIVE)."], ["ok", "Portfolio snapshot is fresh (2 min old)."]]],
+      ["Scan watch", "Market scan and the four checks", "ok", [["ok", "Funnel normal: 13,187 → 5,000 → 500 → 30 with 4/4 green."], ["ok", "96% of stocks pass 'data is real'."]]],
+      ["Trade watch", "Auto-trader rules, positions and orders", "ok", [["ok", "Auto-trader switch is ON on a paper account."], ["ok", "6 position(s), 0 open order(s), no stop-loss missed."]]],
+      ["Records watch", "Journal, Excel and PDF reports, storage", "ok", [["ok", "Journal complete: 14 order(s) recorded."], ["ok", "Storage 0.6 MB of 1 GB."]]],
+      ["Schedule watch", "GitHub Actions runs and gaps", "warn", [["warn", "GitHub left a 34-minute gap between runs while the market was open. Exits can only act when a run happens."]]]]
+      .map(([name, role, status, c]) => ({ name, role, status, checks: c.map(([status, text]) => ({ status, text })) })),
+    comments: [{ level: "warn", supervisor: "Schedule watch", text: "Example comment: GitHub left a 34-minute gap between runs while the market was open." }] } : null; }
+  if (!s) { $("sup-upd").textContent = "not run yet"; return; }
+  const lab = { ok: "All good", warn: "Check", alert: "Problem" };
+  $("sup-upd").textContent = `${s.demo ? "example · " : ""}checked ${ago(s.generated_at)} · overall: ${lab[s.overall] || s.overall}`;
+  $("supgrid").innerHTML = (s.supervisors || []).map(v => `<div class="sup"><h4>${esc(v.name)}<span class="mark ${v.status === "warn" ? "warn" : v.status}">${lab[v.status]}</span></h4>
+      <p>${esc(v.role)}</p><ul>${v.checks.map(c => `<li class="${c.status}">${esc(c.text)}</li>`).join("")}</ul></div>`).join("");
+  const C = s.comments || [];
+  $("supcomments").innerHTML = C.length ? C.map(c => `<li><span class="mark ${c.level === "warn" ? "warn" : c.level}">${esc(c.supervisor)}</span><span>${esc(c.text)}</span></li>`).join("")
+    : '<li><span class="mark ok">All</span><span>Nothing to check. Every supervisor reports all good.</span></li>';
+}
+
 mountAll();
-(async () => { await loadPortfolio(); await loadAgent(); await loadTrades(); })();
-setInterval(async () => { await loadPortfolio(); await loadAgent(); await loadTrades(); }, CONFIG.refreshSeconds * 1000);
+const refreshAll = async () => { await loadPortfolio(); await loadAgent(); await loadTrades(); await loadRecords(); await loadSupervisors(); };
+refreshAll();
+setInterval(refreshAll, CONFIG.refreshSeconds * 1000);
 </script>
 </body>
 </html>

@@ -21,7 +21,9 @@ Buying (only while the US market is open):
 Exits (only on positions the auto-trader bought itself; your manual positions are never touched):
   * 2 or fewer green           -> sell all
   * 3 green                    -> sell half, once (not again within 3 days)
-  * down STOP_LOSS_PCT  (8%)   -> sell all
+  * down STOP_LOSS_PCT  (5%)   -> sell all
+  * trailing stop: once up TRAIL_ARM_PCT (4%), sell all if it falls TRAIL_PCT (4%) from its best price
+  * bad day: down BAD_DAY_PCT (3%) today and no longer 4 of 4 green -> sell all
   * up   TAKE_PROFIT_PCT (20%) -> sell all, freeing the slot for a new 4-green stock
   * exits run the same day; on a live account under $25,000 that has used its 3 day trades,
     same-day exits wait (Alpaca's pattern-day-trader rule would reject them)
@@ -51,7 +53,11 @@ TRADE = "https://paper-api.alpaca.markets" if PAPER else "https://api.alpaca.mar
 MODE = os.environ.get("AUTOTRADE", "off").strip().lower()
 MODE = MODE if MODE in ("on", "sell-only") else "off"
 SLOTS = max(1, int(os.environ.get("AUTOTRADE_SLOTS", "12") or 12))
-STOP_LOSS_PCT = float(os.environ.get("AUTOTRADE_STOP_LOSS_PCT", "8") or 8)
+STOP_LOSS_PCT = float(os.environ.get("AUTOTRADE_STOP_LOSS_PCT", "5") or 5)
+TRAIL_ARM_PCT = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "4") or 4)
+TRAIL_PCT = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "4") or 4)
+BAD_DAY_PCT = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3)
+PEAKS = {}            # best price seen per owned symbol (trailing stop); loaded/saved via --state
 TAKE_PROFIT_PCT = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "20") or 20)
 DAILY_LOSS_PCT = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5)
 NO_BUY_MINUTES = float(os.environ.get("AUTOTRADE_NO_BUY_MINUTES", "30") or 30)
@@ -137,6 +143,7 @@ def run(agent, previous):
     now = dt.datetime.now(dt.timezone.utc)
     out = {"generated_at": now.isoformat(timespec="seconds"), "mode": MODE, "paper": PAPER,
            "rules": {"slots": SLOTS, "slot_pct": round(100 / SLOTS, 2), "stop_loss_pct": STOP_LOSS_PCT,
+                     "trail_arm_pct": TRAIL_ARM_PCT, "trail_pct": TRAIL_PCT, "bad_day_pct": BAD_DAY_PCT,
                      "take_profit_pct": TAKE_PROFIT_PCT, "daily_loss_pct": DAILY_LOSS_PCT, "allow_etf": ALLOW_ETF,
                      "no_buy_minutes_before_close": NO_BUY_MINUTES},
            "actions": [], "notes": []}
@@ -254,10 +261,20 @@ def run(agent, previous):
             continue
         p = positions[sym]
         qty, plpc = num(p.get("qty")), num(p.get("unrealized_plpc")) * 100
+        price, entry = num(p.get("current_price")), num(p.get("avg_entry_price"))
+        day = num(p.get("change_today")) * 100
+        peak = max(num(PEAKS.get(sym)), price, entry)
+        PEAKS[sym] = peak
+        peak_gain = (peak / entry - 1) * 100 if entry else 0
+        drop_from_peak = (1 - price / peak) * 100 if peak else 0
         b = board.get(sym)
         greens = b["greens"] if b else None
         if plpc <= -STOP_LOSS_PCT:
             place(sym, "sell", f"Stop-loss: down {abs(plpc):.1f}% from entry", qty=qty, rule="stop-loss")
+        elif peak_gain >= TRAIL_ARM_PCT and drop_from_peak >= TRAIL_PCT:
+            place(sym, "sell", f"Trailing stop: was up {peak_gain:.1f}%, fell {drop_from_peak:.1f}% from its best", qty=qty, rule="trailing stop")
+        elif day <= -BAD_DAY_PCT and greens != 4:
+            place(sym, "sell", f"Bad day: down {abs(day):.1f}% today and only {greens if greens is not None else '?'} of 4 green", qty=qty, rule="bad day")
         elif plpc >= TAKE_PROFIT_PCT:
             place(sym, "sell", f"Take profit: up {plpc:.1f}% from entry", qty=qty, rule="take-profit")
         elif greens is not None and greens <= 2:
@@ -318,6 +335,9 @@ def run(agent, previous):
         elif bought == 0 and free <= 0:
             out["notes"].append(f"All {SLOTS} slots are full.")
 
+    for sym in list(PEAKS):
+        if sym not in owned:
+            PEAKS.pop(sym)
     out["owned"] = sorted(owned)
     out["history"] = (history + out["actions"])[-300:]
     if not out["actions"]:
@@ -332,7 +352,10 @@ def main():
     ap.add_argument("--previous")
     ap.add_argument("--journal")
     ap.add_argument("--journal-previous")
+    ap.add_argument("--state", help="JSON file that keeps trailing-stop peaks between runs")
     a = ap.parse_args()
+    if a.state:
+        PEAKS.update(load(a.state).get("peaks", {}))
     previous = load(a.previous)
     agent = load(a.agent)
     if not (KEY and SECRET):
@@ -347,6 +370,9 @@ def main():
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     with open(a.out, "w") as f:
         json.dump(out, f, separators=(",", ":"))
+    if a.state:
+        with open(a.state, "w") as f:
+            json.dump({"updated_at": out.get("generated_at"), "peaks": PEAKS}, f, indent=1)
     if a.journal:
         prev = load(a.journal_previous).get("entries", [])
         entries = prev + JOURNAL

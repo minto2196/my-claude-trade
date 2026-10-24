@@ -141,7 +141,7 @@ def add_table(ws, name, ref):
     ws.add_table(t)
 
 
-def build_xlsx(entries, trades, path, generated):
+def build_xlsx(entries, trades, path, generated, title="Trade Journal · Trade Desk", period=None, trips=None):
     wb = Workbook()
     wb.calculation.fullCalcOnLoad = True
     base = Font(name=F, size=10)
@@ -187,7 +187,7 @@ def build_xlsx(entries, trades, path, generated):
           "Sold (Berlin)", "Sold (New York)", "Sell price $", "Proceeds $", "P/L $", "P/L %", "Days held", "Exit rule", "Status"]
     wr.append(rh)
     style_header(wr, 1, len(rh))
-    trips = round_trips(entries)
+    trips = round_trips(entries) if trips is None else trips
     for r, t in enumerate(trips, start=2):
         vals = [t["symbol"], t.get("company"), local(t["bought"], BERLIN), local(t["bought"], NY), t["buy_px"], t["qty"],
                 f"=E{r}*F{r}", local(t["sold"], BERLIN), local(t["sold"], NY), t["sell_px"],
@@ -213,7 +213,7 @@ def build_xlsx(entries, trades, path, generated):
 
     # ---------------- Summary
     ws = wb.create_sheet("Summary", 0)
-    ws["A1"] = "Trade Journal · Trade Desk"
+    ws["A1"] = title
     ws["A1"].font = Font(name=F, size=16, bold=True, color=INK)
     ws["A2"] = "Generated (Berlin)"
     ws["B2"] = local(generated, BERLIN)
@@ -221,6 +221,11 @@ def build_xlsx(entries, trades, path, generated):
     ws["A3"] = "Generated (New York)"
     ws["B3"] = local(generated, NY)
     ws["B3"].number_format = "yyyy-mm-dd hh:mm:ss"
+    if period:
+        ws["C2"] = "Period"
+        ws["D2"] = period
+        ws["C2"].font = Font(name=F, size=10, color=MUTED)
+        ws["D2"].font = Font(name=F, size=10, bold=True)
     ws["A4"] = "Account"
     ws["B4"] = "Paper (practice money)" if trades.get("paper", True) else "LIVE (real money)"
     ws["A5"] = "Auto-trader switch"
@@ -290,7 +295,7 @@ def build_xlsx(entries, trades, path, generated):
 
     for sh in wb.worksheets:
         sh.sheet_view.showGridLines = sh.title not in ("Summary", "Rules")
-        sh.page_setup.orientation = "landscape"
+        sh.page_setup.orientation = "portrait"
         sh.page_setup.fitToWidth = 1
         sh.page_setup.fitToHeight = 0
         sh.sheet_properties.pageSetUpPr.fitToPage = True
@@ -298,136 +303,185 @@ def build_xlsx(entries, trades, path, generated):
     return trips
 
 
-# ----------------------------------------------------------------------------- PDF
-def build_pdf(entries, trips, trades, path, generated):
+# ----------------------------------------------------------------------------- PDF (A4 portrait)
+def _pdf_kit():
     from reportlab.lib import colors
-    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle
     from reportlab.lib.units import mm
-    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table as T, TableStyle
+    from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table as T, TableStyle
 
     c = lambda h: colors.HexColor("#" + h)
-    small = ParagraphStyle("s", fontName="Helvetica", fontSize=7.4, leading=9, textColor=c(INK))
-    head = ParagraphStyle("h", fontName="Helvetica-Bold", fontSize=7.4, leading=9, textColor=colors.white)
-    h1 = ParagraphStyle("h1", fontName="Helvetica-Bold", fontSize=18, leading=22, textColor=c(INK))
-    h2 = ParagraphStyle("h2", fontName="Helvetica-Bold", fontSize=11, leading=14, textColor=c(INK), spaceBefore=8, spaceAfter=4)
-    meta = ParagraphStyle("m", fontName="Helvetica", fontSize=8.5, leading=11, textColor=c(MUTED))
-    kv = ParagraphStyle("kv", fontName="Helvetica-Bold", fontSize=13, leading=16, textColor=c(INK))
-    kk = ParagraphStyle("kk", fontName="Helvetica", fontSize=7, leading=9, textColor=c(MUTED))
+    k = {"colors": colors, "A4": A4, "mm": mm, "PageBreak": PageBreak, "Spacer": Spacer, "T": T, "TableStyle": TableStyle,
+         "Doc": SimpleDocTemplate, "c": c}
+    k["small"] = ParagraphStyle("s", fontName="Helvetica", fontSize=7, leading=8.6, textColor=c(INK))
+    k["num"] = ParagraphStyle("n", parent=k["small"], alignment=2)
+    k["head"] = ParagraphStyle("h", fontName="Helvetica-Bold", fontSize=7, leading=8.6, textColor=colors.white)
+    k["headn"] = ParagraphStyle("hn", parent=k["head"], alignment=2)
+    k["h1"] = ParagraphStyle("h1", fontName="Helvetica-Bold", fontSize=17, leading=21, textColor=c(INK))
+    k["h2"] = ParagraphStyle("h2", fontName="Helvetica-Bold", fontSize=11, leading=14, textColor=c(INK), spaceBefore=9, spaceAfter=4)
+    k["meta"] = ParagraphStyle("m", fontName="Helvetica", fontSize=8, leading=10.5, textColor=c(MUTED))
+    k["kv"] = ParagraphStyle("kv", fontName="Helvetica-Bold", fontSize=9.5, leading=12, textColor=c(INK))
+    k["kk"] = ParagraphStyle("kk", fontName="Helvetica", fontSize=6.6, leading=8, textColor=c(MUTED))
+    k["cover1"] = ParagraphStyle("c1", fontName="Helvetica-Bold", fontSize=30, leading=36, textColor=c(INK))
+    k["cover2"] = ParagraphStyle("c2", fontName="Helvetica", fontSize=15, leading=20, textColor=c(TEAL))
+    k["P"] = lambda s, st=None: Paragraph("" if s is None else str(s), st or k["small"])
+    k["W"] = A4[0] - 24 * mm
+    return k
 
-    money = lambda v: "" if v is None else f"${v:,.2f}"
-    qtyf = lambda v: "" if v is None else (f"{v:,.6f}".rstrip("0").rstrip("."))
-    tfmt = lambda t, tz: t.astimezone(tz).strftime("%Y-%m-%d %H:%M") if t else ""
-    P = lambda s, st=small: Paragraph(str(s) if s is not None else "", st)
 
+money = lambda v: "" if v is None else (f"-${abs(v):,.2f}" if v < 0 else f"${v:,.2f}")
+qtyf = lambda v: "" if v is None else f"{v:,.6f}".rstrip("0").rstrip(".")
+tfmt = lambda t, tz=BERLIN: t.astimezone(tz).strftime("%Y-%m-%d %H:%M") if t else ""
+sfmt = lambda t, tz=BERLIN: t.astimezone(tz).strftime("%d %b %H:%M") if t else ""
+CODE = {"ok": "P", "watch": "W", "alert": "A", "skip": "N"}
+
+
+def stats(entries, trips):
     filled = [e for e in entries if e.get("filled_qty") and e.get("filled_avg_price")]
-    bought = sum(e["filled_qty"] * e["filled_avg_price"] for e in filled if e["side"] == "buy")
-    sold = sum(e["filled_qty"] * e["filled_avg_price"] for e in filled if e["side"] == "sell")
     closed = [t for t in trips if t["status"] == "Closed"]
     pl = sum((t["sell_px"] - t["buy_px"]) * t["qty"] for t in closed)
-    wins = sum(1 for t in closed if t["sell_px"] > t["buy_px"])
+    return {"orders": len(entries), "filled": len(filled),
+            "bought": sum(e["filled_qty"] * e["filled_avg_price"] for e in filled if e["side"] == "buy"),
+            "sold": sum(e["filled_qty"] * e["filled_avg_price"] for e in filled if e["side"] == "sell"),
+            "closed": len(closed), "pl": pl, "wins": sum(1 for t in closed if t["sell_px"] > t["buy_px"]),
+            "open": sum(1 for t in trips if t["status"] == "Open")}
 
-    doc = SimpleDocTemplate(path, pagesize=landscape(A4), leftMargin=12 * mm, rightMargin=12 * mm,
-                            topMargin=12 * mm, bottomMargin=14 * mm, title="Trade Journal", author="Trade Desk auto-trader")
-    W = landscape(A4)[0] - 24 * mm
-    story = [P("Trade Journal", h1),
-             P(f"Trade Desk auto-trader · {'Paper account (practice money)' if trades.get('paper', True) else 'LIVE account (real money)'} · "
-               f"switch {str(trades.get('mode') or 'off').upper()} · generated {tfmt(generated, BERLIN)} Berlin / {tfmt(generated, NY)} New York", meta),
-             Spacer(1, 6)]
-    kp = [("Orders", f"{len(entries)}"), ("Filled", f"{len(filled)}"), ("Bought", money(bought)), ("Sold", money(sold)),
-          ("Closed trips", f"{len(closed)}"), ("Realized P/L", money(pl)), ("Win rate", f"{(wins / len(closed) * 100):.0f}%" if closed else "—"),
-          ("Open lots", f"{sum(1 for t in trips if t['status'] == 'Open')}")]
-    kt = T([[P(v, kv) for _, v in kp], [P(k, kk) for k, _ in kp]], colWidths=[W / len(kp)] * len(kp))
-    kt.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), c(SOFT)), ("BOX", (0, 0), (-1, -1), 0.5, c(LINE)),
-                            ("LINEAFTER", (0, 0), (-2, -1), 0.5, c(LINE)), ("TOPPADDING", (0, 0), (-1, -1), 6),
-                            ("BOTTOMPADDING", (0, 0), (-1, -1), 5), ("LEFTPADDING", (0, 0), (-1, -1), 8)]))
-    story += [kt, Spacer(1, 6)]
 
-    def table(header, rows, widths, numeric_cols=()):
-        data = [[P(h, head_num if i in numeric_cols else head) for i, h in enumerate(header)]] + rows
-        t = T(data, colWidths=[W * w for w in widths], repeatRows=1)
-        stl = [("BACKGROUND", (0, 0), (-1, 0), c(TEAL)), ("VALIGN", (0, 0), (-1, -1), "TOP"),
-               ("LINEBELOW", (0, 0), (-1, -1), 0.25, c(LINE)), ("TOPPADDING", (0, 0), (-1, -1), 3),
-               ("BOTTOMPADDING", (0, 0), (-1, -1), 3), ("LEFTPADDING", (0, 0), (-1, -1), 4), ("RIGHTPADDING", (0, 0), (-1, -1), 4)]
-        for i in range(1, len(data)):
-            if i % 2 == 0:
-                stl.append(("BACKGROUND", (0, i), (-1, i), c(SOFT)))
-        t.setStyle(TableStyle(stl))
-        return t
+def _table(k, header, rows, widths, numeric=()):
+    data = [[k["P"](h, k["headn"] if i in numeric else k["head"]) for i, h in enumerate(header)]] + rows
+    t = k["T"](data, colWidths=[k["W"] * w for w in widths], repeatRows=1)
+    st = [("BACKGROUND", (0, 0), (-1, 0), k["c"](TEAL)), ("VALIGN", (0, 0), (-1, -1), "TOP"),
+          ("LINEBELOW", (0, 0), (-1, -1), 0.25, k["c"](LINE)), ("TOPPADDING", (0, 0), (-1, -1), 2.5),
+          ("BOTTOMPADDING", (0, 0), (-1, -1), 2.5), ("LEFTPADDING", (0, 0), (-1, -1), 3), ("RIGHTPADDING", (0, 0), (-1, -1), 3)]
+    st += [("BACKGROUND", (0, i), (-1, i), k["c"](SOFT)) for i in range(2, len(data), 2)]
+    t.setStyle(k["TableStyle"](st))
+    return t
 
-    num_style = ParagraphStyle("n", parent=small, alignment=2)
-    head_num = ParagraphStyle("hn", parent=head, alignment=2)
-    CODE = {"ok": "P", "watch": "W", "alert": "A", "skip": "N"}
-    story.append(P("Orders", h2))
-    if entries:
-        rows = []
-        for e in sorted(entries, key=lambda e: e.get("journal_no") or 0):
-            t = when(e)
-            side = (e.get("side") or "").upper()
-            sc = UP if side == "BUY" else DOWN
-            checks = " ".join(f"{i}{CODE.get(e.get(k), '–')}" for i, k in enumerate(
-                ("check1_data_status", "check2_organic_status", "check3_prediction_status", "check4_news_status"), 1))
-            rows.append([P(e.get("journal_no")), P(tfmt(t, BERLIN)), P(tfmt(t, NY)),
-                         P(f'<font color="#{sc}"><b>{side}</b></font>'), P(f"<b>{e.get('symbol')}</b>"), P(e.get("company") or ""),
-                         P(qtyf(e.get("filled_qty") or e.get("qty_requested")), num_style),
-                         P(money(e.get("filled_avg_price")), num_style),
-                         P(money(e["filled_qty"] * e["filled_avg_price"] if e.get("filled_qty") and e.get("filled_avg_price") else e.get("notional_requested")), num_style),
-                         P(e.get("status") or ""), P(f"{e.get('greens', '')}/4 · {checks}"), P(e.get("reason") or "")])
-        story.append(table(["#", "Time Berlin", "Time New York", "Side", "Symbol", "Company", "Qty", "Avg price", "Value",
-                            "Status", "Checks at decision", "Reason"], rows,
-                           [0.03, 0.085, 0.085, 0.045, 0.06, 0.15, 0.07, 0.07, 0.075, 0.065, 0.11, 0.155], numeric_cols=(6, 7, 8)))
-        story.append(Spacer(1, 3))
-        story.append(P("Checks at decision: 1 data is real · 2 organic trend · 3 prediction · 4 news. P pass, W watch, A alert, N not read.", meta))
-    else:
-        story.append(P("No orders yet. They appear here as soon as the auto-trader places one.", meta))
 
-    story.append(P("Round trips (first-in, first-out)", h2))
-    if trips:
-        rows = []
-        for t in trips:
-            plv = (t["sell_px"] - t["buy_px"]) * t["qty"] if t["sell_px"] is not None else None
-            plp = (t["sell_px"] / t["buy_px"] - 1) * 100 if t["sell_px"] is not None and t["buy_px"] else None
-            col = UP if (plv or 0) >= 0 else DOWN
-            days = (t["sold"] - t["bought"]).total_seconds() / 86400 if t["sold"] and t["bought"] else None
-            rows.append([P(f"<b>{t['symbol']}</b>"), P(tfmt(t["bought"], BERLIN)), P(money(t["buy_px"]), num_style), P(qtyf(t["qty"]), num_style),
-                         P(money(t["buy_px"] * t["qty"]), num_style), P(tfmt(t["sold"], BERLIN)), P(money(t["sell_px"]), num_style),
-                         P(money(t["sell_px"] * t["qty"]) if t["sell_px"] is not None else "", num_style),
-                         P(f'<font color="#{col}">{money(plv)}</font>' if plv is not None else "", num_style),
-                         P(f'<font color="#{col}">{plp:+.2f}%</font>' if plp is not None else "", num_style),
-                         P(f"{days:.1f}" if days is not None else "", num_style), P(t.get("exit") or ""), P(t["status"])])
-        story.append(table(["Symbol", "Bought (Berlin)", "Buy price", "Qty", "Cost", "Sold (Berlin)", "Sell price", "Proceeds",
-                            "P/L", "P/L %", "Days", "Exit rule", "Status"], rows,
-                           [0.065, 0.095, 0.075, 0.08, 0.08, 0.095, 0.075, 0.08, 0.075, 0.06, 0.045, 0.115, 0.06], numeric_cols=(2, 3, 4, 6, 7, 8, 9, 10)))
-    else:
-        story.append(P("No filled buys yet.", meta))
+def _kpis(k, s):
+    kp = [("Orders", f"{s['orders']}"), ("Bought", money(s["bought"])), ("Sold", money(s["sold"])), ("Closed trips", f"{s['closed']}"),
+          ("Realized P/L", money(s["pl"])), ("Win rate", f"{s['wins'] / s['closed'] * 100:.0f}%" if s["closed"] else "—"), ("Open lots", f"{s['open']}")]
+    t = k["T"]([[k["P"](v, k["kv"]) for _, v in kp], [k["P"](a, k["kk"]) for a, _ in kp]], colWidths=[k["W"] / len(kp)] * len(kp))
+    t.setStyle(k["TableStyle"]([("BACKGROUND", (0, 0), (-1, -1), k["c"](SOFT)), ("BOX", (0, 0), (-1, -1), 0.5, k["c"](LINE)),
+                                 ("LINEAFTER", (0, 0), (-2, -1), 0.5, k["c"](LINE)), ("TOPPADDING", (0, 0), (-1, -1), 5),
+                                 ("BOTTOMPADDING", (0, 0), (-1, -1), 4), ("LEFTPADDING", (0, 0), (-1, -1), 6)]))
+    return t
 
-    def footer(cv, d):
+
+def _orders(k, entries):
+    """One line per order: when, what, how much, what the checks said, why."""
+    P = k["P"]
+    if not entries:
+        return [P("No orders in this period.", k["meta"])]
+    rows = []
+    for e in sorted(entries, key=lambda e: e.get("journal_no") or 0):
+        t, side = when(e), (e.get("side") or "").upper()
+        val = e["filled_qty"] * e["filled_avg_price"] if e.get("filled_qty") and e.get("filled_avg_price") else e.get("notional_requested")
+        checks = " ".join(f"{i}{CODE.get(e.get(x), '–')}" for i, x in enumerate(
+            ("check1_data_status", "check2_organic_status", "check3_prediction_status", "check4_news_status"), 1))
+        rows.append([P(e.get("journal_no")), P(f"{sfmt(t)}<br/><font color='#{MUTED}'>NY {sfmt(t, NY)[7:]}</font>"),
+                     P(f'<font color="#{UP if side == "BUY" else DOWN}"><b>{side}</b></font>'),
+                     P(f"<b>{e.get('symbol')}</b><br/><font color='#{MUTED}'>{(e.get('company') or '')[:34]}</font>"),
+                     P(qtyf(e.get("filled_qty") or e.get("qty_requested")), k["num"]), P(money(e.get("filled_avg_price")), k["num"]),
+                     P(money(val), k["num"]), P(e.get("status") or ""),
+                     P(f"<b>{e.get('greens', '–')}/4</b> {checks}"), P(e.get("reason") or "")])
+    return [_table(k, ["#", "Time (Berlin)", "Side", "Symbol / company", "Qty", "Price", "Value", "Status", "Checks", "Reason"], rows,
+                   [0.035, 0.09, 0.055, 0.165, 0.085, 0.075, 0.085, 0.055, 0.135, 0.22], numeric=(4, 5, 6)),
+            k["Spacer"](1, 3),
+            P("Checks at decision: 1 data is real · 2 organic trend · 3 prediction · 4 news. P pass, W watch, A alert, N not read. "
+              "Every other detail (A to AV) is in the Excel file.", k["meta"])]
+
+
+def _trips(k, trips):
+    P = k["P"]
+    if not trips:
+        return [P("No buy lots in this period.", k["meta"])]
+    rows = []
+    for t in trips:
+        closed = t["sell_px"] is not None
+        plv = (t["sell_px"] - t["buy_px"]) * t["qty"] if closed else None
+        plp = (t["sell_px"] / t["buy_px"] - 1) * 100 if closed and t["buy_px"] else None
+        col = UP if (plv or 0) >= 0 else DOWN
+        days = (t["sold"] - t["bought"]).total_seconds() / 86400 if t["sold"] and t["bought"] else None
+        rows.append([P(f"<b>{t['symbol']}</b>"), P(sfmt(t["bought"])), P(money(t["buy_px"]), k["num"]), P(qtyf(t["qty"]), k["num"]),
+                     P(sfmt(t["sold"])), P(money(t["sell_px"]), k["num"]),
+                     P(f'<font color="#{col}">{money(plv)}</font>' if closed else "", k["num"]),
+                     P(f'<font color="#{col}">{plp:+.2f}%</font>' if plp is not None else "", k["num"]),
+                     P(f"{days:.1f}" if days is not None else "", k["num"]), P(t.get("exit") or ""), P(t["status"])])
+    return [_table(k, ["Symbol", "Bought", "Buy", "Qty", "Sold", "Sell", "P/L", "P/L %", "Days", "Exit rule", "Status"], rows,
+                   [0.07, 0.115, 0.075, 0.09, 0.115, 0.075, 0.085, 0.07, 0.05, 0.18, 0.075], numeric=(2, 3, 5, 6, 7, 8))]
+
+
+def _footer(k, label, generated):
+    def draw(cv, d):
         cv.saveState()
-        cv.setFont("Helvetica", 7.5)
-        cv.setFillColor(c(MUTED))
-        cv.drawString(12 * mm, 7 * mm, f"Trade Desk · Trade Journal · generated {tfmt(generated, BERLIN)} Berlin · not financial advice")
-        cv.drawRightString(landscape(A4)[0] - 12 * mm, 7 * mm, f"Page {d.page}")
+        cv.setFont("Helvetica", 7)
+        cv.setFillColor(k["c"](MUTED))
+        cv.drawString(12 * k["mm"], 7 * k["mm"], f"Trade Desk · {label} · generated {tfmt(generated)} Berlin · not financial advice")
+        cv.drawRightString(k["A4"][0] - 12 * k["mm"], 7 * k["mm"], f"Page {d.page}")
         cv.restoreState()
-
-    doc.build(story, onFirstPage=footer, onLaterPages=footer)
-
-
-def main():
-    journal_path, trades_path, out_dir = sys.argv[1:4]
-    try:
-        entries = json.load(open(journal_path)).get("entries", [])
-    except Exception:
-        entries = []
-    try:
-        trades = json.load(open(trades_path))
-    except Exception:
-        trades = {}
-    generated = dt.datetime.now(UTC)
-    os.makedirs(out_dir, exist_ok=True)
-    trips = build_xlsx(entries, trades, os.path.join(out_dir, "trade-journal.xlsx"), generated)
-    build_pdf(entries, trips, trades, os.path.join(out_dir, "trade-journal.pdf"), generated)
-    print(f"journal: {len(entries)} orders, {len(trips)} lots -> trade-journal.xlsx, trade-journal.pdf")
+    return draw
 
 
-if __name__ == "__main__":
-    main()
+def _doc(k, path, title):
+    return k["Doc"](path, pagesize=k["A4"], leftMargin=12 * k["mm"], rightMargin=12 * k["mm"], topMargin=12 * k["mm"],
+                    bottomMargin=14 * k["mm"], title=title, author="Trade Desk auto-trader")
+
+
+def weekly_story(k, entries, trips, title, period, trades, generated):
+    acct = "Paper account (practice money)" if trades.get("paper", True) else "LIVE account (real money)"
+    return [k["P"](title, k["h1"]), k["P"](f"{period} · {acct} · generated {tfmt(generated)} Berlin / {tfmt(generated, NY)} New York", k["meta"]),
+            k["Spacer"](1, 6), _kpis(k, stats(entries, trips)), k["P"]("Orders", k["h2"]), *_orders(k, entries),
+            k["P"]("Buy lots and their sales (first-in, first-out)", k["h2"]), *_trips(k, trips)]
+
+
+def build_weekly_pdf(path, entries, trips, title, period, trades, generated):
+    k = _pdf_kit()
+    _doc(k, path, title).build(weekly_story(k, entries, trips, title, period, trades, generated),
+                               onFirstPage=_footer(k, title, generated), onLaterPages=_footer(k, title, generated))
+
+
+def build_monthly_pdf(path, month_label, period, entries, trips, weeks, last_week, trades, generated):
+    """Title page + short monthly summary + the month's final week in full.
+    weeks: [(label, entries, trips)], last_week: (title, period, entries, trips)."""
+    k = _pdf_kit()
+    P, S = k["P"], stats(entries, trips)
+    acct = "Paper account (practice money)" if trades.get("paper", True) else "LIVE account (real money)"
+    story = [k["Spacer"](1, 150), P("Monthly Trading Report", k["cover1"]), k["Spacer"](1, 6), P(month_label, k["cover2"]),
+             k["Spacer"](1, 18), P(f"Period covered: {period}", k["meta"]), P(f"Account: {acct}", k["meta"]),
+             P(f"Generated {tfmt(generated)} Berlin / {tfmt(generated, NY)} New York", k["meta"]),
+             k["Spacer"](1, 18), P("Contents: 1. Month at a glance · 2. Week by week · 3. Result by stock · 4. Final week of the month in full", k["meta"]),
+             k["PageBreak"](),
+             P("1. Month at a glance", k["h2"]), _kpis(k, S), k["Spacer"](1, 4)]
+    closed = [t for t in trips if t["status"] == "Closed"]
+    if closed:
+        best = max(closed, key=lambda t: (t["sell_px"] - t["buy_px"]) * t["qty"])
+        worst = min(closed, key=lambda t: (t["sell_px"] - t["buy_px"]) * t["qty"])
+        story.append(P(f"Best trade: <b>{best['symbol']}</b> {money((best['sell_px'] - best['buy_px']) * best['qty'])} · "
+                       f"Worst trade: <b>{worst['symbol']}</b> {money((worst['sell_px'] - worst['buy_px']) * worst['qty'])}", k["meta"]))
+    story.append(P("2. Week by week", k["h2"]))
+    rows = []
+    for label, we, wt in weeks:
+        s = stats(we, wt)
+        col = UP if s["pl"] >= 0 else DOWN
+        rows.append([P(label), P(str(s["orders"]), k["num"]), P(money(s["bought"]), k["num"]), P(money(s["sold"]), k["num"]),
+                     P(str(s["closed"]), k["num"]), P(f'<font color="#{col}">{money(s["pl"])}</font>', k["num"])])
+    story.append(_table(k, ["Week", "Orders", "Bought", "Sold", "Closed trips", "Realized P/L"], rows,
+                        [0.36, 0.1, 0.15, 0.15, 0.1, 0.14], numeric=(1, 2, 3, 4, 5)) if rows else P("No trading weeks in this period.", k["meta"]))
+    story.append(P("3. Result by stock (closed trades)", k["h2"]))
+    by = {}
+    for t in closed:
+        b = by.setdefault(t["symbol"], {"n": 0, "pl": 0.0, "cost": 0.0})
+        b["n"] += 1
+        b["pl"] += (t["sell_px"] - t["buy_px"]) * t["qty"]
+        b["cost"] += t["buy_px"] * t["qty"]
+    rows = [[P(f"<b>{s}</b>"), P(str(v["n"]), k["num"]), P(money(v["cost"]), k["num"]),
+             P(f'<font color="#{UP if v["pl"] >= 0 else DOWN}">{money(v["pl"])}</font>', k["num"]),
+             P(f'{v["pl"] / v["cost"] * 100:+.2f}%' if v["cost"] else "", k["num"])] for s, v in sorted(by.items(), key=lambda x: -x[1]["pl"])]
+    story.append(_table(k, ["Stock", "Closed lots", "Cost", "P/L", "P/L %"], rows, [0.3, 0.15, 0.2, 0.2, 0.15], numeric=(1, 2, 3, 4))
+                 if rows else P("No closed trades this month.", k["meta"]))
+    lt, lp, le, ltr = last_week
+    story += [k["PageBreak"](), P("4. Final week of the month", k["h2"])] + weekly_story(k, le, ltr, lt, lp, trades, generated)
+    title = f"Monthly Trading Report · {month_label}"
+    _doc(k, path, title).build(story, onFirstPage=lambda cv, d: None, onLaterPages=_footer(k, title, generated))
