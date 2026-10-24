@@ -137,6 +137,7 @@ def build():
             "pl": num(p.get("unrealized_pl")),
             "pl_pct": round(num(p.get("unrealized_plpc")) * 100, 2),
             "pl_today": num(p.get("unrealized_intraday_pl")),
+            "spark": [round(x, 4) for x in c[-20:]],
         })
     rows.sort(key=lambda r: -abs(r["market_value"]))
 
