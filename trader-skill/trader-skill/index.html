@@ -4,20 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Trade Desk Live</title>
-<meta name="description" content="Live market dashboard: indices, heatmap, movers, news and the Berkshire top-5 watchlist.">
+<meta name="description" content="Live market dashboard: world news, my Alpaca portfolio, charts and world movers.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Layout: a trading desk — status strip on top, then a 12-column grid of
-   live panels; the chart and heatmap get the width, lists sit in the rails. */
+/* Layout (from the hand sketch): slim header with market status + live news band,
+   then three columns — my Alpaca portfolio | chart & sectors | world up/down. */
 :root {
   --bg: #eef1f4;
   --panel: #ffffff;
   --ink: #142230;
   --muted: #5b6b7b;
   --line: #d6dde4;
-  --accent: #0d6e8a;      /* harbour teal */
+  --soft: #f4f7f9;
+  --accent: #0d6e8a;
   --up: #12805c;
   --down: #c2362f;
   --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
@@ -27,108 +28,119 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0c141c; --panel: #121d28; --ink: #e3eaf0; --muted: #8a9bab;
-    --line: #22313f; --accent: #3fb6d6; --up: #34c08f; --down: #f0695f;
-    color-scheme: dark;
+    --bg: #0c141c; --panel: #121d28; --ink: #e3eaf0; --muted: #8a9bab; --line: #22313f;
+    --soft: #172431; --accent: #3fb6d6; --up: #34c08f; --down: #f0695f; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0c141c; --panel: #121d28; --ink: #e3eaf0; --muted: #8a9bab;
-  --line: #22313f; --accent: #3fb6d6; --up: #34c08f; --down: #f0695f;
-  color-scheme: dark;
+  --bg: #0c141c; --panel: #121d28; --ink: #e3eaf0; --muted: #8a9bab; --line: #22313f;
+  --soft: #172431; --accent: #3fb6d6; --up: #34c08f; --down: #f0695f; color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; }
 body {
-  background: var(--bg);
-  color: var(--ink);
-  font: 15px/1.5 var(--body);
+  background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body);
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 0 32px;
 }
-.wrap { max-width: 1480px; margin: 0 auto; display: grid; gap: 16px; }
+.wrap { max-width: 1520px; margin: 0 auto; display: grid; gap: 14px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.up { color: var(--up); } .down { color: var(--down); } .flat { color: var(--muted); }
 
-header.top {
-  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
-  gap: 10px 24px; padding-top: 14px;
-}
-.brand h1 {
-  font: 800 clamp(1.4rem, 2.4vw, 1.8rem)/1 var(--display);
-  letter-spacing: -0.02em; margin: 0; text-wrap: balance;
-}
+/* ---------- header ---------- */
+header.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; padding-top: 14px; }
+.brand h1 { font: 800 clamp(1.4rem, 2.4vw, 1.8rem)/1 var(--display); letter-spacing: -0.02em; margin: 0; }
 .brand h1 span { color: var(--accent); }
-.brand p { margin: 6px 0 0; color: var(--muted); font-size: 0.9rem; }
+.status { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 0.82rem;
+}
+.chip b { font-weight: 600; }
+.chip .k { color: var(--muted); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+.dot.on { background: var(--up); animation: blink 1.6s infinite; }
+.dot.mid { background: #d29a1c; }
+@keyframes blink { 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) { .dot.on { animation: none; } }
 
-.sessions { display: flex; flex-wrap: wrap; gap: 8px; }
-.session {
-  display: grid; gap: 2px; min-width: 132px;
-  padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel);
-}
-.session .name {
-  font: 600 0.7rem/1.2 var(--body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
-}
-.session .row { display: flex; align-items: center; gap: 8px; }
-.session .time { font: 500 1.05rem/1.2 var(--mono); font-variant-numeric: tabular-nums; }
-.pill {
-  font: 600 0.68rem/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 4px 7px; border-radius: 999px; border: 1px solid currentColor;
-}
-.pill.open { color: var(--up); }
-.pill.closed { color: var(--muted); }
-.pill.open::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 5px;
-  border-radius: 50%; background: currentColor; vertical-align: 1px; animation: blink 1.6s infinite; }
-@keyframes blink { 50% { opacity: 0.25; } }
-@media (prefers-reduced-motion: reduce) { .pill.open::before { animation: none; } }
-
-.tape { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); min-height: 46px; }
-
-.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; }
-.panel {
-  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
-  display: flex; flex-direction: column; min-width: 0; overflow: hidden;
-}
+/* ---------- panels ---------- */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 .panel > h2 {
-  margin: 0; padding: 12px 14px 10px; border-bottom: 1px solid var(--line);
+  margin: 0; padding: 11px 14px 9px; border-bottom: 1px solid var(--line);
   font: 600 0.74rem/1.2 var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
-  display: flex; justify-content: space-between; gap: 8px;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
 }
 .panel > h2 small { font: 400 0.72rem/1.2 var(--mono); letter-spacing: 0; text-transform: none; }
 .panel .body { flex: 1; min-height: 0; position: relative; }
 .panel .body > .tradingview-widget-container { height: 100%; width: 100%; }
+.live { color: var(--down); }
+.hotnews { height: 240px; }
 
-/* Hot news band: a short full-width strip under the header */
-.hotnews { height: 230px; }
-.hotnews > h2 .live { color: var(--down); font-weight: 600; }
-
-/* Three vertical columns: markets | chart + heatmap | my stocks + calendar */
-.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-.col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.col > h3 {
-  margin: 0; font: 700 0.95rem/1.2 var(--display); letter-spacing: 0.01em;
-  display: flex; align-items: center; gap: 8px;
-}
+.cols { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.col > h3 { margin: 0; font: 700 0.95rem/1.2 var(--display); display: flex; align-items: center; gap: 8px; }
 .col > h3::after { content: ""; flex: 1; height: 1px; background: var(--line); }
-.h-520 { height: 520px; } .h-400 { height: 400px; } .h-640 { height: 640px; }
+.h-520 { height: 520px; } .h-560 { height: 560px; } .h-440 { height: 440px; }
 
-@media (max-width: 1180px) {
+@media (max-width: 1200px) {
   .cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .col.mid { grid-column: 1 / -1; order: -1; }
+  .col.mid { grid-column: 1 / -1; }
 }
-@media (max-width: 760px) {
+@media (max-width: 780px) {
   .cols { grid-template-columns: minmax(0, 1fr); }
-  .h-520, .h-640 { height: 460px; } .h-400 { height: 380px; }
-  .hotnews { height: 260px; }
+  .h-520, .h-560 { height: 460px; } .h-440 { height: 400px; }
+  .hotnews { height: 280px; }
 }
+.loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font: 400 0.85rem var(--mono); pointer-events: none; }
 
-.loading {
-  position: absolute; inset: 0; display: grid; place-items: center;
-  color: var(--muted); font: 400 0.85rem var(--mono); pointer-events: none;
+/* ---------- Alpaca portfolio ---------- */
+.pf { padding: 14px; display: grid; gap: 14px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 10px; }
+.tile { background: var(--soft); border-radius: 6px; padding: 9px 11px; display: grid; gap: 2px; min-width: 0; }
+.tile .k { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.tile .v { font: 500 1rem/1.25 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.pl { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.tabs { display: flex; border-bottom: 1px solid var(--line); }
+.tabs button {
+  flex: 1; border: 0; background: transparent; color: var(--muted); padding: 8px 4px; cursor: pointer;
+  font: 600 0.78rem var(--body); border-bottom: 2px solid transparent;
 }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pl-out { padding: 12px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.pl-out .big { font: 600 1.5rem/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+.pl-out .sub { color: var(--muted); font-size: 0.8rem; width: 100%; }
+.custom { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 12px 12px; align-items: center; font-size: 0.8rem; color: var(--muted); }
+.custom input { font: 400 0.82rem var(--mono); padding: 5px 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--ink); }
+.spark { width: 100%; height: 54px; display: block; }
 
-footer { color: var(--muted); font-size: 0.8rem; display: grid; gap: 4px; padding-top: 8px; }
-footer p { margin: 0; max-width: 90ch; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+th, td { padding: 7px 7px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+th { font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--soft); }
+th:first-child, td:first-child { text-align: left; }
+tr:last-child td { border-bottom: 0; }
+td.sym b { font-weight: 600; } td.sym span { display: block; color: var(--muted); font-size: 0.72rem; }
+.note { color: var(--muted); font-size: 0.82rem; margin: 0; }
+.empty { padding: 18px 12px; text-align: center; color: var(--muted); font-size: 0.86rem; }
+.badge { font: 600 0.66rem/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 6px; border-radius: 4px; border: 1px solid var(--accent); color: var(--accent); }
+
+/* ---------- world movers ---------- */
+.seg { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 0; }
+.seg button {
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px;
+  padding: 4px 10px; font: 500 0.78rem var(--body); cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+footer { color: var(--muted); font-size: 0.8rem; display: grid; gap: 4px; padding-top: 6px; }
+footer p { margin: 0; max-width: 100ch; }
 footer a { color: var(--accent); }
 </style>
 </head>
@@ -136,36 +148,64 @@ footer a { color: var(--accent); }
 <div class="wrap">
 
   <header class="top">
-    <div class="brand">
-      <h1>Trade Desk <span>Live</span></h1>
-      <p>Indices, sectors, movers and headlines, streaming in your browser. <span id="updated"></span></p>
+    <div class="brand"><h1>Trade Desk <span>Live</span></h1></div>
+    <div class="status" aria-live="polite">
+      <div class="chip"><span class="dot" id="us-dot"></span><span class="k">US stocks</span><b id="us-session">…</b></div>
+      <div class="chip"><span class="dot on"></span><span class="k">Crypto</span><b>Open 24/7</b></div>
+      <div class="chip"><span class="dot" id="alp-dot"></span><span class="k">Alpaca</span><b id="alp-status">connecting…</b></div>
+      <div class="chip"><span class="k">NY</span><b class="num" id="t-ny">--:--</b><span class="k">Berlin</span><b class="num" id="t-be">--:--</b></div>
     </div>
-    <div class="sessions" id="sessions" aria-live="polite"></div>
   </header>
 
-  <div class="tape" id="w-tape"></div>
-
   <article class="panel hotnews">
-    <h2><span><span class="live">● Live</span> · Hot market news worldwide</span> <small>newest first · updates on its own</small></h2>
+    <h2><span><span class="live">● Live</span> · Stock market news worldwide</span> <small>scroll up &amp; down · newest first</small></h2>
     <div class="body" id="w-news"></div>
   </article>
 
   <section class="cols">
+
+    <!-- LEFT: my Alpaca portfolio -->
     <div class="col">
-      <h3>World markets</h3>
-      <article class="panel h-520">
-        <h2>Indices <small>1D</small></h2>
-        <div class="body" id="w-overview"></div>
-      </article>
-      <article class="panel h-520">
-        <h2>Top movers <small>US stocks</small></h2>
-        <div class="body" id="w-movers"></div>
+      <h3>My Alpaca portfolio</h3>
+      <article class="panel">
+        <h2><span>Account <span class="badge" id="pf-mode" hidden>Paper</span></span> <small id="pf-updated">waiting for data</small></h2>
+        <div class="pf" id="pf">
+          <div class="tiles">
+            <div class="tile"><span class="k">Value</span><span class="v" id="pf-equity">—</span></div>
+            <div class="tile"><span class="k">Today</span><span class="v" id="pf-today">—</span></div>
+            <div class="tile"><span class="k">Cash</span><span class="v" id="pf-cash">—</span></div>
+          </div>
+
+          <div class="pl">
+            <div class="tabs" role="tablist" aria-label="Profit and loss period">
+              <button role="tab" id="tab-week" aria-selected="true" data-p="week">Weekly</button>
+              <button role="tab" id="tab-month" aria-selected="false" data-p="month">Monthly</button>
+              <button role="tab" id="tab-total" aria-selected="false" data-p="total">Total</button>
+              <button role="tab" id="tab-custom" aria-selected="false" data-p="custom">Custom</button>
+            </div>
+            <div class="pl-out"><span class="big" id="pl-amt">—</span><span class="num" id="pl-pct"></span><span class="sub" id="pl-sub">Profit in green, loss in red.</span></div>
+            <div class="custom" id="custom" hidden>
+              <label for="c-from">From</label><input type="date" id="c-from">
+              <label for="c-to">to</label><input type="date" id="c-to">
+            </div>
+            <svg class="spark" id="spark" viewBox="0 0 300 54" preserveAspectRatio="none" aria-hidden="true"></svg>
+          </div>
+
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Stock</th><th>Bought</th><th>5 day</th><th>Today</th><th>15 day</th><th>P/L</th></tr></thead>
+              <tbody id="pf-rows"><tr><td colspan="6" class="empty">Loading your holdings…</td></tr></tbody>
+            </table>
+          </div>
+          <p class="note" id="pf-note">Read-only. This page can't place trades. Refreshes about every 5 minutes.</p>
+        </div>
       </article>
     </div>
 
+    <!-- MIDDLE: chart & sectors -->
     <div class="col mid">
       <h3>Chart &amp; sectors</h3>
-      <article class="panel h-520">
+      <article class="panel h-560">
         <h2>Chart <small>switch symbol inside the chart</small></h2>
         <div class="body" id="w-chart"></div>
       </article>
@@ -175,59 +215,47 @@ footer a { color: var(--accent); }
       </article>
     </div>
 
+    <!-- RIGHT: world up / down -->
     <div class="col">
-      <h3>My stocks &amp; events</h3>
-      <article class="panel h-400">
-        <h2>Watchlist <small>Berkshire top 5 · Q2 2026 13F</small></h2>
-        <div class="body" id="w-watch"></div>
+      <h3>Going up &amp; down worldwide</h3>
+      <article class="panel h-560">
+        <h2>Top movers <small id="mv-label">United States</small></h2>
+        <div class="seg" role="group" aria-label="Choose market" id="mv-seg"></div>
+        <div class="body" id="w-movers"></div>
       </article>
-      <article class="panel h-640">
-        <h2>Economic calendar <small>US · EU · DE</small></h2>
-        <div class="body" id="w-calendar"></div>
+      <article class="panel h-520">
+        <h2>World indices <small>1D</small></h2>
+        <div class="body" id="w-overview"></div>
       </article>
     </div>
   </section>
 
   <footer>
-    <p>Market data and widgets by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a>. Quotes on free feeds can be delayed up to 15 minutes depending on the exchange.</p>
-    <p>Not financial advice. Session clocks ignore exchange holidays.</p>
+    <p>Market widgets by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a>; free quotes can be delayed up to 15 minutes. Portfolio data from Alpaca, refreshed by GitHub about every 5 minutes.</p>
+    <p>Not financial advice. US session times follow Alpaca's 24/5 schedule and ignore holidays.</p>
   </footer>
 </div>
 
 <script>
-/* ===== EDIT HERE: add or swap symbols for future updates ===== */
+/* ===== EDIT HERE for future updates ===== */
 const CONFIG = {
-  tape: [
-    { proName: "FOREXCOM:SPXUSD", title: "S&P 500" },
-    { proName: "FOREXCOM:NSXUSD", title: "Nasdaq 100" },
-    { proName: "FOREXCOM:DJI",    title: "Dow 30" },
-    { proName: "INDEX:DEU40",     title: "DAX" },
-    { proName: "FX_IDC:EURUSD",   title: "EUR/USD" },
-    { proName: "BITSTAMP:BTCUSD", title: "Bitcoin" },
-    { proName: "TVC:GOLD",        title: "Gold" },
-    { proName: "TVC:USOIL",       title: "WTI Oil" },
-    { proName: "TVC:VIX",         title: "VIX" },
-    { proName: "TVC:US10Y",       title: "US 10Y" }
-  ],
   chartSymbol: "FOREXCOM:SPXUSD",
   indices: [
-    { s: "FOREXCOM:SPXUSD", d: "S&P 500" },
-    { s: "FOREXCOM:NSXUSD", d: "Nasdaq 100" },
-    { s: "FOREXCOM:DJI",    d: "Dow 30" },
-    { s: "INDEX:DEU40",     d: "DAX" },
-    { s: "FOREXCOM:UKXGBP", d: "FTSE 100" },
-    { s: "INDEX:NKY",       d: "Nikkei 225" }
+    { s: "FOREXCOM:SPXUSD", d: "S&P 500" }, { s: "FOREXCOM:NSXUSD", d: "Nasdaq 100" },
+    { s: "FOREXCOM:DJI", d: "Dow 30" },     { s: "INDEX:DEU40", d: "DAX" },
+    { s: "FOREXCOM:UKXGBP", d: "FTSE 100" }, { s: "INDEX:NKY", d: "Nikkei 225" },
+    { s: "INDEX:HSI", d: "Hang Seng" },     { s: "NSE:NIFTY", d: "Nifty 50" }
   ],
-  // Same five stocks /trader-copycat pulls from Berkshire's latest 13F
-  watchlist: [
-    { name: "NASDAQ:AAPL",  displayName: "Apple" },
-    { name: "NYSE:AXP",     displayName: "American Express" },
-    { name: "NASDAQ:GOOGL", displayName: "Alphabet" },
-    { name: "NYSE:KO",      displayName: "Coca-Cola" },
-    { name: "NYSE:BAC",     displayName: "Bank of America" }
-  ]
+  // Markets for the "Top movers" buttons (TradingView exchange codes)
+  movers: [
+    { code: "US", name: "United States" }, { code: "XETR", name: "Germany" },
+    { code: "LSE", name: "UK" }, { code: "TSE", name: "Japan" },
+    { code: "HKEX", name: "Hong Kong" }, { code: "NSE", name: "India" }
+  ],
+  portfolioUrl: "data/portfolio.json",
+  refreshSeconds: 60
 };
-/* ============================================================== */
+/* ======================================== */
 
 const dark = (() => {
   const t = document.documentElement.getAttribute("data-theme");
@@ -236,9 +264,10 @@ const dark = (() => {
 })();
 const theme = dark ? "dark" : "light";
 const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin";
+const $ = id => document.getElementById(id);
 
 function mount(id, widget, cfg) {
-  const host = document.getElementById(id);
+  const host = $(id);
   host.innerHTML = '<div class="loading">loading live data…</div>';
   const box = document.createElement("div");
   box.className = "tradingview-widget-container";
@@ -247,7 +276,6 @@ function mount(id, widget, cfg) {
   inner.style.height = "100%";
   box.appendChild(inner);
   const s = document.createElement("script");
-  s.type = "text/javascript";
   s.async = true;
   s.src = "https://s3.tradingview.com/external-embedding/embed-widget-" + widget + ".js";
   s.textContent = JSON.stringify(Object.assign({ colorTheme: theme, isTransparent: true, locale: "en" }, cfg));
@@ -257,86 +285,201 @@ function mount(id, widget, cfg) {
   host.appendChild(box);
 }
 
-mount("w-tape", "ticker-tape", {
-  symbols: CONFIG.tape, showSymbolLogo: true, displayMode: "adaptive"
-});
-
+/* ---------- live widgets ---------- */
+mount("w-news", "timeline", { feedMode: "all_symbols", displayMode: "compact", width: "100%", height: "100%" });
 mount("w-chart", "advanced-chart", {
-  autosize: true, symbol: CONFIG.chartSymbol, interval: "D", timezone: tz,
-  theme: theme, style: "1", allow_symbol_change: true, hide_side_toolbar: false,
-  withdateranges: true, calendar: false, support_host: "https://www.tradingview.com",
-  backgroundColor: "rgba(0,0,0,0)"
+  autosize: true, symbol: CONFIG.chartSymbol, interval: "D", timezone: tz, theme, style: "1",
+  allow_symbol_change: true, withdateranges: true, calendar: false,
+  support_host: "https://www.tradingview.com", backgroundColor: "rgba(0,0,0,0)"
 });
-
-mount("w-overview", "market-overview", {
-  dateRange: "1D", showChart: true, width: "100%", height: "100%",
-  showSymbolLogo: true, showFloatingTooltip: true,
-  tabs: [
-    { title: "Indices", symbols: CONFIG.indices, originalTitle: "Indices" },
-    { title: "Crypto", symbols: [
-      { s: "BITSTAMP:BTCUSD", d: "Bitcoin" }, { s: "BITSTAMP:ETHUSD", d: "Ethereum" },
-      { s: "COINBASE:SOLUSD", d: "Solana" } ] },
-    { title: "Commodities", symbols: [
-      { s: "TVC:GOLD", d: "Gold" }, { s: "TVC:SILVER", d: "Silver" },
-      { s: "TVC:USOIL", d: "WTI Oil" }, { s: "TVC:UKOIL", d: "Brent" } ] }
-  ]
-});
-
 mount("w-heatmap", "stock-heatmap", {
   exchanges: [], dataSource: "SPX500", grouping: "sector", blockSize: "market_cap_basic",
   blockColor: "change", hasTopBar: true, isDataSetEnabled: true, isZoomEnabled: true,
   hasSymbolTooltip: true, isMonoSize: false, width: "100%", height: "100%"
 });
-
-mount("w-movers", "hotlists", {
-  exchange: "US", dateRange: "1D", showChart: true, width: "100%", height: "100%",
-  showSymbolLogo: true, showFloatingTooltip: true
+mount("w-overview", "market-overview", {
+  dateRange: "1D", showChart: false, width: "100%", height: "100%", showSymbolLogo: true,
+  tabs: [{ title: "Indices", symbols: CONFIG.indices }]
 });
 
-mount("w-watch", "market-quotes", {
-  width: "100%", height: "100%", showSymbolLogo: true,
-  symbolsGroups: [{ name: "Berkshire top 5", symbols: CONFIG.watchlist }]
-});
-
-mount("w-news", "timeline", {
-  feedMode: "all_symbols", displayMode: "compact", width: "100%", height: "100%"
-});
-
-mount("w-calendar", "events", {
-  width: "100%", height: "100%", importanceFilter: "0,1", countryFilter: "us,eu,de"
-});
-
-/* ===== Exchange session clocks (local time + open/closed) ===== */
-const EXCHANGES = [
-  { name: "NYSE · New York", tz: "America/New_York", open: 9*60+30, close: 16*60 },
-  { name: "Xetra · Frankfurt", tz: "Europe/Berlin",  open: 9*60,    close: 17*60+30 },
-  { name: "LSE · London",     tz: "Europe/London",   open: 8*60,    close: 16*60+30 },
-  { name: "TSE · Tokyo",      tz: "Asia/Tokyo",      open: 9*60,    close: 15*60+30 }
-];
-function parts(zone) {
-  const f = new Intl.DateTimeFormat("en-GB", { timeZone: zone, hour: "2-digit", minute: "2-digit", weekday: "short", hourCycle: "h23" });
-  const o = {}; f.formatToParts(new Date()).forEach(p => o[p.type] = p.value);
-  return o;
-}
-const box = document.getElementById("sessions");
-box.innerHTML = EXCHANGES.map((x, i) =>
-  `<div class="session"><span class="name">${x.name}</span><div class="row"><span class="time" id="t${i}">--:--</span><span class="pill" id="p${i}"></span></div></div>`
-).join("");
-function tick() {
-  EXCHANGES.forEach((x, i) => {
-    const p = parts(x.tz);
-    const mins = (+p.hour) * 60 + (+p.minute);
-    const weekday = !["Sat", "Sun"].includes(p.weekday);
-    const open = weekday && mins >= x.open && mins < x.close;
-    document.getElementById("t" + i).textContent = p.hour + ":" + p.minute;
-    const pill = document.getElementById("p" + i);
-    pill.textContent = open ? "Open" : "Closed";
-    pill.className = "pill " + (open ? "open" : "closed");
+function showMovers(i) {
+  const m = CONFIG.movers[i];
+  $("mv-label").textContent = m.name;
+  [...$("mv-seg").children].forEach((b, j) => b.setAttribute("aria-pressed", String(j === i)));
+  mount("w-movers", "hotlists", {
+    exchange: m.code, dateRange: "1D", showChart: true, width: "100%", height: "100%",
+    showSymbolLogo: true, showFloatingTooltip: true
   });
-  document.getElementById("updated").textContent =
-    "Your time: " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + ".";
 }
-tick(); setInterval(tick, 15000);
+CONFIG.movers.forEach((m, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.id = "mv-" + m.code; b.textContent = m.name;
+  b.addEventListener("click", () => showMovers(i));
+  $("mv-seg").appendChild(b);
+});
+showMovers(0);
+
+/* ---------- US 24/5 session (Alpaca schedule, ET) ---------- */
+function nyParts() {
+  const o = {};
+  new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .formatToParts(new Date()).forEach(p => o[p.type] = p.value);
+  return { day: o.weekday, mins: (+o.hour) * 60 + (+o.minute) };
+}
+function usSession() {
+  const { day, mins } = nyParts();
+  if (day === "Sat") return ["Closed (weekend)", ""];
+  if (day === "Sun") return mins >= 1200 ? ["Overnight", "mid"] : ["Closed (weekend)", ""];
+  if (mins < 240) return ["Overnight", "mid"];
+  if (mins < 570) return ["Pre-market", "mid"];
+  if (mins < 960) return ["Regular · open", "on"];
+  if (mins < 1200) return ["After-hours", "mid"];
+  return day === "Fri" ? ["Closed (weekend)", ""] : ["Overnight", "mid"];
+}
+function tickClock() {
+  const [label, cls] = usSession();
+  $("us-session").textContent = label;
+  $("us-dot").className = "dot " + cls;
+  const f = z => new Date().toLocaleTimeString("en-GB", { timeZone: z, hour: "2-digit", minute: "2-digit" });
+  $("t-ny").textContent = f("America/New_York");
+  $("t-be").textContent = f("Europe/Berlin");
+}
+tickClock(); setInterval(tickClock, 15000);
+
+/* ---------- Alpaca portfolio ---------- */
+const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
+const signed = v => (v > 0 ? "+" : v < 0 ? "−" : "") + usd.format(Math.abs(v));
+const pct = v => v == null ? "—" : (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(2) + "%";
+const tone = v => v == null || v === 0 ? "flat" : v > 0 ? "up" : "down";
+function setVal(el, text, v) { el.textContent = text; el.className = el.className.replace(/\b(up|down|flat)\b/g, "").trim() + " " + tone(v); }
+function ago(iso) {
+  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  return m < 1 ? "just now" : m < 60 ? m + " min ago" : Math.round(m / 60) + " h ago";
+}
+
+let SNAP = null, PERIOD = "week";
+const shortDate = d => d ? new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "—";
+
+function equitySeries() {
+  const h = (SNAP.history || []).slice();
+  const today = new Date().toISOString().slice(0, 10);
+  if (SNAP.account) {
+    if (h.length && h[h.length - 1][0] === today) h[h.length - 1] = [today, SNAP.account.equity];
+    else h.push([today, SNAP.account.equity]);
+  }
+  return h;
+}
+function valueOn(series, date) {           // last equity on or before date
+  let v = null;
+  for (const [d, e] of series) { if (d <= date) v = e; else break; }
+  return v ?? (series[0] ? series[0][1] : null);
+}
+function daysBack(n) { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); }
+
+function renderPL() {
+  if (!SNAP || !SNAP.account) return;
+  const s = equitySeries();
+  const end = SNAP.account.equity;
+  let from, to = new Date().toISOString().slice(0, 10), start, label;
+  if (PERIOD === "week") { from = daysBack(7); label = "Last 7 days"; }
+  if (PERIOD === "month") { from = daysBack(30); label = "Last 30 days"; }
+  if (PERIOD === "total") { from = null; label = "Since the account opened (" + (SNAP.account.created_at || "start") + ")"; }
+  if (PERIOD === "custom") {
+    from = $("c-from").value || daysBack(14); to = $("c-to").value || to;
+    label = from + " to " + to;
+  }
+  start = PERIOD === "total" ? (SNAP.account.base_value || (s[0] && s[0][1])) : valueOn(s, from);
+  const stop = PERIOD === "custom" ? valueOn(s, to) : end;
+  if (start == null || stop == null) { $("pl-amt").textContent = "—"; return; }
+  const diff = stop - start, p = start ? diff / start * 100 : 0;
+  setVal($("pl-amt"), signed(diff), diff);
+  setVal($("pl-pct"), pct(p), p);
+  $("pl-sub").textContent = label + (diff >= 0 ? " · profit" : " · loss");
+  drawSpark(s.filter(([d]) => (!from || d >= from) && d <= to), diff);
+}
+
+function drawSpark(series, diff) {
+  const svg = $("spark");
+  if (series.length < 2) { svg.innerHTML = ""; return; }
+  const ys = series.map(x => x[1]), lo = Math.min(...ys), hi = Math.max(...ys), span = hi - lo || 1;
+  const pts = ys.map((y, i) => [i / (ys.length - 1) * 300, 50 - (y - lo) / span * 44]);
+  const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const col = diff >= 0 ? "var(--up)" : "var(--down)";
+  svg.innerHTML =
+    `<path d="${line} L300 54 L0 54 Z" fill="${col}" fill-opacity="0.12"/>` +
+    `<path d="${line}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/>`;
+}
+
+function renderRows() {
+  const rows = SNAP.positions || [];
+  const body = $("pf-rows");
+  if (!rows.length) {
+    body.innerHTML = '<tr><td colspan="6" class="empty">No holdings yet. Buy a stock in Alpaca and it shows up here within about 5 minutes.</td></tr>';
+    return;
+  }
+  body.innerHTML = rows.map(r => `
+    <tr>
+      <td class="sym"><b>${r.symbol}</b><span class="num">${+r.qty.toFixed(4)} @ ${usd.format(r.avg_entry)}</span></td>
+      <td class="num" title="${r.bought || ""}">${shortDate(r.bought)}</td>
+      <td class="num ${tone(r.d5_pct)}">${pct(r.d5_pct)}</td>
+      <td class="num ${tone(r.today_pct)}">${pct(r.today_pct)}</td>
+      <td class="num ${tone(r.d15_pct)}">${pct(r.d15_pct)}</td>
+      <td class="num ${tone(r.pl)}">${signed(r.pl)}<br><small>${pct(r.pl_pct)}</small></td>
+    </tr>`).join("");
+}
+
+function setAlpaca(text, cls) { $("alp-status").textContent = text; $("alp-dot").className = "dot " + cls; }
+
+async function loadPortfolio() {
+  let snap;
+  try {
+    const r = await fetch(CONFIG.portfolioUrl + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    snap = await r.json();
+  } catch (e) {
+    setAlpaca("not connected", "");
+    $("pf-updated").textContent = "setup needed";
+    $("pf-rows").innerHTML = '<tr><td colspan="6" class="empty">Portfolio data isn\'t published yet. Finish the GitHub setup (Alpaca keys + Pages source) and it appears here.</td></tr>';
+    return;
+  }
+  if (!snap.configured) {
+    setAlpaca("keys missing", "");
+    $("pf-updated").textContent = "setup needed";
+    $("pf-rows").innerHTML = '<tr><td colspan="6" class="empty">Add your Alpaca keys as GitHub secrets to see your holdings here.</td></tr>';
+    return;
+  }
+  if (snap.error) {
+    setAlpaca("error", "");
+    $("pf-updated").textContent = "last try " + ago(snap.generated_at);
+    $("pf-note").textContent = "Alpaca didn't answer on the last refresh: " + snap.error;
+    if (!SNAP) return;
+  } else {
+    SNAP = snap;
+  }
+  const c = SNAP.clock || {};
+  setAlpaca(c.is_open ? "connected · market open" : "connected · market closed", c.is_open ? "on" : "mid");
+  $("pf-mode").hidden = !SNAP.paper;
+  $("pf-updated").textContent = "updated " + ago(SNAP.generated_at);
+  const a = SNAP.account;
+  $("pf-equity").textContent = usd.format(a.equity);
+  setVal($("pf-today"), signed(a.today_pl), a.today_pl);
+  $("pf-cash").textContent = usd.format(a.cash);
+  renderRows();
+  renderPL();
+}
+
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  PERIOD = b.dataset.p;
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", String(x === b)));
+  $("custom").hidden = PERIOD !== "custom";
+  renderPL();
+}));
+["c-from", "c-to"].forEach(id => $(id).addEventListener("change", renderPL));
+$("c-from").value = daysBack(14);
+$("c-to").value = new Date().toISOString().slice(0, 10);
+
+loadPortfolio();
+setInterval(loadPortfolio, CONFIG.refreshSeconds * 1000);
 </script>
 </body>
 </html>

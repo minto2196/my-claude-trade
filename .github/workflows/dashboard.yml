@@ -1,0 +1,47 @@
+name: Live dashboard
+
+# Refreshes the Alpaca snapshot and republishes the GitHub Pages site.
+# GitHub runs scheduled jobs about every 5 minutes at best (often later).
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Snapshot Alpaca account (read-only)
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
+        run: python3 .github/scripts/alpaca_snapshot.py site/trader-skill/trader-skill/data/portfolio.json
+
+      - name: Assemble site
+        run: |
+          rsync -a --exclude '.git' --exclude '.github' --exclude 'site' ./ site/
+          touch site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
