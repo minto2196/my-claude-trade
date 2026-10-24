@@ -91,7 +91,12 @@ ORDER_COLS = [
     ("Requested qty", "qty_requested", 12, "0.000000"),
     ("Rule", "rule", 18, None),
     ("Reason", "reason", 40, None),
-    ("Greens (of 4)", "greens", 9, "0"),
+    ("Greens (of 5)", "greens", 9, "0"),
+    ("Time machine", "check5_history_status", 11, None),
+    ("TM hit rate", "check5_hit_rate", 9, "0%"),
+    ("TM green days", "check5_signals", 9, "0"),
+    ("TM avg 5-day %", lambda e: e["check5_avg_fwd_pct"] / 100 if e.get("check5_avg_fwd_pct") is not None else None, 10, "0.00%"),
+    ("Master switch 6-mo return %", lambda e: e["master_switch_return_pct"] / 100 if e.get("master_switch_return_pct") is not None else None, 12, "0.00%"),
     ("Agent rank", "agent_rank", 8, "0"),
     ("1 Data real", "check1_data_status", 10, None),
     ("Source spread %", lambda e: (e.get("check1_spread_pct") or 0) / 100 if e.get("check1_spread_pct") is not None else None, 10, "0.00%"),
@@ -268,19 +273,23 @@ def build_xlsx(entries, trades, path, generated, title="Trade Journal · Trade D
     wu = wb.create_sheet("Rules")
     R2 = trades.get("rules") or {}
     rules = [
-        ("Buy", "Only stocks rated 4 of 4 green that are not already held; funds/ETFs skipped" + (" (allowed)" if R2.get("allow_etf") else "")),
+        ("Master switch", "Weekly time machine replays the last 6 months with these rules; if it would have lost money, no new buys"),
+        ("Buy", "4 or 5 of 5 green, time machine and data-is-real green (vetoes), nothing red, not already held; funds/ETFs skipped" + (" (allowed)" if R2.get("allow_etf") else "")),
         ("Slot size", f"Account split into {R2.get('slots', 12)} equal slots of {R2.get('slot_pct', 8.33)}% each; cash only, never margin"),
         ("No buys before close", f"Last {R2.get('no_buy_minutes_before_close', 30):g} minutes of the session: sells only"),
         ("Daily loss guard", f"No new buys on a day the account is down {R2.get('daily_loss_pct', 5):g}% or more"),
-        ("Exit: 3 green", "Sell half, once (not again within 3 days)"),
-        ("Exit: 2 or fewer green", "Sell everything"),
-        ("Stop-loss", f"Down {R2.get('stop_loss_pct', 8):g}% from entry: sell everything"),
+        ("Exit: 3 of 5 green", "Sell half, once (not again within 3 days)"),
+        ("Exit: 2 or fewer of 5, or time machine red", "Sell everything"),
+        ("Stop-loss", f"Down {R2.get('stop_loss_pct', 5):g}% from entry: sell everything"),
+        ("Trailing stop", f"Once up {R2.get('trail_arm_pct', 4):g}%, sell if it falls {R2.get('trail_pct', 4):g}% from its best price"),
+        ("Bad day", f"Down {R2.get('bad_day_pct', 3):g}% today and not 5 of 5 green: sell everything"),
         ("Take profit", f"Up {R2.get('take_profit_pct', 20):g}% from entry: sell everything"),
         ("Scope", "Only positions the auto-trader bought (client order ID starts with tdagent-)"),
         ("Check 1 · Data is real", "Price agrees across trade, quote, minute, hourly and daily bars; history has no broken bars or holes"),
         ("Check 2 · Organic", "No volume pump without news, no one-day jump doing the work, no gaps, no pump-and-fade, not thin"),
         ("Check 3 · Prediction", "5-trading-day momentum call with a volatility range; green only when it leans up"),
         ("Check 4 · News", "Headlines in the last 72 hours scored for high-impact words against today's move"),
+        ("Check 5 · Time machine", "Replays the stock's past year: on days it looked green, did it rise over the next 5 trading days? Green at 55%+ hit rate and positive average"),
     ]
     wu.append(["Rule", "What it does"])
     style_header(wu, 1, 2)
@@ -334,7 +343,9 @@ money = lambda v: "" if v is None else (f"-${abs(v):,.2f}" if v < 0 else f"${v:,
 qtyf = lambda v: "" if v is None else f"{v:,.6f}".rstrip("0").rstrip(".")
 tfmt = lambda t, tz=BERLIN: t.astimezone(tz).strftime("%Y-%m-%d %H:%M") if t else ""
 sfmt = lambda t, tz=BERLIN: t.astimezone(tz).strftime("%d %b %H:%M") if t else ""
-CODE = {"ok": "P", "watch": "W", "alert": "A", "skip": "N"}
+CODE = {"ok": "g", "watch": "y", "alert": "r", "skip": "–"}
+CHECK_KEYS = (("TM", "check5_history_status"), ("D", "check1_data_status"), ("O", "check2_organic_status"),
+              ("P", "check3_prediction_status"), ("N", "check4_news_status"))
 
 
 def stats(entries, trips):
@@ -378,19 +389,18 @@ def _orders(k, entries):
     for e in sorted(entries, key=lambda e: e.get("journal_no") or 0):
         t, side = when(e), (e.get("side") or "").upper()
         val = e["filled_qty"] * e["filled_avg_price"] if e.get("filled_qty") and e.get("filled_avg_price") else e.get("notional_requested")
-        checks = " ".join(f"{i}{CODE.get(e.get(x), '–')}" for i, x in enumerate(
-            ("check1_data_status", "check2_organic_status", "check3_prediction_status", "check4_news_status"), 1))
+        checks = " ".join(f"{a}:{CODE.get(e.get(x), '–')}" for a, x in CHECK_KEYS)
         rows.append([P(e.get("journal_no")), P(f"{sfmt(t)}<br/><font color='#{MUTED}'>NY {sfmt(t, NY)[7:]}</font>"),
                      P(f'<font color="#{UP if side == "BUY" else DOWN}"><b>{side}</b></font>'),
                      P(f"<b>{e.get('symbol')}</b><br/><font color='#{MUTED}'>{(e.get('company') or '')[:34]}</font>"),
                      P(qtyf(e.get("filled_qty") or e.get("qty_requested")), k["num"]), P(money(e.get("filled_avg_price")), k["num"]),
                      P(money(val), k["num"]), P(e.get("status") or ""),
-                     P(f"<b>{e.get('greens', '–')}/4</b> {checks}"), P(e.get("reason") or "")])
+                     P(f"<b>{e.get('greens', '–')}/5</b> {checks}"), P(e.get("reason") or "")])
     return [_table(k, ["#", "Time (Berlin)", "Side", "Symbol / company", "Qty", "Price", "Value", "Status", "Checks", "Reason"], rows,
-                   [0.035, 0.09, 0.055, 0.165, 0.085, 0.075, 0.085, 0.055, 0.135, 0.22], numeric=(4, 5, 6)),
+                   [0.035, 0.09, 0.055, 0.15, 0.08, 0.07, 0.08, 0.055, 0.17, 0.215], numeric=(4, 5, 6)),
             k["Spacer"](1, 3),
-            P("Checks at decision: 1 data is real · 2 organic trend · 3 prediction · 4 news. P pass, W watch, A alert, N not read. "
-              "Every other detail (A to AV) is in the Excel file.", k["meta"])]
+            P("Checks at decision: TM time machine · D data is real · O organic · P prediction · N news; "
+              "g green, y watch, r red, – not read. Every other detail is in the Excel file.", k["meta"])]
 
 
 def _trips(k, trips):

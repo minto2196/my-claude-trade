@@ -1,6 +1,6 @@
 name: Live dashboard
 
-# Every run: Alpaca snapshot -> market scan (4 checks) -> auto-trader -> records/reports -> supervisors -> site.
+# Every run: Alpaca snapshot -> market scan (5 checks) -> time machine (weekly) -> auto-trader -> records -> supervisors -> site.
 # GitHub runs scheduled jobs about every 5 minutes at best (often later). The extra Saturday 10:00 UTC
 # schedule makes sure a run happens when the weekly report is due; the report logic itself catches up
 # on anything due, so a late or skipped run never loses a report.
@@ -34,6 +34,11 @@ jobs:
       ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
       AUTOTRADE_SLOTS: ${{ vars.AUTOTRADE_SLOTS || '12' }}
       AUTOTRADE_STOP_LOSS_PCT: ${{ vars.AUTOTRADE_STOP_LOSS_PCT || '5' }}
+      AUTOTRADE_TAKE_PROFIT_PCT: ${{ vars.AUTOTRADE_TAKE_PROFIT_PCT || '20' }}
+      AUTOTRADE_TRAIL_ARM_PCT: ${{ vars.AUTOTRADE_TRAIL_ARM_PCT || '4' }}
+      AUTOTRADE_TRAIL_PCT: ${{ vars.AUTOTRADE_TRAIL_PCT || '4' }}
+      AUTOTRADE_BAD_DAY_PCT: ${{ vars.AUTOTRADE_BAD_DAY_PCT || '3' }}
+      AUTOTRADE_DAILY_LOSS_PCT: ${{ vars.AUTOTRADE_DAILY_LOSS_PCT || '5' }}
       DATA: site/trader-skill/trader-skill/data
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +46,7 @@ jobs:
       - name: Snapshot Alpaca account (read-only)
         run: python3 .github/scripts/alpaca_snapshot.py $DATA/portfolio.json
 
-      # Scans the US market (~5000 observed, 500 shortlisted), runs the 4 checks and
+      # Scans the US market (~5000 observed, 500 shortlisted), runs the 5 checks and
       # writes buy / hold / start-selling signals. Read-only: it never places orders.
       - name: Verification agent (read-only)
         timeout-minutes: 8
@@ -52,7 +57,16 @@ jobs:
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
           prev="https://${owner}.github.io/${{ github.event.repository.name }}/trader-skill/trader-skill/data/agent.json"
-          python3 .github/scripts/agent_check.py $DATA/agent.json --portfolio $DATA/portfolio.json --previous "$prev"
+          python3 .github/scripts/agent_check.py $DATA/agent.json --portfolio $DATA/portfolio.json --previous "$prev" \
+            --tm-cache trade-records/state/timemachine_stocks.json
+
+      # LEVEL 0 TIME MACHINE (master switch). Every Saturday from 10:00 UTC, and whenever the last result
+      # is missing or failed, replays the last ~6 months with the auto-trader's rules. If that would have
+      # lost money, the auto-trader stops buying. Otherwise it just republishes the last result.
+      - name: Time machine (weekly replay, master switch)
+        timeout-minutes: 12
+        continue-on-error: true
+        run: python3 .github/scripts/backtest.py trade-records $DATA/agent.json $DATA
 
       # AUTO-TRADER. Places REAL orders when ALPACA_PAPER is false.
       # Kill switch: repository variable or secret AUTOTRADE = on | sell-only | off (default off).
@@ -60,11 +74,6 @@ jobs:
         timeout-minutes: 4
         env:
           AUTOTRADE: ${{ vars.AUTOTRADE || secrets.AUTOTRADE || 'off' }}
-          AUTOTRADE_TAKE_PROFIT_PCT: ${{ vars.AUTOTRADE_TAKE_PROFIT_PCT || '20' }}
-          AUTOTRADE_TRAIL_ARM_PCT: ${{ vars.AUTOTRADE_TRAIL_ARM_PCT || '4' }}
-          AUTOTRADE_TRAIL_PCT: ${{ vars.AUTOTRADE_TRAIL_PCT || '4' }}
-          AUTOTRADE_BAD_DAY_PCT: ${{ vars.AUTOTRADE_BAD_DAY_PCT || '3' }}
-          AUTOTRADE_DAILY_LOSS_PCT: ${{ vars.AUTOTRADE_DAILY_LOSS_PCT || '5' }}
           AUTOTRADE_ALLOW_ETF: ${{ vars.AUTOTRADE_ALLOW_ETF || 'false' }}
           AUTOTRADE_NO_BUY_MINUTES: ${{ vars.AUTOTRADE_NO_BUY_MINUTES || '30' }}
         run: |
@@ -73,7 +82,7 @@ jobs:
           mkdir -p trade-records/journal trade-records/state
           python3 .github/scripts/autotrader.py $DATA/trades.json --agent $DATA/agent.json --previous "$base/trades.json" \
             --journal trade-records/journal/journal.json --journal-previous trade-records/journal/journal.json \
-            --state trade-records/state/peaks.json
+            --state trade-records/state/peaks.json --backtest trade-records/state/backtest_latest.json
 
       # Weekly Excel (new file each Monday, newest 3 kept), weekly PDF from Saturday 10:00 UTC,
       # monthly report on the month's last Saturday. Stored in the trade-records/ folder on main.

@@ -17,12 +17,17 @@ A funnel, run by teams of parallel workers inside the GitHub Action:
                 3. Prediction     a 5-trading-day call. Green only when it leans up.
                                   Every call is logged and scored when its date passes.
                 4. News impact    headlines in the last 72 hours (only for stocks that
-                                  cleared checks 1-3, plus holdings).
-  Advisor     turns green flags into signals, never orders:
-                not held, 4 of 4 green  -> buy candidate (sized under a cap)
-                held,     4 of 4 green  -> hold
-                held,     3 of 4 green  -> start selling
-                held,     2 or fewer    -> sell
+                                  can still reach a buy, plus holdings).
+                5. Time machine   replays this stock's past year: on the days the checks
+                                  would have been green, did it go up over the next 5
+                                  trading days? Uses only what was known on each day.
+  Advisor     turns green flags into signals, never orders. Hierarchy:
+                vetoes: time machine (5) and data is real (1) must both be green
+                then at least 2 of organic (2), prediction (3), news (4)
+                not held, 4 or 5 of 5 green, vetoes green, no red -> buy candidate
+                held,     4 or 5 of 5 green                        -> hold
+                held,     3 of 5 green                             -> start selling
+                held,     2 or fewer, or time machine red          -> sell
 
 Read-only: nothing here places, changes or cancels an order. Standard library only.
 
@@ -56,6 +61,9 @@ MAX_BUYS = int(os.environ.get("AGENT_MAX_BUYS", "12"))
 WORKERS = int(os.environ.get("AGENT_WORKERS", "8"))
 HORIZON = 5
 LOG_KEEP = 3000
+TM_LOOKBACK = int(os.environ.get("AGENT_TM_LOOKBACK", "250"))   # trading days of history the time machine replays
+TM_MIN_SIGNALS = 6
+TM_HIT_OK = 0.55
 EXCHANGES = {"NYSE", "NASDAQ", "ARCA", "AMEX", "BATS"}
 
 HIGH_IMPACT = ["earnings", "guidance", "outlook", "downgrade", "upgrade", "sec ", "investigation", "lawsuit",
@@ -433,17 +441,118 @@ def check_news(items, move_today):
     return {"status": status, "level": level, "summary": summary, "count": len(items), "high": highs, "headlines": scored[:5]}
 
 
+# ---------------------------------------------------------------- check 5: time machine
+_PAST_DAY = dt.date(2000, 1, 3)
+
+
+def replay(daily, i, crypto):
+    """Checks 2 and 3 exactly as they would have read at the close of bar i, using only bars up to i.
+    News from the past isn't replayed, so a volume spike counts as unexplained (watch, not green)."""
+    if i < 60:
+        return None, None
+    win = daily[max(0, i - 100):i + 1]
+    org = check_organic(win, [], None, crypto)["status"]
+    p = predict("", win, _PAST_DAY)
+    return org, (p["call"] if p else None)
+
+
+def replay_series(daily, crypto, start=60):
+    """[(date, green_then, forward_5d_return or None)] for every bar from `start`."""
+    out = []
+    for i in range(max(60, start), len(daily)):
+        org, call = replay(daily, i, crypto)
+        fwd = daily[i + HORIZON]["c"] / daily[i]["c"] - 1 if i + HORIZON < len(daily) and daily[i]["c"] else None
+        out.append((daily[i]["t"][:10], org == "ok" and call == "up", fwd, org, call))
+    return out
+
+
+def judge_history(signals, lookback_days):
+    """signals: [(date, forward_return)] for past green days whose outcome was already known."""
+    n = len(signals)
+    if n < TM_MIN_SIGNALS:
+        return {"status": "watch", "n": n, "hit_rate": None, "avg_fwd_pct": None, "lookback_days": lookback_days,
+                "summary": f"Only {n} green day{'s' if n != 1 else ''} in the past {lookback_days} trading days. Too few to trust.",
+                "recent": [[d, round(f * 100, 2)] for d, f in signals[-6:]]}
+    hits = sum(1 for _, f in signals if f > 0)
+    hit, avg = hits / n, sum(f for _, f in signals) / n
+    if hit >= TM_HIT_OK and avg > 0:
+        status = "ok"
+        summary = f"When this stock looked green before, it rose over the next 5 days {hits} of {n} times ({hit:.0%}), {avg*100:+.2f}% on average."
+    elif avg < 0 and hit < 0.5:
+        status = "alert"
+        summary = f"When this stock looked green before, it usually fell: up only {hits} of {n} times ({hit:.0%}), {avg*100:+.2f}% on average."
+    else:
+        status = "watch"
+        summary = f"Mixed past: up {hits} of {n} times ({hit:.0%}) after green days, {avg*100:+.2f}% on average."
+    best, worst = max(signals, key=lambda x: x[1]), min(signals, key=lambda x: x[1])
+    return {"status": status, "n": n, "hits": hits, "hit_rate": round(hit, 3), "avg_fwd_pct": round(avg * 100, 2),
+            "best": [best[0], round(best[1] * 100, 2)], "worst": [worst[0], round(worst[1] * 100, 2)],
+            "lookback_days": lookback_days, "summary": summary, "recent": [[d, round(f * 100, 2)] for d, f in signals[-6:]]}
+
+
+def check_time_machine(daily, crypto):
+    if len(daily) < 60 + HORIZON + TM_MIN_SIGNALS:
+        return {"status": "watch", "n": 0, "summary": f"Only {len(daily)} days of price history. The time machine needs more.",
+                "lookback_days": 0, "recent": []}
+    start = max(60, len(daily) - TM_LOOKBACK)
+    ser = replay_series(daily, crypto, start)
+    sig = [(d, f) for d, g, f, _, _ in ser if g and f is not None]
+    return judge_history(sig, len(ser))
+
+
+def time_machine_all(stocks, cryptos, cache_path, day_key):
+    """Check 5 for every symbol, cached per New York date (the past doesn't change during the day)."""
+    cache = {}
+    if cache_path:
+        try:
+            cache = json.load(open(cache_path))
+        except Exception:
+            cache = {}
+    if cache.get("date") != day_key or cache.get("lookback") != TM_LOOKBACK:
+        cache = {"date": day_key, "lookback": TM_LOOKBACK, "results": {}}
+    res = cache["results"]
+    need_s = [s for s in stocks if s not in res]
+    need_c = [s for s in cryptos if s not in res]
+    t0 = time.time()
+    days = int(TM_LOOKBACK * 1.45) + 170
+    if need_s or need_c:
+        long = bars(need_s, False, "1Day", days, "Time machine", per=25)
+        long.update(bars(need_c, True, "1Day", days, "Time machine"))
+        for s in need_s + need_c:
+            res[s] = check_time_machine(long.get(s, []), s in need_c)
+    st_ = STATS.setdefault("Time machine", {"calls": 0})
+    st_.update(jobs=len(need_s) + len(need_c), workers=WORKERS, seconds=round(time.time() - t0, 1),
+               cached=len(stocks) + len(cryptos) - len(need_s) - len(need_c))
+    if cache_path:
+        os.makedirs(os.path.dirname(os.path.abspath(cache_path)), exist_ok=True)
+        json.dump(cache, open(cache_path, "w"), separators=(",", ":"))
+    return res
+
+
 # ---------------------------------------------------------------- advisor
-def signal(greens, held):
+# statuses are always in this order: data (1), organic (2), prediction (3), news (4), time machine (5)
+def signal(statuses, held):
+    greens = statuses.count("ok")
     if held:
-        return "hold" if greens == 4 else "start_selling" if greens == 3 else "sell"
-    return "buy" if greens == 4 else "watch" if greens == 3 else None
+        if statuses[4] == "alert" or greens <= 2:
+            return "sell"
+        return "start_selling" if greens == 3 else "hold"
+    vetoes = statuses[0] == "ok" and statuses[4] == "ok"
+    if greens >= 4 and vetoes and "alert" not in statuses:
+        return "buy"
+    return "watch" if greens >= 3 else None
+
+
+def can_still_buy(statuses):
+    """Worth reading the news for: vetoes green, nothing red so far, and organic or prediction green."""
+    s0, s1, s2, s4 = statuses[0], statuses[1], statuses[2], statuses[4]
+    return s0 == "ok" and s4 == "ok" and "alert" not in (s1, s2) and "ok" in (s1, s2)
 
 
 def verdict(statuses):
     if "alert" in statuses:
         return "red_flag"
-    return "verified" if statuses.count("ok") == 4 else "caution"
+    return "verified" if statuses.count("ok") == 5 else "caution"
 
 
 # ---------------------------------------------------------------- run
@@ -460,7 +569,7 @@ def load_previous(src):
         return {}
 
 
-def run(portfolio, previous, watchlist):
+def run(portfolio, previous, watchlist, tm_cache=None):
     now = dt.datetime.now(dt.timezone.utc)
     today = now.date()
     STATS.clear()
@@ -508,6 +617,9 @@ def run(portfolio, previous, watchlist):
     daily.update(bars(held_crypto, True, "1Day", 130, "Verifiers"))
     hourly.update(bars(held_crypto, True, "1Hour", 10, "Verifiers"))
 
+    # Time machine (check 5): each stock's past year, cached for the day
+    hist = time_machine_all(check_stocks, held_crypto, tm_cache, now.astimezone(dt.timezone(dt.timedelta(hours=-4))).date().isoformat())
+
     rows = {}
     for s in check_stocks + held_crypto:
         d, h = daily.get(s, []), hourly.get(s, [])
@@ -520,10 +632,13 @@ def run(portfolio, previous, watchlist):
         move = round((d[-1]["c"] / d[-2]["c"] - 1) * 100, 2) if len(d) >= 2 else (round(ch, 2) if ch is not None else None)
         rows[s] = {"symbol": s, "held": bool(pos), "watch": s in watchlist, "crypto": crypto,
                    "price": round(price_of(s) or (d[-1]["c"] if d else 0), 4), "move_today_pct": move,
-                   "dollar_volume": round(dollar_vol(s)), "c": [c1, c2, prediction_check(pred, c2["status"]), None], "pred": pred}
+                   "dollar_volume": round(dollar_vol(s)), "c": [c1, c2, prediction_check(pred, c2["status"]), None,
+                                                             hist.get(s) or {"status": "watch", "summary": "No history available."}],
+                   "pred": pred}
 
-    # News readers: only finalists (checks 1-3 green) and holdings
-    finalists = [s for s, r in rows.items() if r["held"] or r["watch"] or all(c["status"] == "ok" for c in r["c"][:3])]
+    # News readers: only holdings, watchlist, and stocks that can still reach a buy
+    finalists = [s for s, r in rows.items() if r["held"] or r["watch"]
+                 or can_still_buy([c["status"] if c else None for c in r["c"]])]
     heads = news(finalists) if finalists else {}
     for s, r in rows.items():
         if s not in finalists:
@@ -540,12 +655,13 @@ def run(portfolio, previous, watchlist):
         sts = [c["status"] for c in r["c"]]
         r["greens"] = sts.count("ok")
         r["verdict"] = verdict(sts)
-        r["signal"] = signal(r["greens"], r["held"])
+        r["signal"] = signal(sts, r["held"])
     equity = float(account.get("equity") or 0)
     cash = float(account.get("cash") or 0)
     spendable = max(0.0, cash - equity * CASH_BUFFER_PCT / 100)
     buys = sorted([r for r in rows.values() if r["signal"] == "buy"],
                   key=lambda r: (r["c"][1].get("score") or 0) + r["c"][2].get("confidence", 0.5) * 100
+                  + (r["c"][4].get("hit_rate") or 0) * 100 + r["greens"] * 10
                   + min(10, math.log10(max(r["dollar_volume"], 1))), reverse=True)
     for i, r in enumerate(buys):
         r["rank"] = i + 1
@@ -559,7 +675,7 @@ def run(portfolio, previous, watchlist):
 
     # Prediction log: holdings, top buys and 3-green stocks
     log = [score_prediction(p, daily.get(p["symbol"], [])) if "hit" not in p else p for p in previous.get("log", [])]
-    detailed = [r for r in rows.values() if r["held"] or r["watch"] or r in top or r["greens"] == 3]
+    detailed = [r for r in rows.values() if r["held"] or r["watch"] or r in top or r["signal"] == "watch"][:80]
     seen = {(p["symbol"], p["made_on"]) for p in log}
     for r in detailed:
         p = r["pred"]
@@ -573,32 +689,35 @@ def run(portfolio, previous, watchlist):
         c3 = dict(r["c"][2], track={"scored": len(mine), "hits": sum(p["hit"] for p in mine)})
         d = daily.get(r["symbol"], [])[-60:]
         out = {k: r.get(k) for k in ("symbol", "held", "watch", "price", "move_today_pct", "greens", "verdict", "signal", "size", "rank")}
-        out.update(checks={"price": r["c"][0], "organic": r["c"][1], "prediction": c3, "news": r["c"][3]},
+        out.update(checks={"price": r["c"][0], "organic": r["c"][1], "prediction": c3, "news": r["c"][3], "history": r["c"][4]},
                    closes=[round(b["c"], 4) for b in d], dates=[b["t"][:10] for b in d])
         return out
 
     order = {"sell": 0, "start_selling": 1, "buy": 2, "hold": 3, "watch": 4, None: 5}
     board = sorted(rows.values(), key=lambda r: (order[r["signal"]], -r["greens"], -r["dollar_volume"]))
-    names = ("price", "organic", "prediction", "news")
+    names = ("price", "organic", "prediction", "news", "history")
     return {
         "generated_at": now.isoformat(timespec="seconds"), "horizon_days": HORIZON,
+        "hierarchy": "vetoes: time machine + data is real; then 2 of organic, prediction, news; buy at 4+/5 with no red",
         "rules": {"observe": OBSERVE, "shortlist": SHORTLIST, "min_price": MIN_PRICE, "max_position_pct": MAX_POSITION_PCT,
+                  "tm_lookback_days": TM_LOOKBACK, "tm_min_signals": TM_MIN_SIGNALS, "tm_hit_ok": TM_HIT_OK,
                   "cash_buffer_pct": CASH_BUFFER_PCT, "max_buys": MAX_BUYS},
         "funnel": {"tradable": len(universe), "observed": len(observed), "shortlisted": len(shortlist),
                    "checked": len(rows), "news_read": len(finalists),
-                   "greens": {str(g): sum(1 for r in rows.values() if r["greens"] == g) for g in range(5)},
+                   "greens": {str(g): sum(1 for r in rows.values() if r["greens"] == g) for g in range(6)},
                    "failed": {k: sum(1 for r in rows.values() if r["c"][i]["status"] == "alert") for i, k in enumerate(names)},
                    "passed": {k: sum(1 for r in rows.values() if r["c"][i]["status"] == "ok") for i, k in enumerate(names)},
                    **{k: sum(1 for r in rows.values() if r["signal"] == k) for k in ("buy", "hold", "start_selling", "sell")}},
         "teams": [dict({"name": n, "job": j}, **STATS.get(n, {})) for n, j in (
             ("Scouts", "Snapshot every tradable US stock"), ("Screeners", "Rank by dollar volume, shortlist"),
-            ("Verifiers", "Price history and checks 1-3"), ("News readers", "Check 4 for finalists"))],
+            ("Verifiers", "Price history and checks 1-3"), ("Time machine", "Replays each stock's past year (check 5)"),
+            ("News readers", "Check 4 for finalists"))],
         "movers": movers,
         "symbols": [full(r) for r in sorted(detailed, key=lambda r: (order[r["signal"]], -r["greens"]))],
-        "board_columns": ["symbol", "price", "move_today_pct", "price_check", "organic", "prediction", "news",
-                          "greens", "organic_score", "held", "signal"],
+        "board_columns": ["symbol", "price", "move_today_pct", "price_check", "organic", "prediction", "news", "history",
+                          "greens", "organic_score", "held", "signal", "tm_hit_rate", "tm_n"],
         "board": [[r["symbol"], r["price"], r["move_today_pct"], *[c["status"] for c in r["c"]], r["greens"],
-                   r["c"][1].get("score"), int(r["held"]), r["signal"]] for r in board],
+                   r["c"][1].get("score"), int(r["held"]), r["signal"], r["c"][4].get("hit_rate"), r["c"][4].get("n")] for r in board],
         "track_record": {"scored": len(scored), "hits": sum(p["hit"] for p in scored),
                          "in_range": sum(p.get("in_range", False) for p in scored)},
         "log": log,
@@ -611,6 +730,7 @@ def main():
     ap.add_argument("--portfolio", required=True)
     ap.add_argument("--previous", help="last published agent.json (URL or path), for the prediction log")
     ap.add_argument("--watchlist", default=os.environ.get("AGENT_WATCHLIST", ""))
+    ap.add_argument("--tm-cache", help="where to keep the day's time-machine results")
     a = ap.parse_args()
     previous = load_previous(a.previous)
     try:
@@ -623,7 +743,7 @@ def main():
         out = {"generated_at": stamp, "configured": False, "symbols": [], "log": previous.get("log", [])}
     else:
         try:
-            out = run(portfolio, previous, [s.strip().upper() for s in a.watchlist.split(",") if s.strip()])
+            out = run(portfolio, previous, [s.strip().upper() for s in a.watchlist.split(",") if s.strip()], a.tm_cache)
             out["configured"] = True
         except Exception as e:  # keep the site working and the log intact
             out = dict(previous, generated_at=stamp, configured=True, error=f"{type(e).__name__}: {e}"[:300])

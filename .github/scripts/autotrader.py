@@ -8,8 +8,12 @@ Kill switch: the AUTOTRADE repository variable (or secret).
   sell-only  no new buys; exits below still run
   on         buys and exits
 
+Level 0 master switch: the weekly time machine (backtest.py) replays the last ~6 months with these
+rules. If it would have lost money, or there is no valid result, no new buys (exits still run).
+
 Buying (only while the US market is open):
-  * only stocks the agent rates 4 of 4 green and that you don't already hold
+  * only stocks the agent marks "buy": 4 or 5 of 5 green, time machine and data-is-real green,
+    nothing red, and that you don't already hold
   * only operating companies (funds/ETFs skipped unless AUTOTRADE_ALLOW_ETF=true)
   * the account is split into AUTOTRADE_SLOTS equal slots (default 12, so 8.33% each);
     each buy is one slot of account value, paid from cash only (never margin),
@@ -19,11 +23,11 @@ Buying (only while the US market is open):
   * no buys in the last AUTOTRADE_NO_BUY_MINUTES (default 30) before the close: sells only
 
 Exits (only on positions the auto-trader bought itself; your manual positions are never touched):
-  * 2 or fewer green           -> sell all
-  * 3 green                    -> sell half, once (not again within 3 days)
+  * 2 or fewer of 5 green, or the stock's time machine turns red -> sell all
+  * 3 of 5 green               -> sell half, once (not again within 3 days)
   * down STOP_LOSS_PCT  (5%)   -> sell all
   * trailing stop: once up TRAIL_ARM_PCT (4%), sell all if it falls TRAIL_PCT (4%) from its best price
-  * bad day: down BAD_DAY_PCT (3%) today and no longer 4 of 4 green -> sell all
+  * bad day: down BAD_DAY_PCT (3%) today and not 5 of 5 green -> sell all
   * up   TAKE_PROFIT_PCT (20%) -> sell all, freeing the slot for a new 4-green stock
   * exits run the same day; on a live account under $25,000 that has used its 3 day trades,
     same-day exits wait (Alpaca's pattern-day-trader rule would reject them)
@@ -139,7 +143,7 @@ def refresh_journal(entries):
     return entries
 
 
-def run(agent, previous):
+def run(agent, previous, backtest=None):
     now = dt.datetime.now(dt.timezone.utc)
     out = {"generated_at": now.isoformat(timespec="seconds"), "mode": MODE, "paper": PAPER,
            "rules": {"slots": SLOTS, "slot_pct": round(100 / SLOTS, 2), "stop_loss_pct": STOP_LOSS_PCT,
@@ -222,6 +226,12 @@ def run(agent, previous):
             "check3_due": c3.get("due"), "check3_confidence": c3.get("confidence"),
             "check4_news_status": c4.get("status", b.get("news")), "check4_headlines": c4.get("count"),
             "check4_top_headline": heads[0]["headline"] if heads else None,
+            "check5_history_status": (ch.get("history") or {}).get("status", b.get("history")),
+            "check5_hit_rate": (ch.get("history") or {}).get("hit_rate", b.get("tm_hit_rate")),
+            "check5_signals": (ch.get("history") or {}).get("n", b.get("tm_n")),
+            "check5_avg_fwd_pct": (ch.get("history") or {}).get("avg_fwd_pct"),
+            "check5_summary": (ch.get("history") or {}).get("summary"),
+            "master_switch_return_pct": (backtest or {}).get("total_return_pct"),
             "position_qty_before": num(pos.get("qty")) or None, "position_avg_entry": num(pos.get("avg_entry_price")) or None,
             "position_plpc_before": round(num(pos.get("unrealized_plpc")) * 100, 2) if pos else None,
         }
@@ -269,24 +279,39 @@ def run(agent, previous):
         drop_from_peak = (1 - price / peak) * 100 if peak else 0
         b = board.get(sym)
         greens = b["greens"] if b else None
+        sig = b.get("signal") if b else None
         if plpc <= -STOP_LOSS_PCT:
             place(sym, "sell", f"Stop-loss: down {abs(plpc):.1f}% from entry", qty=qty, rule="stop-loss")
         elif peak_gain >= TRAIL_ARM_PCT and drop_from_peak >= TRAIL_PCT:
             place(sym, "sell", f"Trailing stop: was up {peak_gain:.1f}%, fell {drop_from_peak:.1f}% from its best", qty=qty, rule="trailing stop")
-        elif day <= -BAD_DAY_PCT and greens != 4:
-            place(sym, "sell", f"Bad day: down {abs(day):.1f}% today and only {greens if greens is not None else '?'} of 4 green", qty=qty, rule="bad day")
+        elif day <= -BAD_DAY_PCT and greens != 5:
+            place(sym, "sell", f"Bad day: down {abs(day):.1f}% today and only {greens if greens is not None else '?'} of 5 green", qty=qty, rule="bad day")
         elif plpc >= TAKE_PROFIT_PCT:
             place(sym, "sell", f"Take profit: up {plpc:.1f}% from entry", qty=qty, rule="take-profit")
-        elif greens is not None and greens <= 2:
-            place(sym, "sell", f"Only {greens} of 4 green", qty=qty, rule="2 or fewer green")
-        elif greens == 3 and sym not in trimmed_recently:
+        elif b and b.get("history") == "alert":
+            place(sym, "sell", "Time machine turned red: this stock usually fell after looking green", qty=qty, rule="time machine red")
+        elif sig == "sell":
+            place(sym, "sell", f"Only {greens} of 5 green", qty=qty, rule="2 or fewer green")
+        elif sig == "start_selling" and sym not in trimmed_recently:
             half = math.floor(qty / 2 * 1e9) / 1e9 if p.get("asset_class") == "crypto" or qty != int(qty) else math.floor(qty / 2)
             if half > 0:
-                place(sym, "sell", "3 of 4 green: start selling (half)", qty=half, rule="3 green: sell half")
+                place(sym, "sell", "3 of 5 green: start selling (half)", qty=half, rule="3 green: sell half")
 
     # ---- buys
+    bt = backtest or {}
+    bt_age = None
+    try:
+        bt_age = (now - dt.datetime.fromisoformat(bt["generated_at"])).days
+    except Exception:
+        pass
+    out["master_switch"] = {"buys_allowed": bool(bt.get("buys_allowed")) and bt_age is not None and bt_age <= 10,
+                            "total_return_pct": bt.get("total_return_pct"), "generated_at": bt.get("generated_at")}
     if MODE != "on":
         out["notes"].append("Sell-only: exits run, no new buys.")
+    elif not out["master_switch"]["buys_allowed"]:
+        why = ("there is no recent time-machine result" if bt_age is None or bt_age > 10 or bt.get("buys_allowed") is None
+               else f"the time machine says these rules would have returned {bt.get('total_return_pct')}% over the last 6 months")
+        out["notes"].append(f"Master switch: buying paused because {why}. Exits still run.")
     elif closing:
         out["notes"].append(f"{round(minutes_left)} min to the close: no new buys, sells only.")
     elif last_equity and (equity / last_equity - 1) * 100 <= -DAILY_LOSS_PCT:
@@ -295,14 +320,14 @@ def run(agent, previous):
         slot = equity / SLOTS
         free = SLOTS - len(owned)
         spend = cash
-        candidates = [s for s in agent.get("symbols", []) if s.get("signal") == "buy" and s.get("greens") == 4]
+        candidates = [s for s in agent.get("symbols", []) if s.get("signal") == "buy" and (s.get("greens") or 0) >= 4]
         candidates.sort(key=lambda s: s.get("rank") or 999)
         bought = 0
         for c in candidates:
             if bought >= free:
                 break
             sym = c["symbol"]
-            if sym in positions or sym in open_syms or board.get(sym, {}).get("greens") != 4:
+            if sym in positions or sym in open_syms or board.get(sym, {}).get("signal") != "buy":
                 continue
             try:
                 asset = call("GET", f"/v2/assets/{urllib.parse.quote(sym)}")
@@ -318,7 +343,7 @@ def run(agent, previous):
                 if amount < 1:
                     out["notes"].append("Not enough cash for another $1 order.")
                     break
-                act = place(sym, "buy", f"4 of 4 green, rank #{c.get('rank')}, one slot ({100/SLOTS:.1f}%)", notional=amount, rule="4 of 4 green", asset=asset)
+                act = place(sym, "buy", f"{c.get('greens')} of 5 green, time machine green, rank #{c.get('rank')}, one slot ({100/SLOTS:.1f}%)", notional=amount, rule="4+/5 green", asset=asset)
             else:
                 price = num(c.get("price"))
                 shares = math.floor(amount / price) if price else 0
@@ -326,7 +351,7 @@ def run(agent, previous):
                     out["notes"].append(f"Skipped {sym}: not fractionable and one share costs more than a slot.")
                     continue
                 amount = shares * price
-                act = place(sym, "buy", f"4 of 4 green, rank #{c.get('rank')}, {shares} whole share(s)", qty=shares, rule="4 of 4 green", asset=asset)
+                act = place(sym, "buy", f"{c.get('greens')} of 5 green, time machine green, rank #{c.get('rank')}, {shares} whole share(s)", qty=shares, rule="4+/5 green", asset=asset)
             if act.get("status") != "rejected":
                 spend -= amount
                 bought += 1
@@ -353,6 +378,7 @@ def main():
     ap.add_argument("--journal")
     ap.add_argument("--journal-previous")
     ap.add_argument("--state", help="JSON file that keeps trailing-stop peaks between runs")
+    ap.add_argument("--backtest", help="the weekly time machine result (master switch)")
     a = ap.parse_args()
     if a.state:
         PEAKS.update(load(a.state).get("peaks", {}))
@@ -363,7 +389,7 @@ def main():
                "notes": ["Alpaca keys missing."], "actions": [], "history": previous.get("history", [])}
     else:
         try:
-            out = run(agent, previous)
+            out = run(agent, previous, load(a.backtest))
         except Exception as e:
             out = {"generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "mode": MODE,
                    "error": f"{type(e).__name__}: {e}"[:300], "actions": [], "notes": [], "history": previous.get("history", [])}

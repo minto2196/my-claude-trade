@@ -133,7 +133,21 @@ a { color: var(--accent); }
 .ag-sum > div:last-child { border-right: 0; }
 .ag-sum .v { font: 600 1.3rem/1.2 var(--mono); font-variant-numeric: tabular-nums; }
 .ag-sum .s { font-size: 0.72rem; color: var(--muted); }
-.pipeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.pipeline { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.pipeline em { font: 600 0.58rem/1 var(--body); letter-spacing: 0.06em; text-transform: uppercase; font-style: normal; color: var(--down); background: var(--down-soft); padding: 2px 4px; border-radius: 3px; align-self: center; }
+.pipeline span { flex-wrap: wrap; }
+.tmtop { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px; border-bottom: 1px solid var(--line); }
+.tmtop p { margin: 0; font-size: 0.8rem; color: var(--ink-2); flex: 1; min-width: 200px; }
+.tmk { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+.tmk > div { padding: 10px 12px; display: grid; gap: 1px; border-right: 1px solid var(--line); min-width: 0; }
+.tmk > div:last-child { border-right: 0; }
+.tmk .v { font: 600 1.15rem/1.2 var(--mono); font-variant-numeric: tabular-nums; }
+.tmk .s { font-size: 0.68rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tmchart { position: relative; height: 170px; margin: 8px 12px 4px; }
+.tmchart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.tmchart text { font: 400 10.5px var(--mono); fill: var(--muted); }
+@media (max-width: 600px) { .tmk { grid-template-columns: repeat(2, minmax(0, 1fr)); } .tmk > div:nth-child(2) { border-right: 0; } .tmk > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); } }
+.rulebar { margin: 0; padding: 8px 12px; border-top: 1px solid var(--line); font-size: 0.74rem; color: var(--ink-2); background: var(--soft); border-radius: 0 0 8px 8px; }
 .pipeline span { padding: 8px 10px; font-size: 0.72rem; color: var(--ink-2); border-right: 1px solid var(--line); display: flex; gap: 6px; align-items: baseline; }
 .pipeline span:last-child { border-right: 0; }
 .pipeline b { font: 600 0.72rem var(--mono); color: var(--accent); }
@@ -389,11 +403,12 @@ footer p { margin: 0; max-width: 120ch; }
   .desks { grid-template-columns: minmax(0, 1fr); grid-template-areas: "pf" "agent" "world"; }
   .col.world { grid-template-columns: minmax(0, 1fr); }
   .status .clock { display: none; }
-  .ag-sum, .pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ag-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pipeline { grid-template-columns: minmax(0, 1fr); }
+  .pipeline span { border-right: 0; border-bottom: 1px solid var(--line); }
   .ag-sum > div:nth-child(2) { border-right: 0; }
   .ag-sum > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
-  .pipeline span:nth-child(2) { border-right: 0; }
-  .pipeline span:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+
   .check .cb { padding-left: 12px; }
 }
 @media (max-width: 420px) {
@@ -464,28 +479,46 @@ footer p { margin: 0; max-width: 120ch; }
 
     <!-- MIDDLE: verification agent -->
     <section class="col agent" aria-labelledby="h-agent">
-      <div class="colhead"><h2 id="h-agent">Verification agent</h2><p id="ag-updated">4 checks on the 500 shortlisted stocks</p></div>
+      <div class="colhead"><h2 id="h-agent">Verification agent</h2><p id="ag-updated">5 checks on the 500 shortlisted stocks</p></div>
+      <article class="panel" id="tmpanel">
+        <div class="ph"><h3>⏳ Time machine · master switch</h3><small id="tm-upd">replays the last 6 months every Saturday</small></div>
+        <div class="tmtop">
+          <span class="atstate off" id="tm-state"><span class="dot"></span><span id="tm-label">Waiting</span></span>
+          <p id="tm-verdict">The first replay runs on the next update.</p>
+        </div>
+        <div class="tmk">
+          <div><span class="k">Rules would have made</span><span class="v" id="tm-ret">—</span><span class="s" id="tm-period"></span></div>
+          <div><span class="k">S&amp;P 500 same period</span><span class="v" id="tm-spy">—</span><span class="s">buy and hold</span></div>
+          <div><span class="k">Worst drop</span><span class="v" id="tm-mdd">—</span><span class="s">peak to low</span></div>
+          <div><span class="k">Trades · win rate</span><span class="v" id="tm-trades">—</span><span class="s" id="tm-avg"></span></div>
+        </div>
+        <div class="tmchart" id="tm-curve" role="img" aria-label="Replayed account value against the S&amp;P 500"></div>
+        <div class="legend-inline" style="padding:0 12px 8px"><span><i style="background:var(--s1);height:3px"></i>These rules</span><span><i style="background:var(--muted);height:2px"></i>S&amp;P 500</span></div>
+        <p class="rulebar" id="tm-note">If the replay would have lost money, the auto-trader stops buying until a later replay is positive. Exits keep running.</p>
+      </article>
       <article class="panel">
         <div class="ag-sum">
-          <div><span class="k">4 of 4 green</span><span class="v up" id="n-ok">—</span><span class="s">all checks clear</span></div>
-          <div><span class="k">3 green</span><span class="v" style="color:var(--warn)" id="n-watch">—</span><span class="s">one check short</span></div>
+          <div><span class="k">Buy-ready</span><span class="v up" id="n-ok">—</span><span class="s">4+/5, vetoes green, no red</span></div>
+          <div><span class="k">Close</span><span class="v" style="color:var(--warn)" id="n-watch">—</span><span class="s">3+/5, not buy-ready</span></div>
           <div><span class="k">2 or fewer</span><span class="v down" id="n-alert">—</span><span class="s">rejected</span></div>
           <div><span class="k">Prediction hits</span><span class="v" id="n-hit">—</span><span class="s" id="n-hit-s">scored calls</span></div>
         </div>
-        <div class="pipeline" aria-label="The four checks">
-          <span><b>1</b>Data is real: sources agree</span>
-          <span><b>2</b>Trend is real, not pumped</span>
-          <span><b>3</b>5-day call leans up</span>
-          <span><b>4</b>No hot news shock</span>
+        <div class="pipeline" aria-label="The five checks, in order of priority">
+          <span><b>1</b>Time machine: its past green days paid off <em>veto</em></span>
+          <span><b>2</b>Data is real: sources agree <em>veto</em></span>
+          <span><b>3</b>Trend is real, not pumped</span>
+          <span><b>4</b>5-day call leans up</span>
+          <span><b>5</b>No hot news shock</span>
         </div>
+        <p class="rulebar">Buy only when <b>both vetoes are green</b>, at least <b>4 of 5</b> are green and <b>nothing is red</b>. Sell half at 3/5, sell all at 2/5 or a red time machine.</p>
       </article>
 
       <article class="panel">
         <div class="ph"><h3>Shortlist board</h3><small id="board-count">tap a stock to inspect</small></div>
         <div class="bctl">
           <div class="tabs" role="group" aria-label="Filter the board" id="bf">
-            <button type="button" data-f="g4" aria-pressed="true">4/4 green<b id="bf-g4"></b></button>
-            <button type="button" data-f="g3" aria-pressed="false">3 green<b id="bf-g3"></b></button>
+            <button type="button" data-f="g4" aria-pressed="true">Buy-ready<b id="bf-g4"></b></button>
+            <button type="button" data-f="g3" aria-pressed="false">Close<b id="bf-g3"></b></button>
             <button type="button" data-f="held" aria-pressed="false">My holdings<b id="bf-held"></b></button>
             <button type="button" data-f="all" aria-pressed="false">All<b id="bf-all"></b></button>
           </div>
@@ -546,8 +579,8 @@ footer p { margin: 0; max-width: 120ch; }
       <article class="panel" id="sig">
         <div class="ph"><h3>Agent signals</h3><small id="sig-upd">4 green = invest · 3 green = start selling</small></div>
         <div class="sig3">
-          <div><span class="k">Good to invest</span><span class="v up" id="s-buy">—</span><span class="s" id="s-buy-s">4/4 green, not held</span></div>
-          <div><span class="k">Hold</span><span class="v" id="s-hold">—</span><span class="s">held, 4/4 green</span></div>
+          <div><span class="k">Good to invest</span><span class="v up" id="s-buy">—</span><span class="s" id="s-buy-s">4+/5 green, vetoes green</span></div>
+          <div><span class="k">Hold</span><span class="v" id="s-hold">—</span><span class="s">held, 4+/5 green</span></div>
           <div><span class="k">Start selling</span><span class="v" style="color:var(--warn)" id="s-sell">—</span><span class="s" id="s-sell-s">held, 3 green or fewer</span></div>
         </div>
         <div class="siglist" id="sells"></div>
@@ -559,7 +592,7 @@ footer p { margin: 0; max-width: 120ch; }
         <div class="ph"><h3>Auto-trader</h3><small id="at-upd">kill switch: AUTOTRADE</small></div>
         <div class="atop">
           <span class="atstate off" id="at-state"><span class="dot"></span><span id="at-label">Off</span></span>
-          <p id="at-rules">Buys only 4/4 green stocks, one equal slot each. You switch it on or off with the AUTOTRADE setting in GitHub.</p>
+          <p id="at-rules">Buys only buy-ready stocks (4+/5 green, vetoes green), one equal slot each. You switch it on or off with the AUTOTRADE setting in GitHub.</p>
         </div>
         <ul class="atnotes" id="at-notes"><li>Waiting for the first run…</li></ul>
         <div class="siglist"><h4>Orders placed by the auto-trader</h4><div id="at-hist"><div class="empty">No orders yet.</div></div></div>
@@ -633,6 +666,7 @@ const CONFIG = {
   tradesUrl: "data/trades.json",
   recordsUrl: "data/records.json",
   supervisorUrl: "data/supervisor.json",
+  backtestUrl: "data/backtest.json",
   refreshSeconds: 60
 };
 /* ======================================== */
@@ -721,9 +755,12 @@ function demoDetail(sym, price, move, sts, held, dates) {
     { headline: `Example headline: what the latest sector data means for ${sym}`, impact: "low", source: "demo", created_at: new Date(Date.now() - 26 * 3600e3).toISOString(), url: null }];
   const past = Array.from({ length: 5 }, (_, i) => ({ symbol: sym, made_on: dates[42 - i * 5], due: dates[47 - i * 5], call: ["up", "flat", "up", "down", "up"][i], hit: rnd() > 0.42, move_pct: +((rnd() - 0.45) * 6).toFixed(2) }));
   const greens = sts.filter(x => x === "ok").length;
+  const tmn = 18 + Math.floor(rnd() * 30), tmhit = { ok: 0.58 + rnd() * 0.14, watch: 0.47 + rnd() * 0.07, alert: 0.3 + rnd() * 0.12 }[sts[4]] || 0.5;
+  const tmavg = { ok: 0.4 + rnd() * 0.9, watch: -0.1 + rnd() * 0.3, alert: -1.2 + rnd() * 0.6 }[sts[4]] || 0;
+  const tmh = Math.round(tmn * tmhit);
   return {
-    symbol: sym, held, price, move_today_pct: move, greens, verdict: sts.includes("alert") ? "red_flag" : greens === 4 ? "verified" : "caution",
-    signal: held ? (greens === 4 ? "hold" : greens === 3 ? "start_selling" : "sell") : greens === 4 ? "buy" : greens === 3 ? "watch" : null,
+    symbol: sym, held, price, move_today_pct: move, greens, verdict: sts.includes("alert") ? "red_flag" : greens === 5 ? "verified" : "caution",
+    signal: sig5(sts, held),
     closes, dates,
     checks: {
       price: { status: sts[0], spread_pct: spread,
@@ -738,56 +775,71 @@ function demoDetail(sym, price, move, sts, held, dates) {
         band_pct: +(band * 100).toFixed(2), confidence: call === "flat" ? 0.5 : +(0.55 + rnd() * 0.12).toFixed(2), made_on: ymd(new Date()), due,
         reasons: [`EMA10 is ${call === "up" ? "+1.42" : call === "down" ? "−0.96" : "+0.18"}% vs EMA30.`, `RSI ${Math.round(45 + rnd() * 20)}.`],
         summary: `Leans ${call} over 5 trading days.`, track: { scored: 5, hits: past.filter(x => x.hit).length }, past },
+      history: { status: sts[4], n: tmn, hits: tmh, hit_rate: +(tmh / tmn).toFixed(3), avg_fwd_pct: +tmavg.toFixed(2), lookback_days: 250,
+        summary: sts[4] === "ok" ? `When this stock looked green before, it rose over the next 5 days ${tmh} of ${tmn} times (${Math.round(tmh / tmn * 100)}%), ${tmavg >= 0 ? "+" : ""}${tmavg.toFixed(2)}% on average.`
+          : sts[4] === "alert" ? `When this stock looked green before, it usually fell: up only ${tmh} of ${tmn} times (${Math.round(tmh / tmn * 100)}%), ${tmavg.toFixed(2)}% on average.`
+          : `Mixed past: up ${tmh} of ${tmn} times (${Math.round(tmh / tmn * 100)}%) after green days, ${tmavg.toFixed(2)}% on average.`,
+        best: [dates[20], +(3 + rnd() * 6).toFixed(2)], worst: [dates[35], +(-2 - rnd() * 5).toFixed(2)],
+        recent: Array.from({ length: 6 }, (_, i) => [dates[24 + i * 5], +((rnd() - (sts[4] === "ok" ? 0.35 : 0.55)) * 7).toFixed(2)]) },
       news: sts[3] === "skip" ? { status: "skip", summary: "Not read: news is checked only for stocks that clear checks 1-3, and for holdings.", headlines: [], count: null }
         : { status: sts[3], count: heads.length, headlines: heads,
           summary: !heads.length ? "No headlines in the last 72 hours." : sts[3] === "ok" ? `${heads.length} headlines, nothing that usually moves a stock much.` : sts[3] === "watch" ? `${heads.length} headlines, 1 high-impact. Could move the price; check before trading.` : `1 high-impact headline and a ${move}% move today. The news is moving the price.` }
     }
   };
 }
+const sig5 = (sts, held) => {
+  const g = sts.filter(x => x === "ok").length;
+  if (held) return sts[4] === "alert" || g <= 2 ? "sell" : g === 3 ? "start_selling" : "hold";
+  if (g >= 4 && sts[0] === "ok" && sts[4] === "ok" && !sts.includes("alert")) return "buy";
+  return g >= 3 ? "watch" : null;
+};
 function demoAgent(snap) {
   seed = 11;
   const dates = tradingDates(60);
   const pick = w => { const r = rnd(); let a = 0; for (const [k, p] of w) { a += p; if (r < a) return k; } return w[w.length - 1][0]; };
-  const forced = { AAPL: ["ok", "ok", "ok", "ok"], GOOGL: ["ok", "ok", "ok", "ok"], BAC: ["ok", "ok", "ok", "ok"], KO: ["ok", "ok", "alert", "ok"], AXP: ["ok", "watch", "ok", "watch"], BTCUSD: ["ok", "alert", "watch", "watch"] };
+  const forced = { AAPL: ["ok", "ok", "ok", "ok", "ok"], GOOGL: ["ok", "ok", "ok", "ok", "ok"], BAC: ["ok", "watch", "ok", "ok", "ok"], KO: ["ok", "ok", "watch", "ok", "watch"], AXP: ["ok", "watch", "ok", "watch", "ok"], BTCUSD: ["ok", "alert", "watch", "watch", "alert"] };
   const held = new Set(snap.positions.map(p => p.symbol));
   let extra = 0; const names = DEMO_TICKERS.filter(t => !held.has(t));
   while (names.length < 494) { const n = String.fromCharCode(65 + Math.floor(rnd() * 26), 65 + Math.floor(rnd() * 26), 65 + Math.floor(rnd() * 26)) + (rnd() < 0.5 ? String.fromCharCode(65 + Math.floor(rnd() * 26)) : ""); if (!names.includes(n) && !held.has(n)) names.push(n); extra++; }
   const all = snap.positions.map(p => ({ sym: p.symbol, price: p.price, move: p.today_pct, held: true, sts: forced[p.symbol] }))
     .concat(names.slice(0, 494).map(sym => {
-      const sts = [pick([["ok", 0.95], ["watch", 0.04], ["alert", 0.01]]), pick([["ok", 0.72], ["watch", 0.2], ["alert", 0.08]]), pick([["ok", 0.27], ["watch", 0.43], ["alert", 0.3]])];
-      sts.push(sts.every(x => x === "ok") ? pick([["ok", 0.62], ["watch", 0.32], ["alert", 0.06]]) : "skip");
+      const sts = [pick([["ok", 0.95], ["watch", 0.04], ["alert", 0.01]]), pick([["ok", 0.72], ["watch", 0.2], ["alert", 0.08]]), pick([["ok", 0.27], ["watch", 0.43], ["alert", 0.3]]), "skip",
+        pick([["ok", 0.34], ["watch", 0.46], ["alert", 0.2]])];
+      if (sts[0] === "ok" && sts[4] === "ok" && sts[1] !== "alert" && sts[2] !== "alert" && (sts[1] === "ok" || sts[2] === "ok"))
+        sts[3] = pick([["ok", 0.72], ["watch", 0.24], ["alert", 0.04]]);
       return { sym, price: +(8 + rnd() * rnd() * 600).toFixed(2), move: +((rnd() - 0.48) * 6).toFixed(2), held: false, sts };
     }));
-  all.forEach(r => { r.greens = r.sts.filter(x => x === "ok").length; r.signal = r.held ? (r.greens === 4 ? "hold" : r.greens === 3 ? "start_selling" : "sell") : r.greens === 4 ? "buy" : r.greens === 3 ? "watch" : null; r.score = r.sts[1] === "alert" ? 45 : r.sts[1] === "watch" ? 78 : 100; });
+  all.forEach(r => { r.greens = r.sts.filter(x => x === "ok").length; r.signal = sig5(r.sts, r.held); r.score = r.sts[1] === "alert" ? 45 : r.sts[1] === "watch" ? 78 : 100; r.hit = { ok: 0.6, watch: 0.5, alert: 0.38 }[r.sts[4]]; });
   const order = { sell: 0, start_selling: 1, buy: 2, hold: 3, watch: 4, null: 5 };
   all.sort((a, b) => order[a.signal] - order[b.signal] || b.greens - a.greens);
   const equity = snap.account.equity, cash = snap.account.cash, spendable = Math.max(0, cash - equity * 0.1);
   const buys = all.filter(r => r.signal === "buy");
   const per = spendable / Math.min(buys.length, 5), cap = equity * 0.1;
-  const detailed = all.filter(r => r.held || buys.indexOf(r) > -1 && buys.indexOf(r) < 12 || r.greens === 3 && !r.held).slice(0, 40).map(r => {
+  const detailed = all.filter(r => r.held || buys.indexOf(r) > -1 && buys.indexOf(r) < 12 || r.signal === "watch").slice(0, 40).map(r => {
     const d = demoDetail(r.sym, r.price, r.move, r.sts, r.held, dates);
     const bi = buys.indexOf(r); if (bi > -1) { d.rank = bi + 1; d.size = { max_usd: Math.floor(Math.min(cap, per) / 10) * 10, cap_usd: +cap.toFixed(2), spendable_usd: +spendable.toFixed(2), rule: "at most 10% of the account in one stock, keep 10% cash" }; }
     return d;
   });
-  const cnt = f => all.filter(f).length, names4 = ["price", "organic", "prediction", "news"];
+  const cnt = f => all.filter(f).length, names4 = ["price", "organic", "prediction", "news", "history"];
   const scoredLog = detailed.flatMap(d => d.checks.prediction.past || []);
   const mvs = all.filter(r => !r.held).slice().sort((a, b) => b.move - a.move);
   return {
     demo: true, configured: true, generated_at: new Date(Date.now() - 4 * 60000).toISOString(), horizon_days: 5,
     rules: { observe: 5000, shortlist: 500, min_price: 5, max_position_pct: 10, cash_buffer_pct: 10, max_buys: 12 },
     funnel: { tradable: 10934, observed: 5000, shortlisted: 494, checked: all.length, news_read: cnt(r => r.sts[3] !== "skip"),
-      greens: Object.fromEntries([0, 1, 2, 3, 4].map(g => [String(g), cnt(r => r.greens === g)])),
+      greens: Object.fromEntries([0, 1, 2, 3, 4, 5].map(g => [String(g), cnt(r => r.greens === g)])),
       failed: Object.fromEntries(names4.map((k, i) => [k, cnt(r => r.sts[i] === "alert")])),
       passed: Object.fromEntries(names4.map((k, i) => [k, cnt(r => r.sts[i] === "ok")])),
       buy: cnt(r => r.signal === "buy"), hold: cnt(r => r.signal === "hold"), start_selling: cnt(r => r.signal === "start_selling"), sell: cnt(r => r.signal === "sell") },
     teams: [{ name: "Scouts", job: "Snapshot every tradable US stock", workers: 8, calls: 29, jobs: 28, seconds: 6.4 },
       { name: "Screeners", job: "Rank by dollar volume, shortlist", workers: 1, calls: 0, jobs: 5000, seconds: 0.03 },
       { name: "Verifiers", job: "Price history and checks 1-3", workers: 8, calls: 31, jobs: 22, seconds: 11.8 },
+      { name: "Time machine", job: "Replays each stock's past year (check 5)", workers: 8, calls: 0, jobs: 0, seconds: 0.2, cached: 500 },
       { name: "News readers", job: "Check 4 for finalists", workers: 8, calls: 13, jobs: 13, seconds: 2.1 }],
     movers: { up: mvs.slice(0, 8).map(r => ({ symbol: r.sym, price: r.price, change_pct: r.move })), down: mvs.slice(-8).reverse().map(r => ({ symbol: r.sym, price: r.price, change_pct: r.move })) },
     symbols: detailed,
-    board_columns: ["symbol", "price", "move_today_pct", "price_check", "organic", "prediction", "news", "greens", "organic_score", "held", "signal"],
-    board: all.map(r => [r.sym, r.price, r.move, ...r.sts, r.greens, r.score, r.held ? 1 : 0, r.signal]),
+    board_columns: ["symbol", "price", "move_today_pct", "price_check", "organic", "prediction", "news", "history", "greens", "organic_score", "held", "signal", "tm_hit_rate", "tm_n"],
+    board: all.map(r => [r.sym, r.price, r.move, ...r.sts, r.greens, r.score, r.held ? 1 : 0, r.signal, r.hit, 24]),
     track_record: { scored: scoredLog.length, hits: scoredLog.filter(x => x.hit).length }, log: scoredLog
   };
 }
@@ -1033,28 +1085,30 @@ function renderAlloc() {
       <b>${esc(p.symbol)}</b><span class="track"><i class="${p.pl_today >= 0 ? "up" : "down"}" style="width:${(Math.abs(p.pl_today) / max * 50).toFixed(2)}%"></i></span>
       <span class="num ${tone(p.pl_today)}">${signed(p.pl_today)}</span></div>`).join("") : '<div class="empty">Nothing held, so nothing moved.</div>';
 }
-let rz; new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => { renderPL(); drawCone(); }, 80); }).observe(document.querySelector(".desks"));
+let rz; new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => { renderPL(); drawCone(); if (window.__tmCurve) drawTM(window.__tmCurve); }, 80); }).observe(document.querySelector(".desks"));
 
 /* ================================================================ AGENT: scan (left), board (middle), signals (right) */
 const SIGNAL_LABEL = { buy: "Good to invest", hold: "Hold", start_selling: "Start selling", sell: "Sell", watch: "Watch", null: "—" };
-const CHECK_NAMES = ["Data is real", "Organic trend", "Prediction", "News impact"];
+const CHECK_NAMES = ["Time machine", "Data is real", "Organic trend", "Prediction", "News impact"];
+const DKEYS = ["history", "price", "organic", "prediction", "news"];
 let BOARD = [], FILTER = "g4", SHOWN = 15, QUERY = "";
 const nf = new Intl.NumberFormat("en-US");
 function boardRows() {
   const cols = AGENT.board_columns || [];
   return (AGENT.board || []).map(a => Object.fromEntries(cols.map((c, i) => [c, a[i]])));
 }
-const statusesOf = b => [b.price_check, b.organic, b.prediction, b.news];
+const statusesOf = b => [b.history, b.price_check, b.organic, b.prediction, b.news];
 function renderAgent() {
   if (!AGENT) return;
   BOARD = boardRows();
   const f = AGENT.funnel || {}, g = f.greens || {};
   const le2 = ["0", "1", "2"].reduce((s, k) => s + (g[k] || 0), 0);
-  $("n-ok").textContent = g["4"] ?? "—"; $("n-watch").textContent = g["3"] ?? "—"; $("n-alert").textContent = f.checked ? le2 : "—";
+  const nClose = BOARD.filter(b => b.signal === "watch").length;
+  $("n-ok").textContent = f.buy ?? "—"; $("n-watch").textContent = f.checked ? nClose : "—"; $("n-alert").textContent = f.checked ? le2 : "—";
   const tr = AGENT.track_record || {};
   $("n-hit").textContent = tr.scored ? Math.round(tr.hits / tr.scored * 100) + "%" : "—";
   $("n-hit-s").textContent = tr.scored ? `${tr.hits} of ${tr.scored} calls right` : "no calls scored yet";
-  $("bf-g4").textContent = g["4"] ?? ""; $("bf-g3").textContent = g["3"] ?? "";
+  $("bf-g4").textContent = f.buy ?? ""; $("bf-g3").textContent = f.checked ? nClose : "";
   $("bf-held").textContent = BOARD.filter(b => b.held).length; $("bf-all").textContent = BOARD.length;
   renderScan(); renderBoard(); renderSignals();
   const detailed = AGENT.symbols || [];
@@ -1067,12 +1121,12 @@ function renderScan() {
   const f = AGENT.funnel;
   if (!f) { $("funnel").innerHTML = `<div class="empty">${esc(AGENT.message || "No scan yet.")}</div>`; return; }
   $("scan-when").textContent = (AGENT.demo ? "example · " : "") + ago(AGENT.generated_at);
-  const cleared = BOARD.filter(b => b.price_check === "ok" && b.organic === "ok" && b.prediction === "ok").length;
+  const cleared = BOARD.filter(b => b.history === "ok" && b.price_check === "ok").length;
   const shown = Math.min(f.buy || 0, AGENT.rules?.max_buys || 12);
   const steps = [
     ["Tradable US stocks on Alpaca", f.tradable], ["Observed · most traded", f.observed],
     [`Shortlisted · at least $${AGENT.rules?.min_price ?? 5}, top by $ volume`, f.shortlisted],
-    ["Cleared checks 1–3", cleared], ["4 of 4 green", f.greens?.["4"]], ["Shown as good to invest", shown]
+    ["Passed both vetoes · time machine + data real", cleared], ["Buy-ready · 4+/5 green, no red", f.buy], ["Shown as good to invest", shown]
   ];
   const top = steps[0][1] || 1;
   $("funnel").innerHTML = steps.map(([label, n], i) => {
@@ -1080,14 +1134,14 @@ function renderScan() {
     return `<div class="fstep${i === steps.length - 1 ? " final" : ""}"><span>${label}${prev ? ` <small>· ${prev ? Math.round(n / prev * 100) : 0}% kept</small>` : ""}</span><b>${nf.format(n ?? 0)}</b>
       <span class="fbar"><i style="width:${Math.max(0.4, (n || 0) / top * 100).toFixed(2)}%"></i></span></div>`;
   }).join("");
-  const keys = ["price_check", "organic", "prediction", "news"], total = BOARD.length || 1;
+  const keys = ["history", "price_check", "organic", "prediction", "news"], total = BOARD.length || 1;
   const col = { ok: "var(--up)", watch: "var(--warn)", alert: "var(--down)", skip: "var(--line)" };
   $("rates").innerHTML = `<span class="k">Each check across the ${nf.format(BOARD.length)} checked</span>` + keys.map((k, i) => {
     const c = { ok: 0, watch: 0, alert: 0, skip: 0 }; BOARD.forEach(b => c[b[k]] = (c[b[k]] || 0) + 1);
     return `<div class="rate" title="${CHECK_NAMES[i]}: ${c.ok} pass, ${c.watch} watch, ${c.alert} alert${c.skip ? `, ${c.skip} not read` : ""}"><span>${i + 1} · ${CHECK_NAMES[i]}</span>
       <span class="st3">${["ok", "watch", "alert", "skip"].filter(s => c[s]).map(s => `<i style="width:${(c[s] / total * 100).toFixed(2)}%;background:${col[s]}"></i>`).join("")}</span>
       <span class="num">${Math.round(c.ok / total * 100)}%</span></div>`;
-  }).join("") + `<div class="key"><span><i style="background:var(--up)"></i>pass</span><span><i style="background:var(--warn)"></i>watch</span><span><i style="background:var(--down)"></i>alert</span><span><i style="background:var(--line)"></i>not read (news only for finalists)</span></div>`;
+  }).join("") + `<div class="key"><span><i style="background:var(--up)"></i>pass</span><span><i style="background:var(--warn)"></i>watch</span><span><i style="background:var(--down)"></i>alert</span><span><i style="background:var(--line)"></i>not read (news only for stocks that can still be bought)</span></div>`;
 
   const T = AGENT.teams || [];
   $("teams").innerHTML = `<thead><tr><th scope="col">Team</th><th scope="col">Workers</th><th scope="col">Calls</th><th scope="col">Time</th></tr></thead><tbody>` +
@@ -1102,8 +1156,8 @@ $("scanmovers").addEventListener("click", e => { const b = e.target.closest(".mv
 /* ---------- middle: board ---------- */
 function renderBoard() {
   let rows = BOARD;
-  if (FILTER === "g4") rows = rows.filter(b => b.greens === 4);
-  if (FILTER === "g3") rows = rows.filter(b => b.greens === 3);
+  if (FILTER === "g4") rows = rows.filter(b => b.signal === "buy");
+  if (FILTER === "g3") rows = rows.filter(b => b.signal === "watch");
   if (FILTER === "held") rows = rows.filter(b => b.held);
   if (QUERY) rows = BOARD.filter(b => b.symbol.includes(QUERY));
   [...$("bf").children].forEach(b => b.setAttribute("aria-pressed", String(!QUERY && b.dataset.f === FILTER)));
@@ -1115,7 +1169,7 @@ function renderBoard() {
       <span><b>${esc(b.symbol)}</b>${b.held ? '<span class="tag">held</span>' : ""}</span>
       <span class="pips" aria-label="${sts.map((s, i) => CHECK_NAMES[i] + ": " + (STATUS_LABEL[s] || s)).join(", ")}">${sts.map(s => `<i class="${s}"></i>`).join("")}</span>
       <span class="num ${tone(b.move_today_pct)}">${pct(b.move_today_pct)}</span>
-      <span class="sigtag ${b.signal || "none"}">${b.signal ? SIGNAL_LABEL[b.signal] : b.greens + "/4"}</span>
+      <span class="sigtag ${b.signal || "none"}">${b.signal ? SIGNAL_LABEL[b.signal] : b.greens + "/5"}</span>
     </button>`; }).join("");
   $("bmore").hidden = rows.length <= SHOWN;
   $("bmore").textContent = `Show more (${nf.format(rows.length - SHOWN)} left)`;
@@ -1131,25 +1185,25 @@ function renderSignals() {
   $("s-buy").textContent = f.buy ?? "—"; $("s-hold").textContent = f.hold ?? "—";
   $("s-sell").textContent = f.start_selling == null ? "—" : (f.start_selling || 0) + (f.sell || 0);
   $("s-sell").style.color = (f.sell || 0) ? "var(--down)" : "var(--warn)";
-  $("s-buy-s").textContent = f.buy > (R.max_buys || 12) ? `top ${R.max_buys || 12} listed below` : "4/4 green, not held";
+  $("s-buy-s").textContent = f.buy > (R.max_buys || 12) ? `top ${R.max_buys || 12} listed below` : "4+/5 green, vetoes green";
   $("s-sell-s").textContent = `${f.start_selling || 0} start selling · ${f.sell || 0} sell`;
   const sells = D.filter(d => d.held && d.signal !== "hold").sort((a, b) => a.greens - b.greens);
-  const pips = d => `<span class="pips">${["price", "organic", "prediction", "news"].map(k => `<i class="${d.checks[k].status}"></i>`).join("")}</span>`;
-  const why = d => ["price", "organic", "prediction", "news"].map((k, i) => d.checks[k].status !== "ok" ? CHECK_NAMES[i].toLowerCase() : null).filter(Boolean).join(", ");
+  const pips = d => `<span class="pips">${DKEYS.map(k => `<i class="${(d.checks[k] || {}).status || ""}"></i>`).join("")}</span>`;
+  const why = d => DKEYS.map((k, i) => (d.checks[k] || {}).status !== "ok" ? CHECK_NAMES[i].toLowerCase() : null).filter(Boolean).join(", ");
   $("sells").innerHTML = sells.length ? `<h4>My holdings to act on</h4>` + sells.map(d => `<button type="button" class="line3" data-sym="${esc(d.symbol)}" aria-pressed="${d.symbol === SEL}">
       <span class="l1"><b>${esc(d.symbol)}</b><span class="num">${money(d.price)}</span><span class="num ${tone(d.move_today_pct)}">${pct(d.move_today_pct)}</span><span class="sp sigtag ${d.signal}">${SIGNAL_LABEL[d.signal]}</span></span>
-      <span class="l2">${pips(d)} ${d.greens}/4 green · not green: ${esc(why(d))}</span>
+      <span class="l2">${pips(d)} ${d.greens}/5 green · not green: ${esc(why(d))}</span>
       <span class="l3">${d.checks.prediction.call ? `call ${d.checks.prediction.call} · range ${money(d.checks.prediction.low)}–${money(d.checks.prediction.high)}` : ""}</span>
     </button>`).join("") : "";
   const buys = D.filter(d => d.signal === "buy").sort((a, b) => (a.rank || 99) - (b.rank || 99));
-  $("buys").innerHTML = `<h4>Good to invest · 4/4 green</h4>` + (buys.length ? buys.map(d => {
+  $("buys").innerHTML = `<h4>Good to invest · 4+/5 green, vetoes green</h4>` + (buys.length ? buys.map(d => {
     const p = d.checks.prediction, o = d.checks.organic;
     return `<button type="button" class="line3" data-sym="${esc(d.symbol)}" aria-pressed="${d.symbol === SEL}">
       <span class="l1"><span class="rk">#${d.rank || "–"}</span><b>${esc(d.symbol)}</b><span class="num">${money(d.price)}</span><span class="num ${tone(d.move_today_pct)}">${pct(d.move_today_pct)}</span><span class="sp sigtag buy">Good to invest</span></span>
-      <span class="l2">${pips(d)} 4/4 · organic ${o.score ?? "—"}/100 · sources within ${d.checks.price.spread_pct ?? "—"}%</span>
+      <span class="l2">${pips(d)} ${d.greens}/5 · past hit rate ${d.checks.history && d.checks.history.hit_rate != null ? Math.round(d.checks.history.hit_rate * 100) + "%" : "—"} · organic ${o.score ?? "—"}/100</span>
       <span class="l3"><span>▲ ${money(p.target)} by ${fmtDate(p.due, { weekday: "short", day: "numeric" })} · ${money(p.low)}–${money(p.high)}</span><span class="cap">${d.size ? (d.size.max_usd > 0 ? "up to " + usd0.format(d.size.max_usd) : "no spare cash") : ""}</span></span>
-    </button>`; }).join("") : '<div class="empty">No stock has all 4 green flags right now. That is a valid answer: don\'t buy.</div>');
-  $("sig-rule").textContent = `Rules: 4 green on a stock you don't hold → good to invest, never more than ${R.max_position_pct ?? 10}% of the account in one stock and always ${R.cash_buffer_pct ?? 10}% in cash. 3 green on a holding → start selling. 2 or fewer → sell. Signals only; you place every trade in Alpaca.`;
+    </button>`; }).join("") : '<div class="empty">No stock is buy-ready right now. That is a valid answer: don\'t buy.</div>');
+  $("sig-rule").textContent = `Rules: both vetoes green and 4+/5 green with nothing red on a stock you don't hold → good to invest, never more than ${R.max_position_pct ?? 10}% of the account in one stock and always ${R.cash_buffer_pct ?? 10}% in cash. 3/5 on a holding → start selling. 2/5 or fewer, or a red time machine → sell. Signals only; you place every trade in Alpaca.`;
 }
 ["sells", "buys"].forEach(id => $(id).addEventListener("click", e => { const b = e.target.closest(".line3"); if (b) select(b.dataset.sym, { scroll: true }); }));
 
@@ -1161,15 +1215,15 @@ function renderDetail() {
   const greens = r ? r.greens : b.greens, sig = r ? r.signal : b.signal;
   const move = r ? r.move_today_pct : b.move_today_pct;
   $("d-sym").textContent = SEL;
-  $("d-px").innerHTML = `${money(r ? r.price : b.price)} <span class="${tone(move)}">${pct(move)} today</span> · <span class="num">${greens}/4 green</span>`;
-  const vb = greens === 4 ? "verified" : (r ? r.verdict : statusesOf(b).includes("alert") ? "red_flag" : "caution");
+  $("d-px").innerHTML = `${money(r ? r.price : b.price)} <span class="${tone(move)}">${pct(move)} today</span> · <span class="num">${greens}/5 green</span>`;
+  const vb = greens === 5 ? "verified" : (r ? r.verdict : statusesOf(b).includes("alert") ? "red_flag" : "caution");
   $("d-verdict").className = "vbadge " + vb; $("d-verdict").textContent = sig ? SIGNAL_LABEL[sig] : VERDICT_LABEL[vb];
   $("d-note").textContent = { buy: "All four checks are green and you don't hold it. The agent lists it as good to invest, within the size cap.",
     hold: "You hold it and all four checks are green. Nothing to do.", start_selling: "You hold it and one check is no longer green. The rule says start selling: trim, don't dump.",
     sell: "You hold it and two or more checks failed. The rule says sell.", watch: "Three checks are green. Not enough to invest; worth watching." }[sig] || VERDICT_NOTE[vb];
   if (!r) {
     $("cone").innerHTML = '<div class="loading">Full charts and reasons are kept for holdings, buy candidates and 3-green stocks. This one stopped earlier in the funnel.</div>';
-    $("checks").innerHTML = statusesOf(b).map((s, i) => `<article class="check"><header><span class="n">${i + 1}</span><h4>${CHECK_NAMES[i]}</h4><span class="mark ${s}">${i === 2 ? PRED_LABEL[s] : STATUS_LABEL[s]}</span></header></article>`).join("");
+    $("checks").innerHTML = statusesOf(b).map((s, i) => `<article class="check"><header><span class="n">${i + 1}</span><h4>${CHECK_NAMES[i]}</h4><span class="mark ${s}">${i === 3 ? PRED_LABEL[s] : STATUS_LABEL[s]}</span></header></article>`).join("");
     return;
   }
   drawCone();
@@ -1197,11 +1251,21 @@ function renderDetail() {
   const p4 = c.news;
   const b4 = (p4.headlines || []).length ? `<ul class="heads">${p4.headlines.map(h => `<li><span><span class="imp ${h.impact}">${h.impact}</span>${h.url ? `<a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.headline)}</a>` : esc(h.headline)}</span>
       <small>${esc(h.source || "")}${h.created_at ? " · " + ago(h.created_at) : ""}${h.keywords && h.keywords.length ? " · " + esc(h.keywords.join(", ")) : ""}</small></li>`).join("")}</ul>` : "";
+  const h = c.history || { status: "watch", summary: "No time machine result yet." };
+  const hr = h.hit_rate != null ? Math.round(h.hit_rate * 100) : null;
+  const hcol = h.status === "ok" ? "var(--up)" : h.status === "alert" ? "var(--down)" : "var(--warn)";
+  const bh = `${hr != null ? `<div><div style="display:flex;justify-content:space-between;font-size:.74rem"><span class="k">Past hit rate after green days</span><b class="num">${hr}% · ${h.hits ?? Math.round(hr * h.n / 100)} of ${h.n}</b></div>
+      <div class="meter" style="position:relative"><i style="width:${hr}%;background:${hcol}"></i><span style="position:absolute;left:55%;top:-3px;bottom:-3px;width:2px;background:var(--ink-2)" title="55% needed for green"></span></div></div>` : ""}
+    <div class="stats">${h.avg_fwd_pct != null ? `<span>avg 5-day move after green days ${h.avg_fwd_pct >= 0 ? "+" : ""}${h.avg_fwd_pct}%</span>` : ""}${h.lookback_days ? `<span>looked back ${h.lookback_days} trading days</span>` : ""}
+      ${h.best ? `<span>best +${h.best[1]}% (${fmtDate(h.best[0])})</span><span>worst ${h.worst[1]}% (${fmtDate(h.worst[0])})</span>` : ""}</div>
+    ${(h.recent || []).length ? `<div><span class="k">Latest past green days and what followed</span><div class="past" style="margin-top:4px">${h.recent.map(([dd, f]) => `<span class="${f > 0 ? "hit" : "miss"}">${fmtDate(dd)} ${f > 0 ? "+" : ""}${f}%</span>`).join("")}</div></div>` : ""}
+    <p class="fine">Green needs a 55%+ hit rate and a positive average. It only uses what was known on each past day.</p>`;
   $("checks").innerHTML =
-    card(1, "Data is real", "Every price source agrees, the bar history is sane, timeframes agree", p1, b1) +
-    card(2, "Organic, not manufactured", "Volume pumps, single-day jumps, gaps, pump-and-fade, thin trading", p2, b2) +
-    card(3, "Prediction", `Where it likely goes in ${AGENT.horizon_days || 5} trading days. Green only when it leans up`, p3, b3, PRED_LABEL[p3.status]) +
-    card(4, "Hot news impact", "Headlines from the last 72 hours, weighed against today's move", p4, b4);
+    card(1, "⏳ Time machine · veto", "Replays this stock's past year: when it looked green, did it go up over the next 5 days?", h, bh, h.status === "ok" ? "Green" : h.status === "alert" ? "Red" : "Watch") +
+    card(2, "Data is real · veto", "Every price source agrees, the bar history is sane, timeframes agree", p1, b1) +
+    card(3, "Organic, not manufactured", "Volume pumps, single-day jumps, gaps, pump-and-fade, thin trading", p2, b2) +
+    card(4, "Prediction", `Where it likely goes in ${AGENT.horizon_days || 5} trading days. Green only when it leans up`, p3, b3, PRED_LABEL[p3.status]) +
+    card(5, "Hot news impact", "Headlines from the last 72 hours, weighed against today's move", p4, b4);
 }
 const PRED_LABEL = { ok: "Leans up", watch: "Sideways", alert: "Leans down", skip: "—" };
 
@@ -1298,7 +1362,7 @@ async function loadTrades() {
   $("at-state").querySelector(".dot").className = "dot " + (mode === "on" ? "on" : mode === "sell-only" ? "mid" : "");
   $("at-label").textContent = { on: "On · trading", "sell-only": "Sell-only", off: "Off" }[mode];
   $("at-upd").textContent = (t.demo ? "example · " : "last run ") + ago(t.generated_at);
-  $("at-rules").textContent = `Buys 4/4 green stocks, ${R.slots || 12} equal slots of ${R.slot_pct || 8.33}% each, cash only, no buys in the last ${R.no_buy_minutes_before_close ?? 30} min before the close. Exits: stop-loss −${R.stop_loss_pct ?? 5}%, trailing stop −${R.trail_pct ?? 4}% from the best price once up ${R.trail_arm_pct ?? 4}%, bad day −${R.bad_day_pct ?? 3}% if not 4/4 green, 3 green sell half, 2 or fewer sell all, take profit +${R.take_profit_pct ?? 20}%. Only touches positions it bought.`;
+  $("at-rules").textContent = `Buys buy-ready stocks (4+/5 green, vetoes green, no red) only while the time machine master switch is on, ${R.slots || 12} equal slots of ${R.slot_pct || 8.33}% each, cash only, no buys in the last ${R.no_buy_minutes_before_close ?? 30} min before the close. Exits: stop-loss −${R.stop_loss_pct ?? 5}%, trailing stop −${R.trail_pct ?? 4}% from the best price once up ${R.trail_arm_pct ?? 4}%, bad day −${R.bad_day_pct ?? 3}% if not 5/5 green, 3/5 sell half, 2/5 or fewer or a red time machine sell all, take profit +${R.take_profit_pct ?? 20}%. Only touches positions it bought.`;
   $("at-notes").innerHTML = (t.error ? [`<li class="err">Last run failed: ${esc(t.error)}</li>`] : []).concat((t.notes || []).map(n => `<li>${esc(n)}</li>`)).join("") || "<li>No notes.</li>";
   const H = (t.history || []).slice().reverse().slice(0, 15);
   $("at-hist").innerHTML = H.length ? H.map(a => `<div class="trow"><span class="sd ${a.side}">${a.side}</span><b>${esc(a.symbol)}</b>
@@ -1335,7 +1399,7 @@ async function loadSupervisors() {
   let s;
   try { s = await fetchJSON(CONFIG.supervisorUrl); } catch (e) { s = DEMO_ALLOWED ? { demo: true, generated_at: new Date(Date.now() - 20 * 60000).toISOString(), overall: "warn",
     supervisors: [["Data watch", "Alpaca connection and portfolio snapshot", "ok", [["ok", "Alpaca answers (paper account, status ACTIVE)."], ["ok", "Portfolio snapshot is fresh (2 min old)."]]],
-      ["Scan watch", "Market scan and the four checks", "ok", [["ok", "Funnel normal: 13,187 → 5,000 → 500 → 30 with 4/4 green."], ["ok", "96% of stocks pass 'data is real'."]]],
+      ["Scan watch", "Market scan and the four checks", "ok", [["ok", "Funnel normal: 13,187 → 5,000 → 500 → 21 buy-ready (4+/5 green)."], ["ok", "96% of stocks pass 'data is real'."]]],
       ["Trade watch", "Auto-trader rules, positions and orders", "ok", [["ok", "Auto-trader switch is ON on a paper account."], ["ok", "6 position(s), 0 open order(s), no stop-loss missed."]]],
       ["Records watch", "Journal, Excel and PDF reports, storage", "ok", [["ok", "Journal complete: 14 order(s) recorded."], ["ok", "Storage 0.6 MB of 1 GB."]]],
       ["Schedule watch", "GitHub Actions runs and gaps", "warn", [["warn", "GitHub left a 34-minute gap between runs while the market was open. Exits can only act when a run happens."]]]]
@@ -1351,8 +1415,67 @@ async function loadSupervisors() {
     : '<li><span class="mark ok">All</span><span>Nothing to check. Every supervisor reports all good.</span></li>';
 }
 
+/* ================================================================ TIME MACHINE (master switch) */
+function demoBacktest() {
+  seed = 23;
+  const dates = tradingDates(126); let e = 100000, sp = 100000;
+  const curve = dates.map(d => { e *= 1 + (rnd() - 0.46) * 0.014; sp *= 1 + (rnd() - 0.47) * 0.011; return [d, +e.toFixed(2), +sp.toFixed(2), 85]; });
+  const ret = (e / 100000 - 1) * 100, spr = (sp / 100000 - 1) * 100;
+  let pk = 0, mdd = 0; curve.forEach(c => { pk = Math.max(pk, c[1]); mdd = Math.max(mdd, (pk - c[1]) / pk); });
+  const nd = new Date(); nd.setUTCDate(nd.getUTCDate() + ((6 - nd.getUTCDay() + 7) % 7 || 7)); nd.setUTCHours(10, 0, 0, 0);
+  return { demo: true, generated_at: new Date(Date.now() - 6 * 3600e3).toISOString(), next_due: nd.toISOString(), period: { from: dates[0], to: dates[dates.length - 1], trading_days: 126 },
+    total_return_pct: +ret.toFixed(2), spy_return_pct: +spr.toFixed(2), max_drawdown_pct: +(mdd * 100).toFixed(2), trades_closed: 168, win_rate: 0.53, avg_trade_pct: 0.31, avg_days_held: 9.4,
+    buys_allowed: ret >= 0, verdict: ret >= 0 ? "PASS: the rules would have made money" : "FAIL: the rules would have lost money, so buying is paused", curve,
+    caveats: ["Example numbers. The real replay runs on your GitHub Action."] };
+}
+async function loadBacktest() {
+  let b;
+  try { b = await fetchJSON(CONFIG.backtestUrl); } catch (e) { b = DEMO_ALLOWED ? demoBacktest() : null; }
+  if (!b) { $("tm-verdict").textContent = "No replay yet. Buying stays paused until the first one finishes."; return; }
+  const on = !!b.buys_allowed;
+  $("tm-state").className = "atstate " + (on ? "on" : "off");
+  $("tm-state").querySelector(".dot").className = "dot " + (on ? "on" : "off");
+  $("tm-label").textContent = on ? "Buying allowed" : "Buying paused";
+  $("tm-verdict").textContent = (b.verdict || "") + (b.error ? ` (last attempt failed: ${b.error})` : "");
+  $("tm-upd").textContent = `${b.demo ? "example · " : ""}replayed ${ago(b.generated_at)}${b.next_due ? " · next " + new Date(b.next_due).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}`;
+  setTone($("tm-ret"), pct(b.total_return_pct), b.total_return_pct);
+  setTone($("tm-spy"), pct(b.spy_return_pct), b.spy_return_pct);
+  $("tm-mdd").textContent = b.max_drawdown_pct != null ? "−" + b.max_drawdown_pct.toFixed(2) + "%" : "—";
+  $("tm-trades").textContent = b.trades_closed != null ? `${b.trades_closed} · ${b.win_rate != null ? Math.round(b.win_rate * 100) + "%" : "—"}` : "—";
+  $("tm-avg").textContent = b.avg_trade_pct != null ? `avg ${pct(b.avg_trade_pct)} per trade, ${b.avg_days_held} days` : "";
+  $("tm-period").textContent = b.period ? `${fmtDate(b.period.from)} – ${fmtDate(b.period.to)}` : "";
+  if (b.caveats) $("tm-note").textContent = "If the replay would have lost money, the auto-trader stops buying until a later replay is positive. Exits keep running. " + b.caveats.join(" ");
+  window.__tmCurve = b.curve || [];
+  drawTM(window.__tmCurve);
+}
+function drawTM(curve) {
+  const host = $("tm-curve");
+  if (curve.length < 2) { host.innerHTML = '<div class="loading">The replay curve appears after the first run.</div>'; return; }
+  const W = Math.max(260, host.clientWidth), H = host.clientHeight || 170, L = 52, R = 52, T = 8, B = 20;
+  const vals = curve.flatMap(c => [c[1], c[2]]).filter(v => v != null);
+  let lo = Math.min(...vals), hi = Math.max(...vals); const pad = (hi - lo) * 0.08 || 1000; lo -= pad; hi += pad;
+  const x = i => L + i / (curve.length - 1) * (W - L - R), y = v => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+  const path = k => curve.map((c, i) => c[k] == null ? "" : `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(c[k]).toFixed(1)}`).join(" ");
+  const last = curve[curve.length - 1], ticks = niceTicks(lo, hi, 3);
+  const lbl = (v, k, col) => `<text x="${W - R + 6}" y="${y(v) + 4}" style="fill:${col}">${pct((v / 100000 - 1) * 100)}</text>`;
+  const ly1 = y(last[1]), ly2 = last[2] != null ? y(last[2]) : null, sep = ly2 != null && Math.abs(ly1 - ly2) < 12 ? (ly1 < ly2 ? -6 : 6) : 0;
+  host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+    ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(t) + 4}" text-anchor="end">${axisMoney(t, hi - lo)}</text>`).join("")}
+    <line x1="${L}" x2="${W - R}" y1="${y(100000)}" y2="${y(100000)}" stroke="var(--muted)" opacity="0.5"/>
+    <text x="${x(0)}" y="${H - 4}">${fmtDate(curve[0][0])}</text><text x="${x(curve.length - 1)}" y="${H - 4}" text-anchor="end">${fmtDate(last[0])}</text>
+    <path d="${path(2)}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="${path(1)}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${x(curve.length - 1)}" cy="${ly1}" r="3.5" fill="var(--s1)" stroke="var(--panel)" stroke-width="2"/>
+    <text x="${W - R + 6}" y="${ly1 + 4 + sep}" style="fill:var(--ink)">${pct((last[1] / 100000 - 1) * 100)}</text>
+    ${ly2 != null ? `<text x="${W - R + 6}" y="${ly2 + 4 - sep}" style="fill:var(--muted)">${pct((last[2] / 100000 - 1) * 100)}</text>` : ""}
+    <g class="hv" visibility="hidden"><line y1="${T}" y2="${H - B}" stroke="var(--muted)"/><circle r="4" fill="var(--s1)" stroke="var(--panel)" stroke-width="2"/></g>
+    <rect class="hit" x="${L}" y="0" width="${W - L - R}" height="${H}" fill="transparent"/>
+  </svg><div class="tip" hidden></div>`;
+  hoverLayer(host, curve.length, x, i => y(curve[i][1]), L, R, W, i => `<span>${fmtDate(curve[i][0], { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</span><br>Rules ${usd0.format(curve[i][1])} (${pct((curve[i][1] / 100000 - 1) * 100)})${curve[i][2] != null ? `<br>S&amp;P ${pct((curve[i][2] / 100000 - 1) * 100)}` : ""}`);
+}
+
 mountAll();
-const refreshAll = async () => { await loadPortfolio(); await loadAgent(); await loadTrades(); await loadRecords(); await loadSupervisors(); };
+const refreshAll = async () => { await loadPortfolio(); await loadBacktest(); await loadAgent(); await loadTrades(); await loadRecords(); await loadSupervisors(); };
 refreshAll();
 setInterval(refreshAll, CONFIG.refreshSeconds * 1000);
 </script>

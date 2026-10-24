@@ -4,8 +4,9 @@
   Data watch      Alpaca answers; the portfolio snapshot is fresh, error-free and on the
                   account type you chose (paper or live).
   Scan watch      the verification agent ran recently; the funnel is the right size; check 1
-                  (data is real) passes for most stocks, otherwise the market data feed is suspect.
-  Trade watch     the auto-trader's switch; rejected orders; positions past the stop-loss that
+                  (data is real) passes for most stocks, otherwise the market data feed is suspect;
+                  the time machine (check 5) judged the shortlist.
+  Trade watch     the auto-trader's switch and the time machine master switch; rejected orders; positions past the stop-loss that
                   were not sold (a rule that failed to fire); margin use; stuck open orders;
                   more positions than slots.
   Records watch   every auto-trader order in Alpaca is in the journal; this week's Excel exists;
@@ -106,6 +107,7 @@ def main():
     portfolio = load(os.path.join(site, "portfolio.json")) or {}
     agent = load(os.path.join(site, "agent.json")) or {}
     trades = load(os.path.join(site, "trades.json")) or {}
+    backtest = load(os.path.join(site, "backtest.json")) or {}
     index = load(os.path.join(rec, "index.json")) or {}
     journal = (load(os.path.join(rec, "journal", "journal.json")) or {}).get("entries", [])
     clock = {}
@@ -148,7 +150,7 @@ def main():
                 s.warn(f"The funnel looks small: {f.get('tradable')} tradable, {f.get('observed')} observed, {f.get('shortlisted')} shortlisted. "
                        "The market data may have come back incomplete.")
             else:
-                s.ok(f"Funnel normal: {f['tradable']:,} → {f['observed']:,} → {f['shortlisted']} → {f.get('greens', {}).get('4', 0)} with 4/4 green.")
+                s.ok(f"Funnel normal: {f['tradable']:,} → {f['observed']:,} → {f['shortlisted']} → {f.get('buy', 0)} buy-ready (4+/5 green).")
             checked = f.get("checked") or 1
             p1 = (f.get("passed") or {}).get("price", 0) / checked
             if p1 < 0.8:
@@ -156,11 +158,29 @@ def main():
             else:
                 s.ok(f"{p1:.0%} of stocks pass 'data is real'.")
             if f.get("buy", 0) > 0.3 * checked:
-                s.warn(f"{f['buy']} of {checked} stocks are 4/4 green. That is unusually many; the checks may be too loose today.")
+                s.warn(f"{f['buy']} of {checked} stocks are buy-ready. That is unusually many; the checks may be too loose today.")
+            tm = (f.get("passed") or {}).get("history")
+            if tm is None:
+                s.alert("The time machine (check 5) didn't judge the shortlist. Nothing can pass the veto, so nothing will be bought.")
+            else:
+                s.ok(f"Time machine judged the shortlist: {tm} of {checked} have a green past.")
 
     def trade(s):
         mode = trades.get("mode", "off")
         s.ok(f"Auto-trader switch is {mode.upper()} on a {'paper' if PAPER else 'LIVE'} account.")
+        if not backtest:
+            s.warn("No time machine result yet, so the master switch keeps buying paused.")
+        else:
+            bage = age_min(backtest.get("generated_at"), now)
+            if backtest.get("error"):
+                s.warn(f"The last time machine replay failed: {backtest['error'][:140]}")
+            if bage is not None and bage > 10 * 24 * 60:
+                s.alert(f"The time machine result is {bage / 1440:.0f} days old; buying is paused until a new replay runs.")
+            elif backtest.get("buys_allowed"):
+                s.ok(f"Master switch ON: the 6-month replay returned {backtest.get('total_return_pct')}% "
+                     f"(S&P 500 {backtest.get('spy_return_pct')}%), max drop {backtest.get('max_drawdown_pct')}%.")
+            else:
+                s.warn(f"Master switch OFF: the 6-month replay returned {backtest.get('total_return_pct')}%. Buying is paused, exits still run.")
         if trades.get("error"):
             s.alert(f"The auto-trader's last run failed: {trades['error']}")
         day_ago = now - dt.timedelta(days=1)
