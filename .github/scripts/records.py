@@ -162,7 +162,7 @@ def main():
         for f in fs:
             full = os.path.join(root, f)
             rel = os.path.relpath(full, rec)
-            kind = ("weekly_excel" if rel.startswith("excel/") else "monthly_pdf" if "monthly-report" in f
+            kind = ("weekly_excel" if rel.startswith("excel/") and f.endswith(".xlsx") else "monthly_pdf" if "monthly-report" in f
                     else "weekly_pdf" if rel.startswith("reports/") and f.endswith(".pdf") else None)
             if kind:
                 files.append({"path": rel, "kind": kind, "bytes": os.path.getsize(full), "name": f})
