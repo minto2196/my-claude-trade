@@ -52,10 +52,10 @@ body {
 
 header.top {
   display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
-  gap: 12px 24px; padding-top: 22px;
+  gap: 10px 24px; padding-top: 14px;
 }
 .brand h1 {
-  font: 800 clamp(1.6rem, 3.2vw, 2.3rem)/1 var(--display);
+  font: 800 clamp(1.4rem, 2.4vw, 1.8rem)/1 var(--display);
   letter-spacing: -0.02em; margin: 0; text-wrap: balance;
 }
 .brand h1 span { color: var(--accent); }
@@ -98,13 +98,28 @@ header.top {
 .panel .body { flex: 1; min-height: 0; position: relative; }
 .panel .body > .tradingview-widget-container { height: 100%; width: 100%; }
 
-.span-8 { grid-column: span 8; } .span-4 { grid-column: span 4; }
-.span-6 { grid-column: span 6; } .span-12 { grid-column: span 12; }
-.h-chart { height: 560px; } .h-tall { height: 560px; } .h-mid { height: 480px; } .h-heat { height: 540px; }
+/* Hot news band: a short full-width strip under the header */
+.hotnews { height: 230px; }
+.hotnews > h2 .live { color: var(--down); font-weight: 600; }
 
-@media (max-width: 1080px) {
-  .span-8, .span-4, .span-6 { grid-column: span 12; }
-  .h-chart { height: 460px; } .h-tall, .h-mid { height: 440px; } .h-heat { height: 460px; }
+/* Three vertical columns: markets | chart + heatmap | my stocks + calendar */
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.col > h3 {
+  margin: 0; font: 700 0.95rem/1.2 var(--display); letter-spacing: 0.01em;
+  display: flex; align-items: center; gap: 8px;
+}
+.col > h3::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.h-520 { height: 520px; } .h-400 { height: 400px; } .h-640 { height: 640px; }
+
+@media (max-width: 1180px) {
+  .cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .col.mid { grid-column: 1 / -1; order: -1; }
+}
+@media (max-width: 760px) {
+  .cols { grid-template-columns: minmax(0, 1fr); }
+  .h-520, .h-640 { height: 460px; } .h-400 { height: 380px; }
+  .hotnews { height: 260px; }
 }
 
 .loading {
@@ -130,38 +145,47 @@ footer a { color: var(--accent); }
 
   <div class="tape" id="w-tape"></div>
 
-  <section class="grid">
-    <article class="panel span-8 h-chart">
-      <h2>Chart <small>switch symbol inside the chart</small></h2>
-      <div class="body" id="w-chart"></div>
-    </article>
-    <article class="panel span-4 h-chart">
-      <h2>World indices <small>1D</small></h2>
-      <div class="body" id="w-overview"></div>
-    </article>
+  <article class="panel hotnews">
+    <h2><span><span class="live">● Live</span> · Hot market news worldwide</span> <small>newest first · updates on its own</small></h2>
+    <div class="body" id="w-news"></div>
+  </article>
 
-    <article class="panel span-12 h-heat">
-      <h2>S&amp;P 500 heatmap <small>size = market cap · colour = % change today</small></h2>
-      <div class="body" id="w-heatmap"></div>
-    </article>
+  <section class="cols">
+    <div class="col">
+      <h3>World markets</h3>
+      <article class="panel h-520">
+        <h2>Indices <small>1D</small></h2>
+        <div class="body" id="w-overview"></div>
+      </article>
+      <article class="panel h-520">
+        <h2>Top movers <small>US stocks</small></h2>
+        <div class="body" id="w-movers"></div>
+      </article>
+    </div>
 
-    <article class="panel span-4 h-tall">
-      <h2>Top movers <small>US stocks</small></h2>
-      <div class="body" id="w-movers"></div>
-    </article>
-    <article class="panel span-4 h-tall">
-      <h2>My watchlist <small>Berkshire top 5 · Q2 2026 13F</small></h2>
-      <div class="body" id="w-watch"></div>
-    </article>
-    <article class="panel span-4 h-tall">
-      <h2>Market news</h2>
-      <div class="body" id="w-news"></div>
-    </article>
+    <div class="col mid">
+      <h3>Chart &amp; sectors</h3>
+      <article class="panel h-520">
+        <h2>Chart <small>switch symbol inside the chart</small></h2>
+        <div class="body" id="w-chart"></div>
+      </article>
+      <article class="panel h-520">
+        <h2>S&amp;P 500 heatmap <small>size = market cap · colour = % today</small></h2>
+        <div class="body" id="w-heatmap"></div>
+      </article>
+    </div>
 
-    <article class="panel span-12 h-mid">
-      <h2>Economic calendar <small>US &amp; Eurozone · high &amp; medium impact</small></h2>
-      <div class="body" id="w-calendar"></div>
-    </article>
+    <div class="col">
+      <h3>My stocks &amp; events</h3>
+      <article class="panel h-400">
+        <h2>Watchlist <small>Berkshire top 5 · Q2 2026 13F</small></h2>
+        <div class="body" id="w-watch"></div>
+      </article>
+      <article class="panel h-640">
+        <h2>Economic calendar <small>US · EU · DE</small></h2>
+        <div class="body" id="w-calendar"></div>
+      </article>
+    </div>
   </section>
 
   <footer>
@@ -275,7 +299,7 @@ mount("w-watch", "market-quotes", {
 });
 
 mount("w-news", "timeline", {
-  feedMode: "market", market: "stock", displayMode: "regular", width: "100%", height: "100%"
+  feedMode: "all_symbols", displayMode: "compact", width: "100%", height: "100%"
 });
 
 mount("w-calendar", "events", {
