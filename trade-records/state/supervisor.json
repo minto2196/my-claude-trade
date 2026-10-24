@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-24T16:53:21+00:00",
- "next_check": "2026-10-24T17:53:21+00:00",
+ "generated_at": "2026-10-24T19:13:06+00:00",
+ "next_check": "2026-10-24T20:13:06+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -82,7 +82,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "1 run(s) in the last 3 hours, none failed."
+     "text": "2 run(s) in the last 3 hours, none failed, longest gap 140 min."
     }
    ]
   }
