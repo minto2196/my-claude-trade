@@ -208,6 +208,16 @@ def main():
         elif owned & held_syms:
             s.ok(f"Alpaca stop orders at −{STOP:g}% protect {len((owned & held_syms) & stops)} position(s)." if market_open
                  else f"Market closed; Alpaca stop orders are renewed at the first run after the open.")
+        if os.environ.get("AUTOTRADE_FLATTEN", "true").lower() != "false" and owned & held_syms:
+            ny_today = now.astimezone(dt.timezone(dt.timedelta(hours=-5))).date().isoformat()
+            last_buy = {}
+            for e in journal:
+                if e.get("side") == "buy" and e.get("filled_at_utc"):
+                    last_buy[e["symbol"]] = max(last_buy.get(e["symbol"], ""), e["filled_at_utc"][:10])
+            overnight = sorted(x for x in owned & held_syms if last_buy.get(x, ny_today) < ny_today)
+            if overnight:
+                s.alert(f"Held overnight although everything should be sold before the close: {', '.join(overnight)}. "
+                        "The first run after the open sells them; check why the end-of-day run was missed.")
         stuck = [o["symbol"] for o in orders if (age_min(o.get("submitted_at"), now) or 0) > 24 * 60]
         if stuck:
             s.warn(f"Orders open for more than a day: {', '.join(stuck)}.")

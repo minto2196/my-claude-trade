@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: "*/5 * * * *"
     - cron: "0 10 * * 6"
+    # Extra runs in the last half hour before the US close (covers both summer and winter time),
+    # so the end-of-day sell-everything step is not left to a late scheduler.
+    - cron: "32,40,47,54 19,20 * * 1-5"
   push:
     branches: [main]
   workflow_dispatch:
@@ -34,9 +37,11 @@ jobs:
       ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
       AUTOTRADE_SLOTS: ${{ vars.AUTOTRADE_SLOTS || '12' }}
       AUTOTRADE_STOP_LOSS_PCT: ${{ vars.AUTOTRADE_STOP_LOSS_PCT || '5' }}
-      AUTOTRADE_TAKE_PROFIT_PCT: ${{ vars.AUTOTRADE_TAKE_PROFIT_PCT || '20' }}
-      AUTOTRADE_TRAIL_ARM_PCT: ${{ vars.AUTOTRADE_TRAIL_ARM_PCT || '4' }}
-      AUTOTRADE_TRAIL_PCT: ${{ vars.AUTOTRADE_TRAIL_PCT || '4' }}
+      AUTOTRADE_TAKE_PROFIT_PCT: ${{ vars.AUTOTRADE_TAKE_PROFIT_PCT || '0' }}
+      AUTOTRADE_TRAIL_ARM_PCT: ${{ vars.AUTOTRADE_TRAIL_ARM_PCT || '0' }}
+      AUTOTRADE_TRAIL_PCT: ${{ vars.AUTOTRADE_TRAIL_PCT || '5' }}
+      AUTOTRADE_FLATTEN: ${{ vars.AUTOTRADE_FLATTEN || 'true' }}
+      AUTOTRADE_FLATTEN_MINUTES: ${{ vars.AUTOTRADE_FLATTEN_MINUTES || '30' }}
       AUTOTRADE_BAD_DAY_PCT: ${{ vars.AUTOTRADE_BAD_DAY_PCT || '3' }}
       AUTOTRADE_DAILY_LOSS_PCT: ${{ vars.AUTOTRADE_DAILY_LOSS_PCT || '5' }}
       DATA: site/trader-skill/trader-skill/data
@@ -75,7 +80,7 @@ jobs:
         env:
           AUTOTRADE: ${{ vars.AUTOTRADE || secrets.AUTOTRADE || 'off' }}
           AUTOTRADE_ALLOW_ETF: ${{ vars.AUTOTRADE_ALLOW_ETF || 'false' }}
-          AUTOTRADE_NO_BUY_MINUTES: ${{ vars.AUTOTRADE_NO_BUY_MINUTES || '30' }}
+          AUTOTRADE_NO_BUY_MINUTES: ${{ vars.AUTOTRADE_NO_BUY_MINUTES || '60' }}
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
           base="https://${owner}.github.io/${{ github.event.repository.name }}/trader-skill/trader-skill/data"

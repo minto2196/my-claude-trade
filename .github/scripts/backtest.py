@@ -10,8 +10,12 @@ known on each day:
     news (assumed quiet = green; old headlines aren't replayed), time machine (walk-forward:
     only outcomes already known that day)
   * buys at the next day's open when 4+/5 green, vetoes green, no red; 12 equal slots, cash only
-  * exits: stop-loss, trailing stop, take profit (intraday, against the day's low/high),
-    bad day at the close, signal exits (3/5 sell half, 2/5 or time machine red sell all) next open
+  * same-day mode (default): buy at the open, sell line 5% below the highest price (never below
+    5% under the buy), everything sold at the close. With daily bars the order of the day's high
+    and low is unknown, so: low under the buy line -> stopped there; else if the close is more than
+    5% under the day's high -> sold on the trailing line; else sold at the close.
+  * overnight mode (AUTOTRADE_FLATTEN=false): stop/trailing/take-profit against each day's
+    low/high, bad day at the close, signal exits (3/5 half, 2/5 or red time machine all) next open
   * 0.05% slippage per trade, no buys after a -5% day
 
 MASTER SWITCH: if the replay would have LOST money, buys_allowed is false and the auto-trader
@@ -34,9 +38,10 @@ SIM_DAYS = int(os.environ.get("BACKTEST_DAYS", "126"))
 START_CASH = 100_000.0
 SLOTS = int(os.environ.get("AUTOTRADE_SLOTS", "12") or 12)
 STOP = float(os.environ.get("AUTOTRADE_STOP_LOSS_PCT", "5") or 5) / 100
-TRAIL_ARM = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "4") or 4) / 100
-TRAIL = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "4") or 4) / 100
-TAKE = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "20") or 20) / 100
+TRAIL_ARM = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "0") or 0) / 100
+TRAIL = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "5") or 5) / 100
+TAKE = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0) / 100      # 0 = off
+FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"
 BAD_DAY = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3) / 100
 DAILY_LOSS = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5) / 100
 SLIP = 0.0005
@@ -49,9 +54,17 @@ def last_due(now):
     return due if due <= now else due - dt.timedelta(days=7)
 
 
+def current_rules():
+    return {"slots": SLOTS, "stop_loss_pct": STOP * 100, "trail_arm_pct": TRAIL_ARM * 100, "trail_pct": TRAIL * 100,
+            "take_profit_pct": TAKE * 100, "bad_day_pct": BAD_DAY * 100, "slippage_pct": SLIP * 100,
+            "tm_lookback_days": A.TM_LOOKBACK, "sell_all_before_close": FLATTEN}
+
+
 def is_due(latest, now):
     if not latest:
         return True
+    if latest.get("rules") != current_rules():
+        return True   # the rules changed: replay them now instead of waiting for Saturday
     gen = A.dt.datetime.fromisoformat(latest.get("generated_at", "1970-01-01T00:00:00+00:00"))
     if latest.get("error"):
         return (now - gen).total_seconds() > 3600
@@ -132,6 +145,9 @@ def simulate(daily, spy, sim_days):
         if p["qty"] <= 1e-9:
             pos.pop(s)
 
+    if FLATTEN:
+        return simulate_same_day(data, dates, statuses, spy_by, t0)
+
     for di, day in enumerate(dates):
         # a. orders decided at yesterday's close fill at today's open
         for kind, s, val, rule in pending:
@@ -159,7 +175,7 @@ def simulate(daily, spy, sim_days):
                 sell(s, p["qty"], min(b["o"], p["entry"] * (1 - STOP)), day, "stop-loss")
             elif p["peak"] >= p["entry"] * (1 + TRAIL_ARM) and b["l"] <= p["peak"] * (1 - TRAIL):
                 sell(s, p["qty"], min(b["o"], p["peak"] * (1 - TRAIL)), day, "trailing stop")
-            elif b["h"] >= p["entry"] * (1 + TAKE):
+            elif TAKE > 0 and b["h"] >= p["entry"] * (1 + TAKE):
                 sell(s, p["qty"], max(b["o"], p["entry"] * (1 + TAKE)), day, "take-profit")
             else:
                 p["peak"] = max(p["peak"], b["h"])
@@ -206,6 +222,10 @@ def simulate(daily, spy, sim_days):
         curve.append([day, round(equity, 2), round(START_CASH * sb["c"] / spy0, 2) if sb and spy0 else None,
                       round(sum(p["qty"] * (bar(s, day) or {"c": p["entry"]})["c"] for s, p in pos.items()) / equity * 100, 1) if equity else 0])
 
+    return summarize(curve, trades, len(pos), dates, len(data), t0)
+
+
+def summarize(curve, trades, open_end, dates, universe, t0):
     end = curve[-1][1]
     peak, mdd = START_CASH, 0.0
     for _, e, _, _ in curve:
@@ -220,7 +240,7 @@ def simulate(daily, spy, sim_days):
     ret = (end / START_CASH - 1) * 100
     return {
         "period": {"from": dates[0], "to": dates[-1], "trading_days": len(dates)},
-        "universe": len(data),
+        "universe": universe,
         "start_cash": START_CASH, "end_equity": round(end, 2),
         "total_return_pct": round(ret, 2), "spy_return_pct": round(spy_ret, 2) if spy_ret is not None else None,
         "beat_spy": spy_ret is not None and ret > spy_ret,
@@ -228,12 +248,65 @@ def simulate(daily, spy, sim_days):
         "trades_closed": len(closed), "win_rate": round(len(wins) / len(closed), 3) if closed else None,
         "avg_trade_pct": round(sum(t["pl_pct"] for t in closed) / len(closed), 2) if closed else None,
         "avg_days_held": round(sum(t["days"] for t in closed) / len(closed), 1) if closed else None,
-        "exits_by_rule": by_rule, "open_positions_at_end": len(pos),
+        "exits_by_rule": by_rule, "open_positions_at_end": open_end,
         "avg_invested_pct": round(sum(c[3] for c in curve) / len(curve), 1),
         "best_trade": max(closed, key=lambda t: t["pl"]) if closed else None,
         "worst_trade": min(closed, key=lambda t: t["pl"]) if closed else None,
         "curve": curve, "trades": closed[-400:], "seconds": round(time.time() - t0, 1),
     }
+
+
+def simulate_same_day(data, dates, statuses, spy_by, t0):
+    """Buy at the open on yesterday's signals, sell the same day: on the sell line or at the close."""
+    cash, trades, curve, spy0, prev_equity = START_CASH, [], [], None, START_CASH
+    picks = []
+    for day in dates:
+        equity_open = cash
+        bought = 0
+        for s in picks:
+            i = data[s]["idx"].get(day)
+            if i is None:
+                continue
+            b = data[s]["bars"][i]
+            entry = b["o"] * (1 + SLIP)
+            amt = min(equity_open / SLOTS, cash)
+            if amt < 1 or not entry:
+                continue
+            qty = amt / entry
+            cash -= amt
+            line0 = entry * (1 - STOP)
+            hi_line = b["h"] * (1 - TRAIL) if b["h"] >= entry * (1 + TRAIL_ARM) else line0
+            if b["l"] <= line0:
+                px, rule = min(b["o"], line0), "stop-loss"
+            elif TAKE > 0 and b["h"] >= entry * (1 + TAKE):
+                px, rule = entry * (1 + TAKE), "take-profit"
+            elif hi_line > line0 and b["c"] < hi_line:
+                px, rule = hi_line, "trailing stop"
+            else:
+                px, rule = b["c"], "end of day"
+            px *= 1 - SLIP
+            cash += qty * px
+            trades.append({"symbol": s, "bought": day, "buy_px": round(entry, 4), "sold": day, "sell_px": round(px, 4),
+                           "qty": round(qty, 6), "pl": round(qty * (px - entry), 2), "pl_pct": round((px / entry - 1) * 100, 2),
+                           "days": 0, "rule": rule})
+            bought += 1
+        equity = cash
+        picks = []
+        if equity > prev_equity * (1 - DAILY_LOSS):
+            cands = []
+            for s in data:
+                st = statuses(s, day)
+                if st and A.signal(st[0], False) == "buy":
+                    cands.append((st[1] or 0, st[0].count("ok"), s))
+            cands.sort(reverse=True)
+            picks = [s for _, _, s in cands[:SLOTS]]
+        prev_equity = equity
+        sb = spy_by.get(day)
+        if sb:
+            spy0 = spy0 or sb["c"]
+        curve.append([day, round(equity, 2), round(START_CASH * sb["c"] / spy0, 2) if sb and spy0 else None,
+                      round(100.0 * min(bought, SLOTS) / SLOTS, 1)])
+    return summarize(curve, trades, 0, dates, len(data), t0)
 
 
 def main():
@@ -250,12 +323,12 @@ def main():
         print(f"backtest: not due (last {latest.get('generated_at')}, buys_allowed={latest.get('buys_allowed')})")
         return
     out = {"generated_at": now.isoformat(timespec="seconds"), "next_due": (last_due(now) + dt.timedelta(days=7)).isoformat(),
-           "rules": {"slots": SLOTS, "stop_loss_pct": STOP * 100, "trail_arm_pct": TRAIL_ARM * 100, "trail_pct": TRAIL * 100,
-                     "take_profit_pct": TAKE * 100, "bad_day_pct": BAD_DAY * 100, "slippage_pct": SLIP * 100,
-                     "tm_lookback_days": A.TM_LOOKBACK},
+           "rules": current_rules(),
            "caveats": ["Tested on today's 500 most-traded stocks, so stocks that faded away are missing (results look a bit better than reality).",
                        "Past headlines aren't replayed: news is assumed quiet. Data is assumed real.",
-                       "Trades are simulated at daily open/high/low/close prices; real runs happen every ~5 minutes."]}
+                       "Trades are simulated at daily open/high/low/close prices; real runs happen every ~5 minutes."]
+                      + (["Same-day mode: the order of each day's high and low isn't known from daily prices, so trailing exits are approximate."]
+                         if FLATTEN else [])}
     try:
         agent = json.load(open(agent_p))
         cols = agent.get("board_columns", [])

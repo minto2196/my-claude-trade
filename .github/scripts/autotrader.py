@@ -20,18 +20,22 @@ Buying (only while the US market is open):
     fractional where Alpaca allows it, never below $1
   * at most AUTOTRADE_SLOTS positions owned by the auto-trader at once
   * no buys on a day the account is down AUTOTRADE_DAILY_LOSS_PCT (default 5%) or more
-  * no buys in the last AUTOTRADE_NO_BUY_MINUTES (default 30) before the close: sells only
+  * no buys in the last AUTOTRADE_NO_BUY_MINUTES (default 60 with same-day selling, else 30) before the close
 
 Exits (only on positions the auto-trader bought itself; your manual positions are never touched):
   * 2 or fewer of 5 green, or the stock's time machine turns red -> sell all
   * 3 of 5 green               -> sell half, once (not again within 3 days)
-  * down STOP_LOSS_PCT  (5%)   -> sell all. Also kept as a REAL stop order at Alpaca: right after a
-    buy fills, a sell-stop is placed at exactly 5% below the average buy price, so Alpaca's own
+  * SELL LINE = 5% below the highest price since buying, never below 5% under the buy price
+    (bought 100 -> line 95; rises to 200 -> line 190). Price at or under the line -> sell all.
+    END OF DAY: everything is sold in the last AUTOTRADE_FLATTEN_MINUTES (30) before the close, so
+    nothing is held overnight; no buys in the last 60 minutes. Anything still held at the next
+    run after the open is sold at once. Take-profit is off by default (AUTOTRADE_TAKE_PROFIT_PCT=0).
+  * The sell line is also kept as a REAL stop order at Alpaca: right after a
+    buy fills, a sell-stop is placed on the line and raised every run as the price climbs, so Alpaca's own
     servers sell within seconds instead of waiting for the next GitHub run. Alpaca only accepts
     these as day orders for fractional shares, so they are renewed at the first run each day.
-  * trailing stop: once up TRAIL_ARM_PCT (4%), sell all if it falls TRAIL_PCT (4%) from its best price
   * bad day: down BAD_DAY_PCT (3%) today and not 5 of 5 green -> sell all
-  * up   TAKE_PROFIT_PCT (20%) -> sell all, freeing the slot for a new 4-green stock
+  * up   TAKE_PROFIT_PCT -> sell all (off by default)
   * exits run the same day; on a live account under $25,000 that has used its 3 day trades,
     same-day exits wait (Alpaca's pattern-day-trader rule would reject them)
 
@@ -61,13 +65,15 @@ MODE = os.environ.get("AUTOTRADE", "off").strip().lower()
 MODE = MODE if MODE in ("on", "sell-only") else "off"
 SLOTS = max(1, int(os.environ.get("AUTOTRADE_SLOTS", "12") or 12))
 STOP_LOSS_PCT = float(os.environ.get("AUTOTRADE_STOP_LOSS_PCT", "5") or 5)
-TRAIL_ARM_PCT = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "4") or 4)
-TRAIL_PCT = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "4") or 4)
+TRAIL_ARM_PCT = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "0") or 0)
+TRAIL_PCT = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "5") or 5)
 BAD_DAY_PCT = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3)
 PEAKS = {}            # best price seen per owned symbol (trailing stop); loaded/saved via --state
-TAKE_PROFIT_PCT = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "20") or 20)
+TAKE_PROFIT_PCT = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0)   # 0 = off: let winners run
+FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"   # sell everything before the close
+FLATTEN_MINUTES = float(os.environ.get("AUTOTRADE_FLATTEN_MINUTES", "30") or 30)
 DAILY_LOSS_PCT = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5)
-NO_BUY_MINUTES = float(os.environ.get("AUTOTRADE_NO_BUY_MINUTES", "30") or 30)
+NO_BUY_MINUTES = float(os.environ.get("AUTOTRADE_NO_BUY_MINUTES", "60" if FLATTEN else "30") or 30)
 ALLOW_ETF = os.environ.get("AUTOTRADE_ALLOW_ETF", "false").strip().lower() == "true"
 MAX_AGENT_AGE_MIN = 30
 TAG = "tdagent-"
@@ -163,9 +169,17 @@ def fetch_orders(days):
     return out
 
 
-def stop_price(entry):
+def stop_line(entry, peak=None):
+    """The sell line: STOP_LOSS_PCT below the buy price, raised to TRAIL_PCT below the highest price
+    seen once the stock is up TRAIL_ARM_PCT. It only ever moves up. Bought 100, high 200 -> 190."""
     px = entry * (1 - STOP_LOSS_PCT / 100)
+    if peak and peak >= entry * (1 + TRAIL_ARM_PCT / 100):
+        px = max(px, peak * (1 - TRAIL_PCT / 100))
     return round(px, 2) if px >= 1 else round(px, 4)
+
+
+def stop_price(entry, peak=None):
+    return stop_line(entry, peak)
 
 
 def run(agent, previous, backtest=None):
@@ -174,7 +188,8 @@ def run(agent, previous, backtest=None):
            "rules": {"slots": SLOTS, "slot_pct": round(100 / SLOTS, 2), "stop_loss_pct": STOP_LOSS_PCT,
                      "trail_arm_pct": TRAIL_ARM_PCT, "trail_pct": TRAIL_PCT, "bad_day_pct": BAD_DAY_PCT,
                      "take_profit_pct": TAKE_PROFIT_PCT, "daily_loss_pct": DAILY_LOSS_PCT, "allow_etf": ALLOW_ETF,
-                     "no_buy_minutes_before_close": NO_BUY_MINUTES},
+                     "no_buy_minutes_before_close": NO_BUY_MINUTES,
+                     "sell_all_before_close": FLATTEN, "sell_all_minutes_before_close": FLATTEN_MINUTES},
            "actions": [], "notes": []}
     history = previous.get("history", [])
     if MODE == "off":
@@ -211,6 +226,7 @@ def run(agent, previous, backtest=None):
     except Exception:
         pass
     closing = minutes_left is not None and minutes_left <= NO_BUY_MINUTES
+    flatten_now = FLATTEN and minutes_left is not None and minutes_left <= FLATTEN_MINUTES
     out["minutes_to_close"] = round(minutes_left) if minutes_left is not None else None
     pdt_limited = (not PAPER and equity < 25000 and int(num(account.get("daytrade_count"))) >= 3)
 
@@ -316,7 +332,7 @@ def run(agent, previous, backtest=None):
     for sym in sorted(owned):
         if sym in open_syms:
             continue
-        if sym in bought_today and pdt_limited:
+        if sym in bought_today and pdt_limited and not flatten_now:
             out["notes"].append(f"{sym}: exit waits until tomorrow, the account has used its 3 day trades (under $25k rule).")
             continue
         p = positions[sym]
@@ -330,13 +346,22 @@ def run(agent, previous, backtest=None):
         b = board.get(sym)
         greens = b["greens"] if b else None
         sig = b.get("signal") if b else None
-        if plpc <= -STOP_LOSS_PCT:
-            place(sym, "sell", f"Stop-loss: down {abs(plpc):.1f}% from entry", qty=qty, rule="stop-loss")
-        elif peak_gain >= TRAIL_ARM_PCT and drop_from_peak >= TRAIL_PCT:
-            place(sym, "sell", f"Trailing stop: was up {peak_gain:.1f}%, fell {drop_from_peak:.1f}% from its best", qty=qty, rule="trailing stop")
+        line = stop_line(entry, peak) if entry else None
+        trailing = line is not None and line > entry * (1 - STOP_LOSS_PCT / 100) + 1e-9
+        if flatten_now:
+            place(sym, "sell", f"End of day: sell everything {round(minutes_left)} min before the close (no overnight risk), "
+                               f"{plpc:+.1f}% from the buy price", qty=qty, rule="end of day")
+        elif FLATTEN and sym not in bought_today:
+            place(sym, "sell", f"Held overnight because the end-of-day run was missed: sold at the first run, {plpc:+.1f}%",
+                  qty=qty, rule="overnight catch-up")
+        elif line is not None and price <= line and trailing:
+            place(sym, "sell", f"Trailing stop: highest ${peak:,.2f}, fell {drop_from_peak:.1f}% to ${price:,.2f} "
+                               f"(line ${line:,.2f}), {plpc:+.1f}% from the buy price", qty=qty, rule="trailing stop")
+        elif line is not None and price <= line:
+            place(sym, "sell", f"Stop-loss: down {abs(plpc):.1f}% from the buy price (line ${line:,.2f})", qty=qty, rule="stop-loss")
         elif day <= -BAD_DAY_PCT and greens != 5:
             place(sym, "sell", f"Bad day: down {abs(day):.1f}% today and only {greens if greens is not None else '?'} of 5 green", qty=qty, rule="bad day")
-        elif plpc >= TAKE_PROFIT_PCT:
+        elif TAKE_PROFIT_PCT > 0 and plpc >= TAKE_PROFIT_PCT:
             place(sym, "sell", f"Take profit: up {plpc:.1f}% from entry", qty=qty, rule="take-profit")
         elif b and b.get("history") == "alert":
             place(sym, "sell", "Time machine turned red: this stock usually fell after looking green", qty=qty, rule="time machine red")
@@ -369,6 +394,12 @@ def run(agent, previous, backtest=None):
     else:
         slot = equity / SLOTS
         free = SLOTS - len(owned)
+        if FLATTEN and not PAPER and equity < 25000:
+            budget = max(0, 3 - int(num(account.get("daytrade_count"))) - len(bought_today))
+            if budget < free:
+                out["notes"].append(f"Live account under $25,000: selling the same day makes every buy a day trade, and Alpaca allows "
+                                    f"3 per 5 days. Buying at most {budget} today.")
+            free = min(free, budget)
         spend = cash
         candidates = [s for s in agent.get("symbols", []) if s.get("signal") == "buy" and (s.get("greens") or 0) >= 4]
         candidates.sort(key=lambda s: s.get("rank") or 999)
@@ -410,6 +441,7 @@ def run(agent, previous, backtest=None):
         elif bought == 0 and free <= 0:
             out["notes"].append(f"All {SLOTS} slots are full.")
 
+    protect = set()
     # ---- protective stop orders at Alpaca: exactly STOP_LOSS_PCT below the average buy price
     time.sleep(3)   # give this run's market orders a moment to fill
     try:
@@ -428,9 +460,12 @@ def run(agent, previous, backtest=None):
             qty, entry, price = num(p.get("qty")), num(p.get("avg_entry_price")), num(p.get("current_price"))
             if qty <= 0 or not entry:
                 continue
-            sp = stop_price(entry)
+            PEAKS[sym] = max(num(PEAKS.get(sym)), price, entry)
+            sp = stop_price(entry, PEAKS[sym])
             if price and price <= sp:
                 continue   # already below the line; the exit rules above handle it
+            if flatten_now:
+                continue   # being sold before the close
             have = open_stops.get(sym, [])
             if len(have) == 1 and abs(num(have[0].get("qty")) - qty) < 1e-6 and abs(num(have[0].get("stop_price")) - sp) < 0.005:
                 stops.append(f"{sym} {sp:g}")
@@ -445,7 +480,7 @@ def run(agent, previous, backtest=None):
                 o = call("POST", "/v2/orders", body=body)
                 stops.append(f"{sym} {sp:g}")
                 out.setdefault("stop_orders", []).append({"symbol": sym, "stop_price": sp, "entry": round(entry, 4),
-                                                          "pct": -STOP_LOSS_PCT, "qty": qty, "status": o.get("status")})
+                                                          "highest": round(PEAKS[sym], 4), "qty": qty, "status": o.get("status")})
             except Exception as e:
                 out["notes"].append(f"Alpaca refused the stop order for {sym}: {str(e)[:120]}. The 5-minute check still applies.")
         for sym in list(open_stops):          # stops left on positions that are gone
@@ -453,12 +488,12 @@ def run(agent, previous, backtest=None):
                 cancel_stops(sym)
         out["protective_stops"] = stops
         if stops:
-            out["notes"].append(f"Alpaca stop orders at −{STOP_LOSS_PCT:g}% in place: {', '.join(stops)}.")
+            out["notes"].append(f"Alpaca stop orders (5% below the highest price, never lower than −{STOP_LOSS_PCT:g}% from the buy) in place: {', '.join(stops)}.")
     except Exception as e:
         out["notes"].append(f"Couldn't check the Alpaca stop orders: {str(e)[:150]}")
 
     for sym in list(PEAKS):
-        if sym not in owned:
+        if sym not in owned and sym not in protect:
             PEAKS.pop(sym)
     out["owned"] = sorted(owned)
     out["history"] = (history + out["actions"])[-300:]
