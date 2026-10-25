@@ -25,7 +25,10 @@ Buying (only while the US market is open):
 Exits (only on positions the auto-trader bought itself; your manual positions are never touched):
   * 2 or fewer of 5 green, or the stock's time machine turns red -> sell all
   * 3 of 5 green               -> sell half, once (not again within 3 days)
-  * down STOP_LOSS_PCT  (5%)   -> sell all
+  * down STOP_LOSS_PCT  (5%)   -> sell all. Also kept as a REAL stop order at Alpaca: right after a
+    buy fills, a sell-stop is placed at exactly 5% below the average buy price, so Alpaca's own
+    servers sell within seconds instead of waiting for the next GitHub run. Alpaca only accepts
+    these as day orders for fractional shares, so they are renewed at the first run each day.
   * trailing stop: once up TRAIL_ARM_PCT (4%), sell all if it falls TRAIL_PCT (4%) from its best price
   * bad day: down BAD_DAY_PCT (3%) today and not 5 of 5 green -> sell all
   * up   TAKE_PROFIT_PCT (20%) -> sell all, freeing the slot for a new 4-green stock
@@ -68,6 +71,7 @@ NO_BUY_MINUTES = float(os.environ.get("AUTOTRADE_NO_BUY_MINUTES", "30") or 30)
 ALLOW_ETF = os.environ.get("AUTOTRADE_ALLOW_ETF", "false").strip().lower() == "true"
 MAX_AGENT_AGE_MIN = 30
 TAG = "tdagent-"
+STOP_TAG = TAG + "stop-"
 FUND_WORDS = re.compile(r"\b(ETF|ETN|FUND|TRUST|ISHARES|SPDR|PROSHARES|DIREXION|VANGUARD|INVESCO QQQ|SELECT SECTOR|ULTRA|INVERSE|2X|3X|LEVERAGED)\b", re.I)
 
 
@@ -143,6 +147,27 @@ def refresh_journal(entries):
     return entries
 
 
+def fetch_orders(days):
+    """All orders of the last `days` days, newest first (pages of 500; stop orders add many)."""
+    after = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    out, until = [], None
+    for _ in range(12):
+        p = {"status": "all", "limit": 500, "direction": "desc", "after": after}
+        if until:
+            p["until"] = until
+        page = call("GET", "/v2/orders", p)
+        out += [o for o in page if o.get("id") not in {x.get("id") for x in out[-500:]}]
+        if len(page) < 500:
+            break
+        until = page[-1].get("submitted_at")
+    return out
+
+
+def stop_price(entry):
+    px = entry * (1 - STOP_LOSS_PCT / 100)
+    return round(px, 2) if px >= 1 else round(px, 4)
+
+
 def run(agent, previous, backtest=None):
     now = dt.datetime.now(dt.timezone.utc)
     out = {"generated_at": now.isoformat(timespec="seconds"), "mode": MODE, "paper": PAPER,
@@ -160,8 +185,7 @@ def run(agent, previous, backtest=None):
     account = call("GET", "/v2/account")
     clock = call("GET", "/v2/clock")
     positions = {p["symbol"]: p for p in call("GET", "/v2/positions")}
-    orders = call("GET", "/v2/orders", {"status": "all", "limit": 500, "direction": "desc",
-                                         "after": (now - dt.timedelta(days=180)).strftime("%Y-%m-%dT%H:%M:%SZ")})
+    orders = fetch_orders(180)
     equity, cash = num(account.get("equity")), num(account.get("cash"))
     last_equity = num(account.get("last_equity"), equity)
     out["account"] = {"equity": equity, "cash": cash}
@@ -191,12 +215,18 @@ def run(agent, previous, backtest=None):
     pdt_limited = (not PAPER and equity < 25000 and int(num(account.get("daytrade_count"))) >= 3)
 
     today = et_today()
+    is_stop = lambda o: (o.get("client_order_id") or "").startswith(STOP_TAG)
     mine = [o for o in orders if (o.get("client_order_id") or "").startswith(TAG)]
     owned = {o["symbol"] for o in mine if o.get("side") == "buy" and o.get("status") in ("filled", "partially_filled")}
     owned &= set(positions)
-    open_syms = {o["symbol"] for o in orders if o.get("status") in ("new", "accepted", "pending_new", "partially_filled", "held")}
+    OPEN = ("new", "accepted", "pending_new", "partially_filled", "held")
+    open_syms = {o["symbol"] for o in orders if o.get("status") in OPEN and not is_stop(o)}
+    open_stops = {}
+    for o in orders:
+        if o.get("status") in OPEN and is_stop(o):
+            open_stops.setdefault(o["symbol"], []).append(o)
     bought_today = {o["symbol"] for o in mine if o.get("side") == "buy" and (o.get("filled_at") or "")[:10] == today}
-    trimmed_recently = {o["symbol"] for o in mine if o.get("side") == "sell" and o.get("status") == "filled"
+    trimmed_recently = {o["symbol"] for o in mine if o.get("side") == "sell" and o.get("status") == "filled" and not is_stop(o)
                         and (now - dt.datetime.fromisoformat(o["filled_at"].replace("Z", "+00:00"))).days < 3}
 
     cols = agent.get("board_columns", [])
@@ -236,7 +266,27 @@ def run(agent, previous, backtest=None):
             "position_plpc_before": round(num(pos.get("unrealized_plpc")) * 100, 2) if pos else None,
         }
 
+    def cancel_stops(sym):
+        """A stop order reserves the shares; cancel it before selling or replacing it."""
+        ids = [o["id"] for o in open_stops.pop(sym, [])]
+        for oid in ids:
+            try:
+                call("DELETE", f"/v2/orders/{oid}")
+            except Exception:
+                pass
+        for oid in ids:
+            for _ in range(10):
+                try:
+                    if call("GET", f"/v2/orders/{oid}").get("status") in ("canceled", "filled", "expired", "rejected"):
+                        break
+                except Exception:
+                    break
+                time.sleep(0.5)
+        return len(ids)
+
     def place(sym, side, reason, notional=None, qty=None, rule=None, asset=None):
+        if side == "sell":
+            cancel_stops(sym)
         body = {"symbol": sym, "side": side, "type": "market", "time_in_force": "day",
                 "client_order_id": f"{TAG}{side}-{sym}-{int(time.time()*1000)}"[:48]}
         if notional is not None:
@@ -356,9 +406,56 @@ def run(agent, previous, backtest=None):
                 spend -= amount
                 bought += 1
         if not candidates:
-            out["notes"].append("No stock has 4 of 4 green right now. Nothing to buy.")
+            out["notes"].append("No stock is buy-ready right now. Nothing to buy.")
         elif bought == 0 and free <= 0:
             out["notes"].append(f"All {SLOTS} slots are full.")
+
+    # ---- protective stop orders at Alpaca: exactly STOP_LOSS_PCT below the average buy price
+    time.sleep(3)   # give this run's market orders a moment to fill
+    try:
+        pos_now = {p["symbol"]: p for p in call("GET", "/v2/positions")}
+        recent = call("GET", "/v2/orders", {"status": "all", "limit": 200, "direction": "desc",
+                                             "after": (now - dt.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")})
+        just_bought = {o["symbol"] for o in recent if (o.get("client_order_id") or "").startswith(TAG + "buy-")
+                       and o.get("status") in ("filled", "partially_filled")}
+        busy = {o["symbol"] for o in recent if o.get("status") in OPEN and not is_stop(o)}
+        protect = (owned | just_bought) & set(pos_now)
+        stops = []
+        for sym in sorted(protect):
+            p = pos_now[sym]
+            if p.get("asset_class") == "crypto" or sym in busy:
+                continue
+            qty, entry, price = num(p.get("qty")), num(p.get("avg_entry_price")), num(p.get("current_price"))
+            if qty <= 0 or not entry:
+                continue
+            sp = stop_price(entry)
+            if price and price <= sp:
+                continue   # already below the line; the exit rules above handle it
+            have = open_stops.get(sym, [])
+            if len(have) == 1 and abs(num(have[0].get("qty")) - qty) < 1e-6 and abs(num(have[0].get("stop_price")) - sp) < 0.005:
+                stops.append(f"{sym} {sp:g}")
+                continue
+            if pdt_limited and sym in (bought_today | just_bought):
+                out["notes"].append(f"{sym}: Alpaca stop order waits until tomorrow (3 day trades used, under $25k rule).")
+                continue
+            cancel_stops(sym)
+            body = {"symbol": sym, "side": "sell", "type": "stop", "stop_price": f"{sp}", "time_in_force": "day",
+                    "qty": f"{qty:.9f}".rstrip("0").rstrip("."), "client_order_id": f"{STOP_TAG}{sym}-{int(time.time()*1000)}"[:48]}
+            try:
+                o = call("POST", "/v2/orders", body=body)
+                stops.append(f"{sym} {sp:g}")
+                out.setdefault("stop_orders", []).append({"symbol": sym, "stop_price": sp, "entry": round(entry, 4),
+                                                          "pct": -STOP_LOSS_PCT, "qty": qty, "status": o.get("status")})
+            except Exception as e:
+                out["notes"].append(f"Alpaca refused the stop order for {sym}: {str(e)[:120]}. The 5-minute check still applies.")
+        for sym in list(open_stops):          # stops left on positions that are gone
+            if sym not in pos_now:
+                cancel_stops(sym)
+        out["protective_stops"] = stops
+        if stops:
+            out["notes"].append(f"Alpaca stop orders at −{STOP_LOSS_PCT:g}% in place: {', '.join(stops)}.")
+    except Exception as e:
+        out["notes"].append(f"Couldn't check the Alpaca stop orders: {str(e)[:150]}")
 
     for sym in list(PEAKS):
         if sym not in owned:
@@ -406,15 +503,21 @@ def main():
             try:
                 known = {e.get("order_id") for e in entries}
                 since = (dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=365)).strftime("%Y-%m-%dT%H:%M:%SZ")
-                for o in reversed(call("GET", "/v2/orders", {"status": "all", "limit": 500, "direction": "desc", "after": since})):
-                    if (o.get("client_order_id") or "").startswith(TAG) and o.get("id") not in known:
+                for o in reversed(fetch_orders(365)):
+                    cid = o.get("client_order_id") or ""
+                    if cid.startswith(STOP_TAG) and o.get("status") not in ("filled", "partially_filled"):
+                        continue   # renewed every day; only a triggered stop is a trade
+                    if cid.startswith(TAG) and o.get("id") not in known:
                         entries.append({"side": o.get("side"), "symbol": o.get("symbol"), "order_id": o.get("id"),
                                         "client_order_id": o.get("client_order_id"), "status": o.get("status"),
                                         "order_type": o.get("type"), "time_in_force": o.get("time_in_force"),
                                         "submitted_at_utc": o.get("submitted_at"), "decided_at_utc": o.get("submitted_at"),
                                         "qty_requested": num(o.get("qty")) or None, "notional_requested": num(o.get("notional")) or None,
                                         "mode": "paper" if PAPER else "live",
-                                        "reason": "Recovered from Alpaca order history (details at decision time not available)"})
+                                        "rule": "stop-loss (Alpaca order)" if cid.startswith(STOP_TAG) else None,
+                                        "reason": (f"Alpaca stop order triggered at {o.get('stop_price')} (−{STOP_LOSS_PCT:g}% from the buy price)"
+                                                   if cid.startswith(STOP_TAG) else
+                                                   "Recovered from Alpaca order history (details at decision time not available)")})
                 entries.sort(key=lambda e: e.get("decided_at_utc") or e.get("submitted_at_utc") or "")
                 refresh_journal(entries)
             except Exception as e:

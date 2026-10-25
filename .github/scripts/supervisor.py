@@ -200,6 +200,14 @@ def main():
         acct = alpaca("/v2/account")
         if float(acct.get("cash") or 0) < 0:
             s.alert("Cash is negative: the account is using margin.")
+        stops = {o["symbol"] for o in orders if (o.get("client_order_id") or "").startswith("tdagent-stop-")}
+        held_syms = {p["symbol"] for p in positions if p.get("asset_class") != "crypto"}
+        unprotected = sorted((owned & held_syms) - stops)
+        if market_open and unprotected:
+            s.warn(f"No Alpaca stop order (−{STOP:g}%) on: {', '.join(unprotected)}. The next auto-trader run should place it.")
+        elif owned & held_syms:
+            s.ok(f"Alpaca stop orders at −{STOP:g}% protect {len((owned & held_syms) & stops)} position(s)." if market_open
+                 else f"Market closed; Alpaca stop orders are renewed at the first run after the open.")
         stuck = [o["symbol"] for o in orders if (age_min(o.get("submitted_at"), now) or 0) > 24 * 60]
         if stuck:
             s.warn(f"Orders open for more than a day: {', '.join(stuck)}.")
@@ -210,7 +218,8 @@ def main():
         if KEY and SECRET:
             since = (now - dt.timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
             mine = [o for o in alpaca("/v2/orders", {"status": "all", "limit": 500, "after": since})
-                    if (o.get("client_order_id") or "").startswith("tdagent-")]
+                    if (o.get("client_order_id") or "").startswith("tdagent-")
+                    and not ((o.get("client_order_id") or "").startswith("tdagent-stop-") and o.get("status") != "filled")]
             known = {e.get("order_id") for e in journal}
             missing = [o["symbol"] for o in mine if o["id"] not in known]
             if missing:
