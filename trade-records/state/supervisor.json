@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-25T06:01:25+00:00",
- "next_check": "2026-10-25T07:01:25+00:00",
+ "generated_at": "2026-10-25T06:58:07+00:00",
+ "next_check": "2026-10-25T07:58:07+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 1 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
@@ -52,7 +52,7 @@
     },
     {
      "status": "warn",
-     "text": "Master switch OFF: the 6-month replay returned -2.79%. Buying is paused, exits still run."
+     "text": "Master switch OFF: the 6-month replay returned -14.77%. Buying is paused, exits still run."
     },
     {
      "status": "ok",
@@ -90,7 +90,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "1 run(s) in the last 3 hours, none failed."
+     "text": "3 run(s) in the last 3 hours, none failed, longest gap 42 min."
     }
    ]
   }
@@ -99,7 +99,7 @@
   {
    "level": "warn",
    "supervisor": "Trade watch",
-   "text": "Master switch OFF: the 6-month replay returned -2.79%. Buying is paused, exits still run."
+   "text": "Master switch OFF: the 6-month replay returned -14.77%. Buying is paused, exits still run."
   }
  ]
 }
