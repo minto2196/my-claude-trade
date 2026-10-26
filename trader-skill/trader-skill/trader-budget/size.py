@@ -32,6 +32,27 @@ How the money is split:
 
 Money that cannot be invested (every stock at its cap, or leftovers from
 whole shares) is reported as "left idle", never hidden.
+
+Slots mode (--slots, or "sizing": "slots" in the config) sizes like the
+Trade Desk auto-trader instead of by weight:
+
+    python3 size.py --slots --budget 1000 --tickers NVDA,MSFT,AAPL
+    python3 size.py --slots 10 --budget 1000          # 10% slots instead
+
+  1. cash buffer   same as above, off the top (set cash_buffer_pct 0 to
+                   match the auto-trader exactly; it keeps no buffer)
+  2. order         stocks in rank order: biggest weight first, or the order
+                   you typed them with --tickers
+  3. each buy      slot_pct (default 8.33) of the cash STILL LEFT, rounded
+                   down to the cent: $1,000 -> $83.30, $76.36, $70.00, ...
+                   never over max_position_pct of the budget or max_order_usd
+  4. stop          when the next buy would be under min_order_usd, or
+                   max_positions (default 40) stocks are bought
+  5. whole shares  floor to whole shares; a stock whose one share costs more
+                   than its slot is skipped (as the auto-trader does)
+
+The cash not spent is shown as "left idle": with slots that is on purpose,
+each buy only ever takes a slice of what is left.
 """
 
 import argparse
@@ -52,6 +73,9 @@ DEFAULTS = {
     "paper": True,
     "blocked": [],
     "allow_options": False,
+    "sizing": "weights",
+    "slot_pct": 8.33,
+    "max_positions": 40,
 }
 EPS = 1e-9
 
@@ -334,6 +358,103 @@ def size(rows, cfg, budget=None, prices=None, whole=None, cents=False, top=None)
     }
 
 
+def size_slots(rows, cfg, budget=None, prices=None, whole=None, slot_pct=None, top=None):
+    """Slots mode: each buy is slot_pct of the cash still left, in rank order.
+
+    The same loop as the Trade Desk auto-trader (.github/scripts/autotrader.py):
+    $1,000 at 8.33% -> $83.30, then 8.33% of $916.70 = $76.36, and so on."""
+    budget = float(budget if budget is not None else (cfg.get("budget") or 0))
+    if budget <= 0:
+        raise SizeError("no budget: pass --budget or set \"budget\" in trader/config.json")
+    pct = float(slot_pct if slot_pct is not None else cfg.get("slot_pct", 8.33))
+    if not 0 < pct <= 100:
+        raise SizeError("slot_pct must be above 0 and at most 100")
+    buf_pct = float(cfg.get("cash_buffer_pct", 10))
+    cap_pct = float(cfg.get("max_position_pct", 25))
+    min_order = float(cfg.get("min_order_usd", 5) or 0)
+    max_order = float(cfg.get("max_order_usd") or 0)
+    max_pos = int(cfg.get("max_positions", 40) or 40)
+    if not 0 <= buf_pct < 100:
+        raise SizeError("cash_buffer_pct must be between 0 and 100")
+    if not 0 < cap_pct <= 100:
+        raise SizeError("max_position_pct must be above 0 and at most 100")
+    if whole is None:
+        whole = not cfg.get("fractional", True)
+    prices = prices or {}
+
+    keep, dropped = normalise(rows, cfg.get("blocked"), top)
+    if not keep:
+        raise SizeError("nothing to size: no stocks left after the blocked list")
+    if whole:
+        missing = [r["ticker"] for r in keep if not prices.get(r["ticker"])]
+        if missing:
+            raise SizeError("whole shares need a price for: %s (add them to trader/prices.json, "
+                            "e.g. with trader-alerts: alerts.py quote %s --write)"
+                            % (", ".join(missing), " ".join(missing)))
+
+    cash_buffer = round(budget * buf_pct / 100.0, 2)
+    investable = round(budget - cash_buffer, 2)
+    cap = round(budget * cap_pct / 100.0, 2)
+    spend = investable
+    positions, stop = [], None
+    for i, r in enumerate(keep):
+        t = r["ticker"]
+        if stop:
+            dropped.append({"ticker": t, "reason": stop})
+            continue
+        if len(positions) >= max_pos:
+            stop = "you already have the maximum of %d stocks" % max_pos
+            dropped.append({"ticker": t, "reason": stop})
+            continue
+        amount = math.floor(spend * pct / 100.0 * 100 + EPS) / 100.0
+        limit = cap if not max_order else min(cap, max_order)
+        capped = amount > limit + EPS
+        if capped:
+            amount = math.floor(limit * 100 + EPS) / 100.0
+        if amount < min_order - EPS:
+            stop = ("the next slot would be $%s (%s%% of %s cash left), under your $%s minimum order"
+                    % (_num(amount), _num(pct), money(spend), _num(min_order)))
+            dropped.append({"ticker": t, "reason": stop})
+            continue
+        p = {"ticker": t, "name": r["name"], "source_weight": r["source_weight"],
+             "slot": len(positions) + 1, "cash_before": round(spend, 2), "capped": capped}
+        if whole:
+            shares = int(math.floor(amount / prices[t] + EPS))
+            if shares < 1:
+                dropped.append({"ticker": t, "reason": "one share costs $%s, more than its $%s slot"
+                                % (_num(prices[t]), _num(amount))})
+                continue
+            amount = round(shares * prices[t], 2)
+            p["price"], p["shares"] = prices[t], shares
+        elif prices.get(t):
+            p["price"], p["shares"] = prices[t], round(amount / prices[t], 4)
+        p["dollars"] = amount
+        spend = round(spend - amount, 2)
+        positions.append(p)
+    if not positions:
+        raise SizeError("no slot reaches your minimum order; raise the budget or the slot percent")
+    invested = round(sum(p["dollars"] for p in positions), 2)
+    for p in positions:
+        p["weight"] = round(100.0 * p["dollars"] / invested, 2) if invested else 0.0
+    return {
+        "sizing": "slots", "slot_pct": pct, "max_positions": max_pos,
+        "budget": budget, "cash_buffer_pct": buf_pct, "cash_buffer": cash_buffer,
+        "investable": investable, "max_position_pct": cap_pct, "cap": cap,
+        "min_order_usd": min_order, "whole_shares": bool(whole),
+        "positions": positions, "invested": invested,
+        "idle": round(investable - invested, 2), "dropped": dropped,
+    }
+
+
+def tickers_to_rows(text):
+    """NVDA,MSFT,AAPL -> rows ranked in the order typed (first = biggest weight)."""
+    ts = [t.strip().upper() for t in text.split(",") if t.strip()]
+    if not ts:
+        raise SizeError("--tickers is empty")
+    n = len(ts)
+    return parse_weights([{"ticker": t, "weight": n - i} for i, t in enumerate(ts)])
+
+
 # ---------------------------------------------------------------- orders
 
 def _num(x):
@@ -350,7 +471,10 @@ def orders_from(result, source=""):
     for p in result["positions"]:
         if p["dollars"] <= 0:
             continue
-        why = "%.2f%% of the stock sleeve" % p["weight"]
+        if result.get("sizing") == "slots":
+            why = "slot %d: %s%% of %s cash left" % (p["slot"], _num(result["slot_pct"]), money(p["cash_before"]))
+        else:
+            why = "%.2f%% of the stock sleeve" % p["weight"]
         if source:
             why = "%s, copying %s" % (why, source)
         if p["capped"]:
@@ -401,6 +525,10 @@ def report(result, orders, source=""):
     lines.append("Budget %s, cash buffer %s%% = %s, investing %s, cap %s%% = %s per stock"
                  % (money(r["budget"]), _num(r["cash_buffer_pct"]), money(r["cash_buffer"]),
                     money(r["investable"]), _num(r["max_position_pct"]), money(r["cap"])))
+    slots = r.get("sizing") == "slots"
+    if slots:
+        lines.append("Slots: each buy is %s%% of the cash still left, in rank order, up to %d stocks"
+                     % (_num(r["slot_pct"]), r["max_positions"]))
     lines.append("")
     has_price = any("price" in p for p in r["positions"])
     head = "%-7s %-22s %8s %11s" % ("ticker", "name", "weight", "dollars")
@@ -411,17 +539,25 @@ def report(result, orders, source=""):
         row = "%-7s %-22s %7.2f%% %11s" % (p["ticker"], (p["name"] or "")[:22], p["weight"], money(p["dollars"]))
         if has_price:
             row += " %10s %10s" % (money(p["price"]) if "price" in p else "", p.get("shares", ""))
+        if slots:
+            row += "  slot %d, %s%% of %s" % (p["slot"], _num(r["slot_pct"]), money(p["cash_before"]))
         if p["capped"]:
-            row += "  capped at %s%%" % _num(r["max_position_pct"])
+            row += "  capped"
+            if not slots:
+                row += " at %s%%" % _num(r["max_position_pct"])
         lines.append(row)
     lines.append("%-7s %-22s %8s %11s" % ("", "invested", "", money(r["invested"])))
     lines.append("%-7s %-22s %8s %11s" % ("", "cash buffer", "", money(r["cash_buffer"])))
     lines.append("%-7s %-22s %8s %11s" % ("", "left idle", "", money(r["idle"])))
     if r["idle"] >= 1:
         lines.append("")
-        lines.append("Left idle %s: %s" % (money(r["idle"]), (
-            "whole shares do not divide evenly" if r["whole_shares"]
-            else "every stock is at its cap; add stocks or raise max_position_pct")))
+        if slots:
+            why = "kept on purpose, each slot only takes %s%% of what is left" % _num(r["slot_pct"])
+        elif r["whole_shares"]:
+            why = "whole shares do not divide evenly"
+        else:
+            why = "every stock is at its cap; add stocks or raise max_position_pct"
+        lines.append("Left idle %s: %s" % (money(r["idle"]), why))
     for d in r["dropped"]:
         lines.append("Dropped %s: %s" % (d["ticker"], d["reason"]))
     lines.append("")
@@ -445,6 +581,11 @@ def main(argv=None):
     ap.add_argument("--prices", help="prices JSON (needed for --whole-shares; shows share counts)")
     ap.add_argument("--whole-shares", action="store_true", help="buy whole shares only (needs --prices)")
     ap.add_argument("--cents", action="store_true", help="size to the cent instead of whole dollars")
+    ap.add_argument("--slots", nargs="?", const=-1.0, type=float, metavar="PCT",
+                    help="slots mode: each buy is PCT%% of the cash still left (default slot_pct, 8.33)")
+    ap.add_argument("--weights-mode", action="store_true",
+                    help="size by weight even if the config says \"sizing\": \"slots\"")
+    ap.add_argument("--tickers", help="ranked list instead of weights, best first: NVDA,MSFT,AAPL")
     ap.add_argument("--write", nargs="?", const="trader/orders.json", metavar="PATH",
                     help="write the proposed orders (default trader/orders.json)")
     ap.add_argument("--json", action="store_true", help="print JSON instead of the table")
@@ -452,7 +593,9 @@ def main(argv=None):
     try:
         cfg = load_config(a.config)
         source = ""
-        if a.weights:
+        if a.tickers:
+            rows = tickers_to_rows(a.tickers)
+        elif a.weights:
             rows = parse_weights(weights_from_arg(a.weights))
         else:
             data = read_json(a.targets, "targets file (run trader-copycat, or pass --weights)")
@@ -463,7 +606,12 @@ def main(argv=None):
         if not prices and os.path.exists("trader/prices.json") and not a.prices:
             prices = load_prices("trader/prices.json")
         whole = True if a.whole_shares else None
-        result = size(rows, cfg, a.budget, prices, whole, a.cents, a.top)
+        use_slots = a.slots is not None or (cfg.get("sizing") == "slots" and not a.weights_mode)
+        if use_slots:
+            pct = a.slots if a.slots is not None and a.slots > 0 else None
+            result = size_slots(rows, cfg, a.budget, prices, whole, pct, a.top)
+        else:
+            result = size(rows, cfg, a.budget, prices, whole, a.cents, a.top)
         orders = orders_from(result, source)
         if a.write:
             write_orders(a.write, orders, result, cfg, source)

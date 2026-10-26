@@ -6,10 +6,13 @@ description: >-
   the others), drops slices under your minimum order, rounds so every dollar
   is used, supports fractional or whole shares, and writes the proposed buy
   orders to trader/orders.json in the exact shape of Alpaca's
-  place_stock_order (notional as a string). Nothing is placed. Use when the
+  place_stock_order (notional as a string). Also has a slots mode that sizes
+  like the Trade Desk auto-trader: each buy is 8.33% of the cash still left,
+  in rank order. Nothing is placed. Use when the
   user says "I have $5,000", "size my trades", "how much of each should I
   buy", "manage my budget", "split my money", "keep 10% in cash", "no stock
-  over 25%", "set my rules", or after /trader-copycat writes targets.
+  over 25%", "set my rules", "8.33%", "split into slots", "size it like the
+  auto-trader", or after /trader-copycat writes targets.
 argument-hint: "[budget in dollars]"
 ---
 
@@ -47,6 +50,8 @@ If `trader/config.json` does not exist, copy `config.example.json` into
 - **max_position_pct**: the most any one stock may be, as a percent of the budget (default 25).
 - **max_order_usd** and **min_order_usd**: the biggest and smallest single order (2000 and 5).
 - **fractional**: true if the broker buys fractional shares (Alpaca does); false for whole shares.
+- **sizing**: "weights" (split by the targets' weights) or "slots" (each buy is
+  **slot_pct**, 8.33 by default, of the cash still left; at most **max_positions**, 40).
 - **blocked**: tickers they never want to own.
 - Keep **paper** true until they have watched it work on a paper account.
 
@@ -64,6 +69,37 @@ weight shared out; amounts are rounded to whole dollars and the rounding
 dollar goes to the biggest stock that is not capped, so nothing is left
 idle by accident. Money that truly cannot be invested (every stock at its
 cap, or whole shares that do not divide evenly) is shown as "left idle".
+
+## Slots mode: 8.33% of the cash left
+
+The Trade Desk auto-trader (`.github/scripts/autotrader.py`) does not split
+by weight. It buys in rank order, and each buy is `slot_pct` (8.33%, one
+twelfth) of the cash still left at that moment. Slots mode sizes the same
+way, so what you approve in the chat matches what the auto-trader would do:
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/size.py" --slots --budget 1000 --tickers NVDA,MSFT,AAPL --write
+python3 "${CLAUDE_SKILL_DIR}/size.py" --slots                  # trader/targets.json, biggest weight first
+python3 "${CLAUDE_SKILL_DIR}/size.py" --slots 10 --budget 1000 # 10% slots instead of 8.33%
+```
+
+Use it when the user asks for 8.33%, slots, or "like the auto-trader", or
+when `trader/config.json` has `"sizing": "slots"` (then `--weights-mode`
+switches back for one run). With `cash_buffer_pct` 0, $1,000 gives $83.30,
+$76.36, $70.00, $64.16, ... exactly the auto-trader's numbers. The rules:
+
+- the cash buffer still comes off the top (the auto-trader keeps none; set 0 to match it)
+- each slot is rounded down to the cent and never over `max_position_pct` of the budget or `max_order_usd`
+- buying stops when the next slot is under `min_order_usd` or `max_positions` (40) stocks are bought
+- whole shares: a stock whose one share costs more than its slot is skipped
+- the cash not spent shows as "left idle"; with slots that is on purpose
+
+`--tickers` takes a ranked list, best first (for example the screener's
+shortlist or the auto-trader's buy-ready list). The weights in a targets file
+only set the order.
+
+Twelve slots means up to twelve orders in a day: the example config allows 12
+(`max_orders_per_day`), and trader-risk blocks anything past the user's limit.
 
 ## Step 3: show the user
 

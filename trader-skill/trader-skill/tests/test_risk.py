@@ -143,7 +143,7 @@ class Account(unittest.TestCase):
 
     def test_daily_limit_and_already_placed_today(self):
         placed = {"orders": [{"symbol": "T%d" % i, "side": "buy", "status": "placed", "at": TODAY + "T10:00:00"}
-                             for i in range(10)]}
+                             for i in range(cfg()["max_orders_per_day"])]}
         res = check.check([buy("KO", 100)], cfg(), state=placed, today=TODAY)
         self.assertIn("daily limit", reasons(res, 0))
         res = check.check([buy("KO", 100)], cfg(), state=placed, today="2026-10-14")
