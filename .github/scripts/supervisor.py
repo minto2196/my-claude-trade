@@ -24,6 +24,13 @@ import sys
 import urllib.parse
 import urllib.request
 
+
+def _safety_off():
+    """Same rule as autotrader.SAFETY_ON: auto = off on paper, on for real money."""
+    setting = os.environ.get("AUTOTRADE_SAFETY_SWITCH", "auto").strip().lower()
+    paper = os.environ.get("ALPACA_PAPER", "true").strip().lower() != "false"
+    return setting == "off" or (setting not in ("on", "off") and paper)
+
 KEY = os.environ.get("ALPACA_API_KEY", "").strip()
 SECRET = os.environ.get("ALPACA_SECRET_KEY", "").strip()
 PAPER = os.environ.get("ALPACA_PAPER", "true").strip().lower() != "false"
@@ -177,6 +184,9 @@ def main():
                 s.warn(f"The last time machine replay failed: {backtest['error'][:140]}")
             if bage is not None and bage > 10 * 24 * 60:
                 s.alert(f"The time machine result is {bage / 1440:.0f} days old; buying is paused until a new replay runs.")
+            elif _safety_off() and not backtest.get("buys_allowed"):
+                s.warn(f"Safety switch OFF by your setting: buying although the 6-month replay returned "
+                       f"{backtest.get('total_return_pct')}%.")
             elif backtest.get("buys_allowed"):
                 s.ok(f"Master switch ON: the 6-month replay returned {backtest.get('total_return_pct')}% "
                      f"(S&P 500 {backtest.get('spy_return_pct')}%), max drop {backtest.get('max_drawdown_pct')}%.")
