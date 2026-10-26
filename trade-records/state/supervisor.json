@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-26T13:50:59+00:00",
- "next_check": "2026-10-26T14:50:59+00:00",
- "overall": "alert",
+ "generated_at": "2026-10-26T14:46:46+00:00",
+ "next_check": "2026-10-26T15:46:46+00:00",
+ "overall": "warn",
  "supervisors": [
   {
    "name": "Data watch",
@@ -29,15 +29,15 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,200 \u2192 5,000 \u2192 500 \u2192 102 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,200 \u2192 5,000 \u2192 500 \u2192 103 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "95% of stocks pass 'data is real'."
+     "text": "96% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
-     "text": "Time machine judged the shortlist: 159 of 500 have a green past."
+     "text": "Time machine judged the shortlist: 158 of 500 have a green past."
     }
    ]
   },
@@ -52,7 +52,7 @@
     },
     {
      "status": "warn",
-     "text": "Master switch OFF: the 6-month replay returned -13.85%. Buying is paused, exits still run."
+     "text": "Master switch OFF: the 6-month replay returned -17.4%. Buying is paused, exits still run."
     },
     {
      "status": "ok",
@@ -82,15 +82,15 @@
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "alert",
+   "status": "ok",
    "checks": [
     {
      "status": "ok",
-     "text": "1 run(s) in the last 3 hours, none failed."
+     "text": "10 run(s) in the last 3 hours, none failed, longest gap 12 min."
     },
     {
-     "status": "alert",
-     "text": "The every-minute watchdog hasn't reported for ever while the market is open. Held stocks are only checked every 5 minutes."
+     "status": "ok",
+     "text": "Every-minute watchdog alive: 44 checks today, last saved 12 min ago."
     }
    ]
   }
@@ -99,12 +99,7 @@
   {
    "level": "warn",
    "supervisor": "Trade watch",
-   "text": "Master switch OFF: the 6-month replay returned -13.85%. Buying is paused, exits still run."
-  },
-  {
-   "level": "alert",
-   "supervisor": "Schedule watch",
-   "text": "The every-minute watchdog hasn't reported for ever while the market is open. Held stocks are only checked every 5 minutes."
+   "text": "Master switch OFF: the 6-month replay returned -17.4%. Buying is paused, exits still run."
   }
  ]
 }
