@@ -1,0 +1,23 @@
+{
+ "started_at": "2026-10-26T13:52:10+00:00",
+ "day": "2026-10-26",
+ "mode": "on",
+ "paper": true,
+ "line_pct": {
+  "safe": 5.0,
+  "low": 4.0,
+  "high": 3.0
+ },
+ "checks": 11,
+ "actions_today": [],
+ "generated_at": "2026-10-26T14:02:12+00:00",
+ "minutes_to_close": 358,
+ "groups": [],
+ "counts": {
+  "safe": 0,
+  "low": 0,
+  "high": 0
+ },
+ "error": null,
+ "peaks": {}
+}
