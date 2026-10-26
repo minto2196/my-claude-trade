@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-26T15:46:37+00:00",
- "next_check": "2026-10-26T16:46:37+00:00",
+ "generated_at": "2026-10-26T16:46:51+00:00",
+ "next_check": "2026-10-26T17:46:51+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -29,7 +29,7 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,200 \u2192 5,000 \u2192 500 \u2192 106 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,200 \u2192 5,000 \u2192 500 \u2192 21 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -52,7 +52,7 @@
     },
     {
      "status": "warn",
-     "text": "Master switch OFF: the 6-month replay returned -17.4%. Buying is paused, exits still run."
+     "text": "Master switch OFF: the 6-month replay returned -1.16%. Buying is paused, exits still run."
     },
     {
      "status": "ok",
@@ -86,11 +86,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "20 run(s) in the last 3 hours, none failed, longest gap 12 min."
+     "text": "32 run(s) in the last 3 hours, none failed, longest gap 12 min."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 109 checks today, last saved 6 min ago."
+     "text": "Every-minute watchdog alive: 174 checks today, last saved 2 min ago."
     }
    ]
   }
@@ -99,7 +99,7 @@
   {
    "level": "warn",
    "supervisor": "Trade watch",
-   "text": "Master switch OFF: the 6-month replay returned -17.4%. Buying is paused, exits still run."
+   "text": "Master switch OFF: the 6-month replay returned -1.16%. Buying is paused, exits still run."
   }
  ]
 }
