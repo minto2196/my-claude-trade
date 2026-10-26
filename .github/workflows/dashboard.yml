@@ -17,7 +17,7 @@ on:
 
 permissions:
   contents: write      # commit trade records to the trade-records/ folder on main
-  actions: read        # schedule supervisor reads recent workflow runs
+  actions: write       # schedule supervisor reads runs; restarts the watchdog if it stopped
   pages: write
   id-token: write
 
@@ -113,6 +113,14 @@ jobs:
         run: python3 .github/scripts/supervisor.py $DATA trade-records
 
       # Pushes made with the workflow's own token don't start another run, so this can't loop.
+      # GitHub's scheduler can be hours late. If the market is open (or opening within 20 minutes) and
+      # the every-minute watchdog isn't running, start it; the watchdog then starts this run every 5 minutes.
+      - name: Keep the watchdog running
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/watchdog.py --ensure
+
       - name: Save trade records to GitHub (trade-records/ on main)
         continue-on-error: true
         run: |

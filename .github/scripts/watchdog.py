@@ -13,7 +13,13 @@ Runs as its own GitHub job during US market hours and checks every held stock ev
 The 5-minute runs keep doing the market scan and the buying. Every sale here uses a client order id
 starting with tdagent-wd-, so the journal records it with its reason.
 
+It also keeps the whole system running even when GitHub's scheduler is late: while the market is
+open it starts the 5-minute dashboard run itself (scan, auto-trader, records, site), and before its
+own time limit it starts the next watchdog. `--ensure` (used by every dashboard run) starts the
+watchdog if the market is open or opening within 20 minutes and no watchdog is running.
+
 Usage: python3 watchdog.py RECORDS_DIR AGENT_URL [--minutes 350]
+       python3 watchdog.py --ensure
 """
 import datetime as dt
 import json
@@ -38,6 +44,55 @@ def fetch_json(url):
         return None
 
 
+GH_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+GH_REPO = os.environ.get("GITHUB_REPOSITORY", "")
+
+
+def gh(method, path, body=None):
+    req = urllib.request.Request(f"https://api.github.com/repos/{GH_REPO}{path}", method=method,
+                                 data=json.dumps(body).encode() if body is not None else None,
+                                 headers={"Authorization": f"Bearer {GH_TOKEN}", "Accept": "application/vnd.github+json"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        raw = r.read().decode()
+        return json.loads(raw) if raw else {}
+
+
+def gh_active(workflow):
+    """Is a run of this workflow queued or running?"""
+    try:
+        for st in ("in_progress", "queued"):
+            if gh("GET", f"/actions/workflows/{workflow}/runs?status={st}&per_page=5").get("total_count", 0):
+                return True
+    except Exception as e:
+        print("watchdog: can't read workflow runs:", str(e)[:120])
+        return True   # unknown: don't pile up runs
+    return False
+
+
+def gh_start(workflow):
+    if not (GH_TOKEN and GH_REPO):
+        return False
+    try:
+        gh("POST", f"/actions/workflows/{workflow}/dispatches", {"ref": "main"})
+        print(f"watchdog: started {workflow}")
+        return True
+    except Exception as e:
+        print(f"watchdog: couldn't start {workflow}: {str(e)[:120]}")
+        return False
+
+
+def ensure():
+    """Called by every dashboard run: start the watchdog if the market is (about to be) open and none runs."""
+    if not (T.KEY and T.SECRET and GH_TOKEN):
+        return
+    clock = T.call("GET", "/v2/clock")
+    soon = (T.iso_utc(clock["next_open"]) - dt.datetime.now(UTC)).total_seconds() <= 20 * 60
+    if (clock.get("is_open") or soon) and not gh_active("watchdog.yml"):
+        gh_start("watchdog.yml")
+    else:
+        print("watchdog ensure: nothing to do", "(open)" if clock.get("is_open") else "(closed)")
+
+
 def git_save(rec, msg):
     """Commit the watchdog status so the dashboard and supervisors can see it."""
     try:
@@ -55,6 +110,9 @@ def git_save(rec, msg):
 
 
 def main():
+    if "--ensure" in sys.argv:
+        ensure()
+        return
     rec, agent_url = sys.argv[1], sys.argv[2]
     budget_min = float(sys.argv[sys.argv.index("--minutes") + 1]) if "--minutes" in sys.argv else 350
     started = dt.datetime.now(UTC)
@@ -86,6 +144,7 @@ def main():
         return
     close_at = T.iso_utc(clock["next_close"])
     agent, agent_t, owned, owned_t, last_save, bought_today = None, 0, set(), 0, time.time(), set()
+    last_kick = 0
     account = T.call("GET", "/v2/account")
     print(f"watchdog: started, market closes {close_at.isoformat()}, mode={T.MODE}, paper={T.PAPER}")
 
@@ -191,12 +250,18 @@ def main():
         except Exception as e:
             status.update(error=f"{type(e).__name__}: {str(e)[:200]}", generated_at=dt.datetime.now(UTC).isoformat(timespec="seconds"))
             print("watchdog error:", status["error"])
+        if time.time() - last_kick > 300:      # the 5-minute scan/trade/site run, independent of GitHub's scheduler
+            if not gh_active("dashboard.yml"):
+                gh_start("dashboard.yml")
+            last_kick = time.time()
         os.makedirs(os.path.dirname(status_p), exist_ok=True)
         json.dump(status, open(status_p, "w"), indent=1)
         if time.time() - last_save > 600:
             git_save(rec, f"watchdog: {status.get('generated_at', '')[:16]} UTC, {status['checks']} checks")
             last_save = time.time()
         time.sleep(max(1, 60 - (time.time() - loop_t)))
+    if (close_at - dt.datetime.now(UTC)).total_seconds() > 120:
+        gh_start("watchdog.yml")             # time limit reached while the market is still open: hand over
     status["ended_at"] = dt.datetime.now(UTC).isoformat(timespec="seconds")
     json.dump(status, open(status_p, "w"), indent=1)
     git_save(rec, f"watchdog: ended after {status['checks']} checks")

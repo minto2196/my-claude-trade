@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  actions: write      # start the 5-minute dashboard run and the next watchdog itself
 
 concurrency:
   group: watchdog
@@ -34,6 +35,7 @@ jobs:
       AUTOTRADE_FLATTEN: ${{ vars.AUTOTRADE_FLATTEN || 'true' }}
       AUTOTRADE_FLATTEN_MINUTES: ${{ vars.AUTOTRADE_FLATTEN_MINUTES || '30' }}
       AUTOTRADE_KEEP_OVERNIGHT_PCT: ${{ vars.AUTOTRADE_KEEP_OVERNIGHT_PCT || '10' }}
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
