@@ -76,10 +76,12 @@ BAD_DAY_PCT = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3)
 PEAKS = {}            # best price seen per owned symbol (trailing stop); loaded/saved via --state
 GROUPS = {}           # risk group per owned symbol, this run
 TAKE_PROFIT_PCT = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0)   # 0 = off: let winners run
-FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"   # sell everything before the close
+FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "false").strip().lower() == "true"   # sell everything before the close
 FLATTEN_MINUTES = float(os.environ.get("AUTOTRADE_FLATTEN_MINUTES", "30") or 30)
 KEEP_OVERNIGHT_PCT = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "5") or 5)   # evening: keep only positions up this much
-SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33)                    # each buy = this % of the cash available then
+SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33)                    # each buy = this % of ...
+# ... the whole account (equity: 12 equal slots of 8.33% use all the money) or of the cash still left (cash)
+SLOT_OF = "cash" if os.environ.get("AUTOTRADE_SLOT_OF", "account").strip().lower() == "cash" else "account"
 MAX_POSITIONS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "12") or 12))
 MIN_ORDER = float(os.environ.get("AUTOTRADE_MIN_ORDER", "5") or 5)
 BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)        # 5 = buy only 5/5 green
@@ -269,7 +271,7 @@ def run(agent, previous, backtest=None):
                      "take_profit_pct": TAKE_PROFIT_PCT, "daily_loss_pct": DAILY_LOSS_PCT, "allow_etf": ALLOW_ETF,
                      "no_buy_minutes_before_close": NO_BUY_MINUTES,
                      "sell_all_before_close": FLATTEN, "sell_all_minutes_before_close": FLATTEN_MINUTES,
-                     "keep_overnight_pct": KEEP_OVERNIGHT_PCT, "buy_pct_of_cash": SLOT_PCT, "max_positions": MAX_POSITIONS,
+                     "keep_overnight_pct": KEEP_OVERNIGHT_PCT, "buy_pct_of_cash": SLOT_PCT, "slot_of": SLOT_OF, "max_positions": MAX_POSITIONS,
                      "min_order": MIN_ORDER, "line_pct": LINE_PCT, "buy_min_greens": BUY_MIN_GREENS},
            "actions": [], "notes": []}
     history = previous.get("history", [])
@@ -519,13 +521,15 @@ def run(agent, previous, backtest=None):
             if not ALLOW_ETF and FUND_WORDS.search(asset.get("name") or ""):
                 out["notes"].append(f"Skipped {sym}: looks like a fund ({asset.get('name')}).")
                 continue
-            amount = math.floor(spend * SLOT_PCT / 100 * 100) / 100
+            base = equity if SLOT_OF == "account" else spend
+            amount = math.floor(min(base * SLOT_PCT / 100, spend) * 100) / 100
             if amount < MIN_ORDER:
-                out["notes"].append(f"Next order would be ${amount:.2f} ({SLOT_PCT:g}% of ${spend:,.2f} cash), under the ${MIN_ORDER:g} minimum. Stopped buying.")
+                out["notes"].append(f"Next order would be ${amount:.2f} ({SLOT_PCT:g}% of the {'account' if SLOT_OF == 'account' else 'cash left'}, "
+                                    f"${spend:,.2f} cash left), under the ${MIN_ORDER:g} minimum. Stopped buying.")
                 break
             if asset.get("fractionable"):
                 act = place(sym, "buy", f"{c.get('greens')} of 5 green, time machine green, rank #{c.get('rank')}, "
-                                        f"{SLOT_PCT:g}% of ${spend:,.2f} cash", notional=amount, rule="4+/5 green", asset=asset)
+                                        f"{SLOT_PCT:g}% of the ${base:,.2f} {'account' if SLOT_OF == 'account' else 'cash left'}", notional=amount, rule="4+/5 green", asset=asset)
             else:
                 price = num(c.get("price"))
                 shares = math.floor(amount / price) if price else 0
