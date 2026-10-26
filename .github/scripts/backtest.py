@@ -42,7 +42,7 @@ STOP = float(os.environ.get("AUTOTRADE_STOP_LOSS_PCT", "5") or 5) / 100
 TRAIL_ARM = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "0") or 0) / 100
 TRAIL = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "5") or 5) / 100
 TAKE = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0) / 100      # 0 = off
-FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"
+FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "false").strip().lower() == "true"
 KEEP = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "5") or 5) / 100
 SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33) / 100
 MAX_POS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "12") or 12))
@@ -63,7 +63,7 @@ def current_rules():
     return {"slots": SLOTS, "stop_loss_pct": STOP * 100, "trail_arm_pct": TRAIL_ARM * 100, "trail_pct": TRAIL * 100,
             "take_profit_pct": TAKE * 100, "bad_day_pct": BAD_DAY * 100, "slippage_pct": SLIP * 100,
             "tm_lookback_days": A.TM_LOOKBACK, "sell_all_before_close": FLATTEN, "keep_overnight_pct": KEEP * 100,
-            "buy_pct_of_cash": SLOT_PCT * 100, "max_positions": MAX_POS, "line_pct": AT.LINE_PCT,
+            "buy_pct_of_cash": SLOT_PCT * 100, "slot_of": AT.SLOT_OF, "max_positions": MAX_POS, "line_pct": AT.LINE_PCT,
             "buy_min_greens": BUY_MIN_GREENS, "buy_needs_prediction": A.BUY_NEEDS_PREDICTION}
 
 
@@ -217,12 +217,13 @@ def run_sim(data, dates, statuses, spy_by, t0):
             pos.pop(s)
 
     for di, day in enumerate(dates):
-        # 1. morning: buy yesterday's picks, each with SLOT_PCT of the cash still available
+        # 1. morning: buy yesterday's picks, each SLOT_PCT of the account at the open (or of the cash still left)
+        equity_open = cash + sum(p["qty"] * (bar(s, day) or {"o": p["entry"]})["o"] for s, p in pos.items())
         for s in picks:
             if s in pos or len(pos) >= MAX_POS:
                 continue
             b = bar(s, day)
-            amt = cash * SLOT_PCT
+            amt = min(equity_open * SLOT_PCT, cash) if AT.SLOT_OF == "account" else cash * SLOT_PCT
             if not b or amt < 1:
                 continue
             entry = b["o"] * (1 + SLIP)
