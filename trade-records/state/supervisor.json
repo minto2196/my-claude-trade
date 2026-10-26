@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-26T03:51:58+00:00",
- "next_check": "2026-10-26T04:51:58+00:00",
+ "generated_at": "2026-10-26T08:09:02+00:00",
+ "next_check": "2026-10-26T09:09:02+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (0 min old)."
+     "text": "Portfolio snapshot is fresh (2 min old)."
     }
    ]
   },
@@ -25,11 +25,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 0 min ago."
+     "text": "Agent ran 2 min ago."
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,187 \u2192 5,000 \u2192 500 \u2192 103 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,198 \u2192 5,000 \u2192 500 \u2192 103 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -52,7 +52,7 @@
     },
     {
      "status": "warn",
-     "text": "Master switch OFF: the 6-month replay returned -14.77%. Buying is paused, exits still run."
+     "text": "Master switch OFF: the 6-month replay returned -18.78%. Buying is paused, exits still run."
     },
     {
      "status": "ok",
@@ -72,10 +72,6 @@
     {
      "status": "ok",
      "text": "This week's Excel journal exists."
-    },
-    {
-     "status": "ok",
-     "text": "This week's PDF report is filed."
     },
     {
      "status": "ok",
@@ -99,7 +95,7 @@
   {
    "level": "warn",
    "supervisor": "Trade watch",
-   "text": "Master switch OFF: the 6-month replay returned -14.77%. Buying is paused, exits still run."
+   "text": "Master switch OFF: the 6-month replay returned -18.78%. Buying is paused, exits still run."
   }
  ]
 }
