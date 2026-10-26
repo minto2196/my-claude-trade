@@ -32,6 +32,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import agent_check as A  # noqa: E402
+import autotrader as AT  # noqa: E402  (risk groups and their sell lines)
 
 UTC = dt.timezone.utc
 SIM_DAYS = int(os.environ.get("BACKTEST_DAYS", "126"))
@@ -61,7 +62,7 @@ def current_rules():
     return {"slots": SLOTS, "stop_loss_pct": STOP * 100, "trail_arm_pct": TRAIL_ARM * 100, "trail_pct": TRAIL * 100,
             "take_profit_pct": TAKE * 100, "bad_day_pct": BAD_DAY * 100, "slippage_pct": SLIP * 100,
             "tm_lookback_days": A.TM_LOOKBACK, "sell_all_before_close": FLATTEN, "keep_overnight_pct": KEEP * 100,
-            "buy_pct_of_cash": SLOT_PCT * 100, "max_positions": MAX_POS}
+            "buy_pct_of_cash": SLOT_PCT * 100, "max_positions": MAX_POS, "line_pct": AT.LINE_PCT}
 
 
 def is_due(latest, now):
@@ -162,11 +163,25 @@ def summarize(curve, trades, open_end, dates, universe, t0):
     }
 
 
-def line_for(entry, peak):
+def line_for(entry, peak, pct=None):
+    pct = TRAIL if pct is None else pct
     px = entry * (1 - STOP)
     if peak >= entry * (1 + TRAIL_ARM):
-        px = max(px, peak * (1 - TRAIL))
+        px = max(px, peak * (1 - pct))
     return px
+
+
+NAMES = ("data", "organic", "prediction", "news", "time machine")
+
+
+def group_pct(bars, i, sts, entry, peak):
+    """Risk group (safe / low / high) at the close of bar i -> sell-line fraction for the next day."""
+    closes = [b["c"] for b in bars[max(0, i - 20):i + 1]]
+    rets = [closes[k] / closes[k - 1] - 1 for k in range(1, len(closes)) if closes[k - 1]]
+    vol = (sum(r * r for r in rets) / len(rets) - (sum(rets) / len(rets)) ** 2) ** 0.5 * 100 if len(rets) > 2 else None
+    day = (bars[i]["c"] / bars[i - 1]["c"] - 1) * 100 if i else 0
+    g, _ = AT.risk_group(dict(zip(NAMES, sts)) if sts else {}, bars[i]["c"], entry, peak, day, vol)
+    return AT.LINE_PCT[g] / 100, g
 
 
 def run_sim(data, dates, statuses, spy_by, t0):
@@ -174,6 +189,7 @@ def run_sim(data, dates, statuses, spy_by, t0):
     during the day, the evening rule (sell anything under +10%), bad-day and signal exits at the close."""
     cash, pos, trades, curve, picks = START_CASH, {}, [], [], []
     prev_equity, spy0 = START_CASH, None
+    pick_pct, groups_seen = {}, {"safe": 0, "low": 0, "high": 0}
 
     def bar(s, day):
         i = data[s]["idx"].get(day)
@@ -203,7 +219,8 @@ def run_sim(data, dates, statuses, spy_by, t0):
                 continue
             entry = b["o"] * (1 + SLIP)
             cash -= amt
-            pos[s] = {"qty": amt / entry, "entry": entry, "peak": entry, "day": day, "trim": None}
+            pos[s] = {"qty": amt / entry, "entry": entry, "peak": entry, "day": day, "trim": None,
+                      "pct": pick_pct.get(s, AT.LINE_PCT["low"] / 100)}
         held_open = sum(p["qty"] * p["entry"] if p["day"] == day else p["qty"] * (bar(s, day) or {"o": p["entry"]})["o"] for s, p in pos.items())
         invested_day = held_open / (held_open + cash) * 100 if held_open + cash else 0
         # 2. during the day: the sell line (5% under the highest price, never under -5% from the buy)
@@ -211,14 +228,14 @@ def run_sim(data, dates, statuses, spy_by, t0):
             b, p = bar(s, day), pos[s]
             if not b:
                 continue
-            line0 = line_for(p["entry"], p["peak"])
+            line0 = line_for(p["entry"], p["peak"], p["pct"])
             if b["l"] <= line0:
                 sell(s, min(b["o"], line0), day, "trailing stop" if line0 > p["entry"] * (1 - STOP) + 1e-9 else "stop-loss")
                 continue
             if TAKE > 0 and b["h"] >= p["entry"] * (1 + TAKE):
                 sell(s, max(b["o"], p["entry"] * (1 + TAKE)), day, "take-profit")
                 continue
-            hi_line = line_for(p["entry"], max(p["peak"], b["h"]))
+            hi_line = line_for(p["entry"], max(p["peak"], b["h"]), p["pct"])
             if hi_line > line0 and b["c"] < hi_line:     # rose to a new high, then fell through the raised line
                 sell(s, hi_line, day, "trailing stop")
                 continue
@@ -235,6 +252,8 @@ def run_sim(data, dates, statuses, spy_by, t0):
             if not st or not i:
                 continue
             sts = st[0]
+            p["pct"], p["group"] = group_pct(data[s]["bars"], i, sts, p["entry"], p["peak"])
+            groups_seen[p["group"]] += 1
             if b["c"] <= data[s]["bars"][i - 1]["c"] * (1 - BAD_DAY) and sts.count("ok") < 5:
                 sell(s, b["c"], day, "bad day")
                 continue
@@ -258,13 +277,21 @@ def run_sim(data, dates, statuses, spy_by, t0):
                     cands.append((st[1] or 0, st[0].count("ok"), s))
             cands.sort(reverse=True)
             picks = [s for _, _, s in cands[:MAX_POS - len(pos)]]
+            pick_pct = {}
+            for s in picks:
+                i = data[s]["idx"].get(day)
+                st = statuses(s, day)
+                c = data[s]["bars"][i]["c"]
+                pick_pct[s] = group_pct(data[s]["bars"], i, st[0] if st else None, c, c)[0]
         prev_equity = equity
         sb = spy_by.get(day)
         if sb:
             spy0 = spy0 or sb["c"]
         curve.append([day, round(equity, 2), round(START_CASH * sb["c"] / spy0, 2) if sb and spy0 else None,
                       round(invested_day, 1)])
-    return summarize(curve, trades, len(pos), dates, len(data), t0)
+    res = summarize(curve, trades, len(pos), dates, len(data), t0)
+    res["group_days"] = groups_seen
+    return res
 
 
 def main():

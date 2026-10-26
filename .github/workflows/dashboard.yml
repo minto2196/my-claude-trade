@@ -43,6 +43,9 @@ jobs:
       AUTOTRADE_FLATTEN: ${{ vars.AUTOTRADE_FLATTEN || 'true' }}
       AUTOTRADE_FLATTEN_MINUTES: ${{ vars.AUTOTRADE_FLATTEN_MINUTES || '30' }}
       AUTOTRADE_KEEP_OVERNIGHT_PCT: ${{ vars.AUTOTRADE_KEEP_OVERNIGHT_PCT || '10' }}
+      AUTOTRADE_LINE_SAFE_PCT: ${{ vars.AUTOTRADE_LINE_SAFE_PCT || '5' }}
+      AUTOTRADE_LINE_LOW_PCT: ${{ vars.AUTOTRADE_LINE_LOW_PCT || '4' }}
+      AUTOTRADE_LINE_HIGH_PCT: ${{ vars.AUTOTRADE_LINE_HIGH_PCT || '3' }}
       AUTOTRADE_SLOT_PCT: ${{ vars.AUTOTRADE_SLOT_PCT || '8.33' }}
       AUTOTRADE_MAX_POSITIONS: ${{ vars.AUTOTRADE_MAX_POSITIONS || '40' }}
       AUTOTRADE_MIN_ORDER: ${{ vars.AUTOTRADE_MIN_ORDER || '5' }}
@@ -100,6 +103,7 @@ jobs:
         run: |
           python3 -m pip install --quiet --break-system-packages openpyxl reportlab 2>/dev/null || python3 -m pip install --quiet openpyxl reportlab
           python3 .github/scripts/records.py trade-records $DATA/trades.json $DATA
+          cp trade-records/state/watchdog.json $DATA/watchdog.json 2>/dev/null || true
 
       # Five supervisors check everything once an hour; results show at the bottom of the dashboard.
       - name: Supervisors (hourly)

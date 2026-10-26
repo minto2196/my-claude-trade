@@ -71,6 +71,7 @@ TRAIL_ARM_PCT = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "0") or 0)
 TRAIL_PCT = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "5") or 5)
 BAD_DAY_PCT = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3)
 PEAKS = {}            # best price seen per owned symbol (trailing stop); loaded/saved via --state
+GROUPS = {}           # risk group per owned symbol, this run
 TAKE_PROFIT_PCT = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0)   # 0 = off: let winners run
 FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"   # sell everything before the close
 FLATTEN_MINUTES = float(os.environ.get("AUTOTRADE_FLATTEN_MINUTES", "30") or 30)
@@ -84,6 +85,10 @@ ALLOW_ETF = os.environ.get("AUTOTRADE_ALLOW_ETF", "false").strip().lower() == "t
 MAX_AGENT_AGE_MIN = 30
 TAG = "tdagent-"
 STOP_TAG = TAG + "stop-"
+WD_RULES = {"line": ("sell line (watchdog)", "price reached its sell line"),
+            "signal": ("2 or fewer green (watchdog)", "high risk and the checks say sell"),
+            "evening": ("evening under 10% (watchdog)", "evening rule, under +10% before the close"),
+            "overnight": ("overnight catch-up (watchdog)", "held overnight under +10%, sold at the open")}
 FUND_WORDS = re.compile(r"\b(ETF|ETN|FUND|TRUST|ISHARES|SPDR|PROSHARES|DIREXION|VANGUARD|INVESCO QQQ|SELECT SECTOR|ULTRA|INVERSE|2X|3X|LEVERAGED)\b", re.I)
 
 
@@ -175,17 +180,77 @@ def fetch_orders(days):
     return out
 
 
-def stop_line(entry, peak=None):
-    """The sell line: STOP_LOSS_PCT below the buy price, raised to TRAIL_PCT below the highest price
-    seen once the stock is up TRAIL_ARM_PCT. It only ever moves up. Bought 100, high 200 -> 190."""
+LINE_PCT = {"safe": float(os.environ.get("AUTOTRADE_LINE_SAFE_PCT", "5") or 5),
+            "low": float(os.environ.get("AUTOTRADE_LINE_LOW_PCT", "4") or 4),
+            "high": float(os.environ.get("AUTOTRADE_LINE_HIGH_PCT", "3") or 3)}
+GROUP_LABEL = {"safe": "Safe", "low": "Low risk", "high": "High risk"}
+
+
+def stop_line(entry, peak=None, pct=None):
+    """The sell line: pct (5% safe, 4% low risk, 3% high risk) below the highest price since buying,
+    never lower than STOP_LOSS_PCT under the buy price. Bought 100, high 200, safe -> 190."""
+    pct = TRAIL_PCT if pct is None else pct
     px = entry * (1 - STOP_LOSS_PCT / 100)
-    if peak and peak >= entry * (1 + TRAIL_ARM_PCT / 100):
-        px = max(px, peak * (1 - TRAIL_PCT / 100))
+    if peak is None:
+        peak = entry
+    if peak >= entry * (1 + TRAIL_ARM_PCT / 100):
+        px = max(px, peak * (1 - pct / 100))
     return round(px, 2) if px >= 1 else round(px, 4)
 
 
-def stop_price(entry, peak=None):
-    return stop_line(entry, peak)
+def stop_price(entry, peak=None, pct=None):
+    return stop_line(entry, peak, pct)
+
+
+def risk_group(statuses, price, entry, peak, day_pct, vol_pct):
+    """Sort a held stock into safe / low / high risk. statuses: dict check -> status (may be empty).
+    Returns (group, reasons)."""
+    st = {k: v for k, v in (statuses or {}).items() if v}
+    greens = sum(1 for v in st.values() if v == "ok")
+    plpc = (price / entry - 1) * 100 if entry else 0
+    safe_line = stop_line(entry, peak, LINE_PCT["safe"]) if entry else 0
+    cushion = (price / safe_line - 1) * 100 if safe_line else 99
+    high = []
+    if any(v == "alert" for v in st.values()):
+        high.append("a red check: " + ", ".join(k for k, v in st.items() if v == "alert"))
+    if st and greens <= 3:
+        high.append(f"only {greens} of 5 green")
+    if day_pct is not None and day_pct <= -2:
+        high.append(f"down {abs(day_pct):.1f}% today")
+    if vol_pct is not None and vol_pct >= 4:
+        high.append(f"wild swings (±{vol_pct:.1f}% a day)")
+    # Being close to the line is shown on the dashboard but doesn't change the group: a tighter line
+    # there would sell the stock before its own line is reached.
+    if high:
+        return "high", high
+    if st and greens == 5 and (vol_pct is None or vol_pct < 2.5) and plpc >= 0 and (day_pct is None or day_pct > -1):
+        return "safe", [f"5 of 5 green, calm (±{vol_pct:.1f}% a day)" if vol_pct is not None else "5 of 5 green",
+                        f"{plpc:+.1f}% from the buy price"]
+    why = []
+    if st and greens < 5:
+        why.append(f"{greens} of 5 green")
+    if vol_pct is not None and vol_pct >= 2.5:
+        why.append(f"swings ±{vol_pct:.1f}% a day")
+    if plpc < 0:
+        why.append(f"{plpc:+.1f}% from the buy price")
+    if day_pct is not None and day_pct <= -1:
+        why.append(f"down {abs(day_pct):.1f}% today")
+    return "low", why or ["not every check is clearly green yet"]
+
+
+def group_inputs(sym, board, detail):
+    """Statuses and daily swing for a symbol from the agent's latest results."""
+    b, d = board.get(sym) or {}, detail.get(sym) or {}
+    ch = d.get("checks") or {}
+    st = {"time machine": b.get("history") or (ch.get("history") or {}).get("status"),
+          "data": b.get("price_check") or (ch.get("price") or {}).get("status"),
+          "organic": b.get("organic") or (ch.get("organic") or {}).get("status"),
+          "prediction": b.get("prediction") or (ch.get("prediction") or {}).get("status"),
+          "news": b.get("news") or (ch.get("news") or {}).get("status")}
+    if st.get("news") == "skip":
+        st["news"] = "watch"
+    vol = ((ch.get("organic") or {}).get("stats") or {}).get("daily_vol_pct")
+    return st, vol
 
 
 def run(agent, previous, backtest=None):
@@ -197,7 +262,7 @@ def run(agent, previous, backtest=None):
                      "no_buy_minutes_before_close": NO_BUY_MINUTES,
                      "sell_all_before_close": FLATTEN, "sell_all_minutes_before_close": FLATTEN_MINUTES,
                      "keep_overnight_pct": KEEP_OVERNIGHT_PCT, "buy_pct_of_cash": SLOT_PCT, "max_positions": MAX_POSITIONS,
-                     "min_order": MIN_ORDER},
+                     "min_order": MIN_ORDER, "line_pct": LINE_PCT},
            "actions": [], "notes": []}
     history = previous.get("history", [])
     if MODE == "off":
@@ -355,7 +420,12 @@ def run(agent, previous, backtest=None):
         b = board.get(sym)
         greens = b["greens"] if b else None
         sig = b.get("signal") if b else None
-        line = stop_line(entry, peak) if entry else None
+        st_in, vol = group_inputs(sym, board, detail)
+        group, why = risk_group(st_in, price, entry, peak, day, vol)
+        line = stop_line(entry, peak, LINE_PCT[group]) if entry else None
+        GROUPS[sym] = {"symbol": sym, "group": group, "label": GROUP_LABEL[group], "reasons": why, "price": price,
+                       "entry": round(entry, 4), "highest": round(peak, 4), "line": line, "line_pct": LINE_PCT[group],
+                       "plpc": round(plpc, 2), "day_pct": round(day, 2), "to_line_pct": round((price / line - 1) * 100, 2) if line else None}
         trailing = line is not None and line > entry * (1 - STOP_LOSS_PCT / 100) + 1e-9
         last_close = num(p.get("lastday_price"))
         closed_pl = (last_close / entry - 1) * 100 if last_close and entry else None
@@ -369,10 +439,10 @@ def run(agent, previous, backtest=None):
             place(sym, "sell", f"Held overnight at {closed_pl:+.1f}% although the evening rule sells under +{KEEP_OVERNIGHT_PCT:g}% "
                                f"(the evening run was missed): sold at the first run, now {plpc:+.1f}%", qty=qty, rule="overnight catch-up")
         elif line is not None and price <= line and trailing:
-            place(sym, "sell", f"Trailing stop: highest ${peak:,.2f}, fell {drop_from_peak:.1f}% to ${price:,.2f} "
+            place(sym, "sell", f"{GROUP_LABEL[group]} sell line ({LINE_PCT[group]:g}%): highest ${peak:,.2f}, fell {drop_from_peak:.1f}% to ${price:,.2f} "
                                f"(line ${line:,.2f}), {plpc:+.1f}% from the buy price", qty=qty, rule="trailing stop")
         elif line is not None and price <= line:
-            place(sym, "sell", f"Stop-loss: down {abs(plpc):.1f}% from the buy price (line ${line:,.2f})", qty=qty, rule="stop-loss")
+            place(sym, "sell", f"{GROUP_LABEL[group]} sell line: down {abs(plpc):.1f}% from the buy price (line ${line:,.2f})", qty=qty, rule="stop-loss")
         elif day <= -BAD_DAY_PCT and greens != 5:
             place(sym, "sell", f"Bad day: down {abs(day):.1f}% today and only {greens if greens is not None else '?'} of 5 green", qty=qty, rule="bad day")
         elif TAKE_PROFIT_PCT > 0 and plpc >= TAKE_PROFIT_PCT:
@@ -476,12 +546,15 @@ def run(agent, previous, backtest=None):
                 continue
             PEAKS[sym] = max(num(PEAKS.get(sym)), price, entry)
             sp = stop_price(entry, PEAKS[sym])
+            g = GROUPS.get(sym, {}).get("group") or "low"
+            sp = stop_price(entry, PEAKS[sym], LINE_PCT[g])
             if price and price <= sp:
                 continue   # already below the line; the exit rules above handle it
             if flatten_now:
                 continue   # being sold before the close
             have = open_stops.get(sym, [])
-            if len(have) == 1 and abs(num(have[0].get("qty")) - qty) < 1e-6 and abs(num(have[0].get("stop_price")) - sp) < 0.005:
+            if len(have) == 1 and abs(num(have[0].get("qty")) - qty) < 1e-6 and num(have[0].get("stop_price")) >= sp - 0.005:
+                sp = num(have[0].get("stop_price"))   # never lower a stop (the every-minute watchdog may have raised it)
                 stops.append(f"{sym} {sp:g}")
                 continue
             if pdt_limited and sym in (bought_today | just_bought):
@@ -502,7 +575,7 @@ def run(agent, previous, backtest=None):
                 cancel_stops(sym)
         out["protective_stops"] = stops
         if stops:
-            out["notes"].append(f"Alpaca stop orders (5% below the highest price, never lower than −{STOP_LOSS_PCT:g}% from the buy) in place: {', '.join(stops)}.")
+            out["notes"].append(f"Alpaca stop orders on each stock's sell line (safe 5%, low risk 4%, high risk 3% below the highest price) in place: {', '.join(stops)}.")
     except Exception as e:
         out["notes"].append(f"Couldn't check the Alpaca stop orders: {str(e)[:150]}")
 
@@ -510,6 +583,7 @@ def run(agent, previous, backtest=None):
         if sym not in owned and sym not in protect:
             PEAKS.pop(sym)
     out["owned"] = sorted(owned)
+    out["groups"] = sorted(GROUPS.values(), key=lambda g: ({"high": 0, "low": 1, "safe": 2}[g["group"]], g["symbol"]))
     out["history"] = (history + out["actions"])[-300:]
     if not out["actions"]:
         out["notes"].append("No orders needed this run.")
@@ -563,9 +637,12 @@ def main():
                                         "submitted_at_utc": o.get("submitted_at"), "decided_at_utc": o.get("submitted_at"),
                                         "qty_requested": num(o.get("qty")) or None, "notional_requested": num(o.get("notional")) or None,
                                         "mode": "paper" if PAPER else "live",
-                                        "rule": "stop-loss (Alpaca order)" if cid.startswith(STOP_TAG) else None,
-                                        "reason": (f"Alpaca stop order triggered at {o.get('stop_price')} (−{STOP_LOSS_PCT:g}% from the buy price)"
+                                        "rule": ("stop-loss (Alpaca order)" if cid.startswith(STOP_TAG) else
+                                                 WD_RULES.get(cid[len(TAG) + 3:].split("-")[0], ("watchdog", ""))[0] if cid.startswith(TAG + "wd-") else None),
+                                        "reason": (f"Alpaca stop order triggered at {o.get('stop_price')} (the stock's sell line)"
                                                    if cid.startswith(STOP_TAG) else
+                                                   "Every-minute watchdog: " + WD_RULES.get(cid[len(TAG) + 3:].split("-")[0], ("", "sold"))[1]
+                                                   if cid.startswith(TAG + "wd-") else
                                                    "Recovered from Alpaca order history (details at decision time not available)")})
                 entries.sort(key=lambda e: e.get("decided_at_utc") or e.get("submitted_at_utc") or "")
                 refresh_journal(entries)

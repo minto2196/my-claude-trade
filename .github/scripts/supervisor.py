@@ -291,6 +291,14 @@ def main():
             s.warn(f"GitHub left a {worst:.0f}-minute gap between runs while the market was open. Exits can only act when a run happens.")
         if not failed:
             s.ok(f"{len(recent)} run(s) in the last 3 hours, none failed" + (f", longest gap {worst:.0f} min." if worst else "."))
+        wd = load(os.path.join(rec, "state", "watchdog.json")) or {}
+        wage = age_min(wd.get("generated_at"), now)
+        if market_open:
+            if wage is None or wage > 15:
+                s.alert("The every-minute watchdog hasn't reported for "
+                        + ("ever" if wage is None else f"{wage:.0f} minutes") + " while the market is open. Held stocks are only checked every 5 minutes.")
+            else:
+                s.ok(f"Every-minute watchdog alive: {wd.get('checks', 0)} checks today, last saved {wage:.0f} min ago.")
 
     sups = [Sup("Data watch", "Alpaca connection and portfolio snapshot"),
             Sup("Scan watch", "Market scan and the four checks"),

@@ -323,6 +323,24 @@ a { color: var(--accent); }
 .trow small { color: var(--muted); display: block; font-size: 0.7rem; }
 .trow .num { text-align: right; white-space: nowrap; }
 
+/* ---------- risk monitor ---------- */
+.rmhead { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+.rmhead > div { padding: 9px 12px; display: grid; gap: 1px; border-right: 1px solid var(--line); }
+.rmhead > div:last-child { border-right: 0; }
+.rmhead .v { font: 600 1.25rem/1.15 var(--mono); }
+.rmhead .s { font-size: 0.68rem; color: var(--muted); }
+.rmsec h4 { margin: 0; padding: 7px 12px; font: 600 0.66rem/1.2 var(--body); letter-spacing: 0.08em; text-transform: uppercase; display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); }
+.rmsec.safe h4 { background: var(--up-soft); color: var(--up); }
+.rmsec.low h4 { background: var(--warn-soft); color: var(--warn); }
+.rmsec.high h4 { background: var(--down-soft); color: var(--down); }
+.rmrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 7px 12px; border-bottom: 1px solid var(--grid); font-size: 0.78rem; }
+.rmrow b { font-weight: 700; }
+.rmrow .r { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rmrow .why { grid-column: 1 / -1; color: var(--muted); font-size: 0.7rem; }
+.dist { display: inline-block; width: 48px; height: 6px; background: var(--soft); border-radius: 3px; overflow: hidden; vertical-align: middle; margin-left: 6px; }
+.dist i { display: block; height: 100%; }
+.rmnone { padding: 8px 12px; color: var(--muted); font-size: 0.74rem; border-bottom: 1px solid var(--grid); }
+
 /* ---------- portfolio ---------- */
 .hero { padding: 14px; display: grid; gap: 10px; }
 .eq .v { font: 600 clamp(1.7rem, 2.6vw, 2.3rem)/1.05 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
@@ -588,6 +606,13 @@ footer p { margin: 0; max-width: 120ch; }
         <p class="rule" id="sig-rule">Signals only. You place every trade yourself in Alpaca.</p>
       </article>
 
+      <article class="panel" id="riskmon">
+        <div class="ph"><h3>Risk monitor · every minute</h3><small id="rm-upd">waiting for the watchdog</small></div>
+        <div class="rmhead" id="rm-head"></div>
+        <div id="rm-groups"><div class="empty">The auto-trader holds nothing right now. Bought stocks appear here, sorted into safe, low risk and high risk.</div></div>
+        <p class="rule">Sell line below the highest price since buying: safe <b>5%</b>, low risk <b>4%</b>, high risk <b>3%</b>, never lower than −5% from the buy. The watchdog checks every held stock every minute during market hours and moves the Alpaca stop order up with the line.</p>
+      </article>
+
       <article class="panel" id="autotrader">
         <div class="ph"><h3>Auto-trader</h3><small id="at-upd">kill switch: AUTOTRADE</small></div>
         <div class="atop">
@@ -667,6 +692,7 @@ const CONFIG = {
   recordsUrl: "data/records.json",
   supervisorUrl: "data/supervisor.json",
   backtestUrl: "data/backtest.json",
+  watchdogUrl: "data/watchdog.json",
   refreshSeconds: 60
 };
 /* ======================================== */
@@ -1357,12 +1383,13 @@ async function loadTrades() {
   try { t = await fetchJSON(CONFIG.tradesUrl); }
   catch (e) { t = DEMO_ALLOWED && SNAP?.demo ? { demo: true, mode: "off", generated_at: new Date().toISOString(), rules: { slots: 12, slot_pct: 8.33, stop_loss_pct: 8, take_profit_pct: 20, daily_loss_pct: 5 }, notes: ["Switched off. No orders placed. Set AUTOTRADE to on (or sell-only) to start."], history: [] } : null; }
   if (!t) { $("at-notes").innerHTML = "<li>The auto-trader hasn't run yet.</li>"; return; }
+  TRADES_GROUPS = t.groups ? { at: t.generated_at, groups: t.groups } : TRADES_GROUPS;
   const mode = t.mode || "off", R = t.rules || {};
   $("at-state").className = "atstate " + mode;
   $("at-state").querySelector(".dot").className = "dot " + (mode === "on" ? "on" : mode === "sell-only" ? "mid" : "");
   $("at-label").textContent = { on: "On · trading", "sell-only": "Sell-only", off: "Off" }[mode];
   $("at-upd").textContent = (t.demo ? "example · " : "last run ") + ago(t.generated_at);
-  $("at-rules").textContent = `Buys buy-ready stocks (4+/5 green, vetoes green, no red) only while the time machine master switch is on. Loop: each buy uses ${R.buy_pct_of_cash ?? 8.33}% of the cash available at that moment, again for the next stock (up to ${R.max_positions ?? 40} stocks, orders of at least $${R.min_order ?? 5}), cash only, never buys back a stock sold the same day, no buys in the last ${R.no_buy_minutes_before_close ?? 60} min. Sell line: ${R.trail_pct ?? 5}% below the highest price since buying, never lower than −${R.stop_loss_pct ?? 5}% from the buy (bought 100, high 200 → sells at 190), also a real Alpaca stop order that moves up with the price. Evening: ${R.sell_all_minutes_before_close ?? 30} min before the close, everything up less than +${R.keep_overnight_pct ?? 10}% is sold; +${R.keep_overnight_pct ?? 10}% or more stays overnight. Also sells on a bad day (−${R.bad_day_pct ?? 3}% and not 5/5), at 3/5 (half) and at 2/5 or a red time machine (all). No take-profit. Only touches positions it bought.`;
+  $("at-rules").textContent = `Buys buy-ready stocks (4+/5 green, vetoes green, no red) only while the time machine master switch is on. Loop: each buy uses ${R.buy_pct_of_cash ?? 8.33}% of the cash available at that moment, again for the next stock (up to ${R.max_positions ?? 40} stocks, orders of at least $${R.min_order ?? 5}), cash only, never buys back a stock sold the same day, no buys in the last ${R.no_buy_minutes_before_close ?? 60} min. Sell line below the highest price since buying: safe ${(R.line_pct || {}).safe ?? 5}%, low risk ${(R.line_pct || {}).low ?? 4}%, high risk ${(R.line_pct || {}).high ?? 3}%, never lower than −${R.stop_loss_pct ?? 5}% from the buy (safe: bought 100, high 200 → sells at 190); checked every minute and kept as a real Alpaca stop order that moves up with the price. Evening: ${R.sell_all_minutes_before_close ?? 30} min before the close, everything up less than +${R.keep_overnight_pct ?? 10}% is sold; +${R.keep_overnight_pct ?? 10}% or more stays overnight. Also sells on a bad day (−${R.bad_day_pct ?? 3}% and not 5/5), at 3/5 (half) and at 2/5 or a red time machine (all). No take-profit. Only touches positions it bought.`;
   $("at-notes").innerHTML = (t.error ? [`<li class="err">Last run failed: ${esc(t.error)}</li>`] : []).concat((t.notes || []).map(n => `<li>${esc(n)}</li>`)).join("") || "<li>No notes.</li>";
   const H = (t.history || []).slice().reverse().slice(0, 15);
   $("at-hist").innerHTML = H.length ? H.map(a => `<div class="trow"><span class="sd ${a.side}">${a.side}</span><b>${esc(a.symbol)}</b>
@@ -1474,8 +1501,52 @@ function drawTM(curve) {
   hoverLayer(host, curve.length, x, i => y(curve[i][1]), L, R, W, i => `<span>${fmtDate(curve[i][0], { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</span><br>Rules ${usd0.format(curve[i][1])} (${pct((curve[i][1] / 100000 - 1) * 100)})${curve[i][2] != null ? `<br>S&amp;P ${pct((curve[i][2] / 100000 - 1) * 100)}` : ""}`);
 }
 
+/* ================================================================ RISK MONITOR */
+let TRADES_GROUPS = null;
+function demoGroups() {
+  const mk = (symbol, group, entry, price, high, why) => {
+    const pctL = { safe: 5, low: 4, high: 3 }[group], line = Math.max(entry * 0.95, high * (1 - pctL / 100));
+    return { symbol, group, label: { safe: "Safe", low: "Low risk", high: "High risk" }[group], reasons: why, price, entry, highest: high,
+      line: +line.toFixed(2), line_pct: pctL, plpc: +((price / entry - 1) * 100).toFixed(2), day_pct: 0, to_line_pct: +((price / line - 1) * 100).toFixed(2) };
+  };
+  return { demo: true, generated_at: new Date(Date.now() - 40e3).toISOString(), checks: 212, minutes_to_close: 145,
+    groups: [mk("NFLX", "high", 222.18, 219.4, 226.1, ["a red check: prediction"]), mk("PSX", "high", 130.38, 127.9, 131.2, ["down 2.3% today"]),
+      mk("LRCX", "low", 39.16, 39.6, 40.1, ["4 of 5 green", "swings ±2.8% a day"]), mk("SHW", "low", 83.35, 82.9, 84.0, ["-0.5% from the buy price"]),
+      mk("IBM", "safe", 63.78, 66.2, 66.9, ["5 of 5 green, calm (±1.4% a day)", "+3.8% from the buy price"]),
+      mk("SPGI", "safe", 92.85, 101.6, 103.0, ["5 of 5 green, calm (±1.2% a day)", "+9.4% from the buy price"])],
+    actions_today: [{ time: new Date(Date.now() - 50 * 60e3).toISOString(), symbol: "DE", reason: "High risk: price $298.10 reached its sell line $298.24 (3% under the high $307.46), −2.1%" }] };
+}
+async function loadWatchdog() {
+  let w = null;
+  try { w = await fetchJSON(CONFIG.watchdogUrl); } catch (e) { w = DEMO_ALLOWED && SNAP?.demo ? demoGroups() : null; }
+  const wAge = w && w.generated_at ? (Date.now() - new Date(w.generated_at).getTime()) / 60000 : 1e9;
+  const tAge = TRADES_GROUPS && TRADES_GROUPS.at ? (Date.now() - new Date(TRADES_GROUPS.at).getTime()) / 60000 : 1e9;
+  const src = wAge <= tAge ? w : (TRADES_GROUPS ? { generated_at: TRADES_GROUPS.at, groups: TRADES_GROUPS.groups, five: true } : w);
+  const usdp = v => v == null ? "—" : money(v);
+  if (!src) { $("rm-upd").textContent = "watchdog not running yet"; $("rm-head").innerHTML = ""; return; }
+  const G = src.groups || [];
+  const live = w && wAge < 3;
+  $("rm-upd").textContent = (w && w.demo ? "example · " : "") + (live ? `watchdog live · checked ${ago(w.generated_at)}` : src.five ? `5-minute run · ${ago(src.generated_at)}` : `watchdog last saved ${ago(src.generated_at)}`) + (w && w.checks ? ` · ${w.checks} checks today` : "");
+  const n = k => G.filter(g => g.group === k).length;
+  $("rm-head").innerHTML = `<div><span class="k">Safe</span><span class="v up">${n("safe")}</span><span class="s">line 5% under the high</span></div>
+    <div><span class="k">Low risk</span><span class="v" style="color:var(--warn)">${n("low")}</span><span class="s">line 4% under the high</span></div>
+    <div><span class="k">High risk</span><span class="v down">${n("high")}</span><span class="s">line 3% under the high</span></div>`;
+  if (!G.length) { $("rm-groups").innerHTML = '<div class="empty">The auto-trader holds nothing right now. Bought stocks appear here, sorted into safe, low risk and high risk.</div>'; }
+  else $("rm-groups").innerHTML = ["high", "low", "safe"].map(k => {
+    const rows = G.filter(g => g.group === k);
+    const title = { high: "High risk · watched closest", low: "Low risk", safe: "Safe" }[k];
+    return `<div class="rmsec ${k}"><h4><span>${title}</span><span>${rows.length}</span></h4>${rows.length ? rows.map(g => {
+      const d = g.to_line_pct ?? 0, col = d < 1 ? "var(--down)" : d < 3 ? "var(--warn)" : "var(--up)";
+      return `<div class="rmrow"><span><b>${esc(g.symbol)}</b> <span class="num ${tone(g.plpc)}">${pct(g.plpc)}</span></span>
+        <span class="r">${usdp(g.price)} · line ${usdp(g.line)} <span title="distance to the sell line">${d.toFixed(1)}%</span><span class="dist"><i style="width:${Math.min(100, d * 20)}%;background:${col}"></i></span></span>
+        <span class="why">high ${usdp(g.highest)} · ${(g.reasons || []).map(esc).join(" · ")}</span></div>`; }).join("") : '<div class="rmnone">None.</div>'}</div>`;
+  }).join("");
+  const A = (w && w.actions_today) || [];
+  if (A.length) $("rm-groups").innerHTML += `<div class="rmsec"><h4 style="background:var(--soft);color:var(--muted)"><span>Watchdog sales today</span><span>${A.length}</span></h4>${A.slice(-6).reverse().map(a => `<div class="rmrow"><span><b>${esc(a.symbol)}</b></span><span class="r">${new Date(a.time).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}</span><span class="why">${esc(a.reason)}</span></div>`).join("")}</div>`;
+}
+
 mountAll();
-const refreshAll = async () => { await loadPortfolio(); await loadBacktest(); await loadAgent(); await loadTrades(); await loadRecords(); await loadSupervisors(); };
+const refreshAll = async () => { await loadPortfolio(); await loadBacktest(); await loadAgent(); await loadTrades(); await loadWatchdog(); await loadRecords(); await loadSupervisors(); };
 refreshAll();
 setInterval(refreshAll, CONFIG.refreshSeconds * 1000);
 </script>
