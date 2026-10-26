@@ -15,10 +15,11 @@ Buying (only while the US market is open):
   * only stocks the agent marks "buy": 4 or 5 of 5 green, time machine and data-is-real green,
     nothing red, and that you don't already hold
   * only operating companies (funds/ETFs skipped unless AUTOTRADE_ALLOW_ETF=true)
-  * the account is split into AUTOTRADE_SLOTS equal slots (default 12, so 8.33% each);
-    each buy is one slot of account value, paid from cash only (never margin),
-    fractional where Alpaca allows it, never below $1
-  * at most AUTOTRADE_SLOTS positions owned by the auto-trader at once
+  * LOOP: each buy uses AUTOTRADE_SLOT_PCT (8.33%) of the cash available at that moment, then the
+    next buy-ready stock gets 8.33% of what is left, and so on (cash only, never margin), until no
+    stock is buy-ready, the order would be under AUTOTRADE_MIN_ORDER ($5), or AUTOTRADE_MAX_POSITIONS
+    (40) are held. $1,000 -> $83.30, $76.36, $70.00, ... so more than 12 stocks are possible.
+  * never buys back a stock it sold today
   * no buys on a day the account is down AUTOTRADE_DAILY_LOSS_PCT (default 5%) or more
   * no buys in the last AUTOTRADE_NO_BUY_MINUTES (default 60 with same-day selling, else 30) before the close
 
@@ -27,9 +28,10 @@ Exits (only on positions the auto-trader bought itself; your manual positions ar
   * 3 of 5 green               -> sell half, once (not again within 3 days)
   * SELL LINE = 5% below the highest price since buying, never below 5% under the buy price
     (bought 100 -> line 95; rises to 200 -> line 190). Price at or under the line -> sell all.
-    END OF DAY: everything is sold in the last AUTOTRADE_FLATTEN_MINUTES (30) before the close, so
-    nothing is held overnight; no buys in the last 60 minutes. Anything still held at the next
-    run after the open is sold at once. Take-profit is off by default (AUTOTRADE_TAKE_PROFIT_PCT=0).
+    EVENING: in the last AUTOTRADE_FLATTEN_MINUTES (30) before the close, every position up less than
+    AUTOTRADE_KEEP_OVERNIGHT_PCT (10%) from its buy price is sold; positions up 10%+ stay overnight
+    and keep their sell line. No buys in the last 60 minutes. A position that closed under +10% but
+    is still held at the next open (missed evening run) is sold at once. Take-profit is off.
   * The sell line is also kept as a REAL stop order at Alpaca: right after a
     buy fills, a sell-stop is placed on the line and raised every run as the price climbs, so Alpaca's own
     servers sell within seconds instead of waiting for the next GitHub run. Alpaca only accepts
@@ -72,6 +74,10 @@ PEAKS = {}            # best price seen per owned symbol (trailing stop); loaded
 TAKE_PROFIT_PCT = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0)   # 0 = off: let winners run
 FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"   # sell everything before the close
 FLATTEN_MINUTES = float(os.environ.get("AUTOTRADE_FLATTEN_MINUTES", "30") or 30)
+KEEP_OVERNIGHT_PCT = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "10") or 10)   # evening: keep only positions up this much
+SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33)                    # each buy = this % of the cash available then
+MAX_POSITIONS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "40") or 40))
+MIN_ORDER = float(os.environ.get("AUTOTRADE_MIN_ORDER", "5") or 5)
 DAILY_LOSS_PCT = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5)
 NO_BUY_MINUTES = float(os.environ.get("AUTOTRADE_NO_BUY_MINUTES", "60" if FLATTEN else "30") or 30)
 ALLOW_ETF = os.environ.get("AUTOTRADE_ALLOW_ETF", "false").strip().lower() == "true"
@@ -185,11 +191,13 @@ def stop_price(entry, peak=None):
 def run(agent, previous, backtest=None):
     now = dt.datetime.now(dt.timezone.utc)
     out = {"generated_at": now.isoformat(timespec="seconds"), "mode": MODE, "paper": PAPER,
-           "rules": {"slots": SLOTS, "slot_pct": round(100 / SLOTS, 2), "stop_loss_pct": STOP_LOSS_PCT,
+           "rules": {"slots": SLOTS, "slot_pct": SLOT_PCT, "stop_loss_pct": STOP_LOSS_PCT,
                      "trail_arm_pct": TRAIL_ARM_PCT, "trail_pct": TRAIL_PCT, "bad_day_pct": BAD_DAY_PCT,
                      "take_profit_pct": TAKE_PROFIT_PCT, "daily_loss_pct": DAILY_LOSS_PCT, "allow_etf": ALLOW_ETF,
                      "no_buy_minutes_before_close": NO_BUY_MINUTES,
-                     "sell_all_before_close": FLATTEN, "sell_all_minutes_before_close": FLATTEN_MINUTES},
+                     "sell_all_before_close": FLATTEN, "sell_all_minutes_before_close": FLATTEN_MINUTES,
+                     "keep_overnight_pct": KEEP_OVERNIGHT_PCT, "buy_pct_of_cash": SLOT_PCT, "max_positions": MAX_POSITIONS,
+                     "min_order": MIN_ORDER},
            "actions": [], "notes": []}
     history = previous.get("history", [])
     if MODE == "off":
@@ -242,6 +250,7 @@ def run(agent, previous, backtest=None):
         if o.get("status") in OPEN and is_stop(o):
             open_stops.setdefault(o["symbol"], []).append(o)
     bought_today = {o["symbol"] for o in mine if o.get("side") == "buy" and (o.get("filled_at") or "")[:10] == today}
+    sold_today = {o["symbol"] for o in mine if o.get("side") == "sell" and (o.get("filled_at") or o.get("submitted_at") or "")[:10] == today}
     trimmed_recently = {o["symbol"] for o in mine if o.get("side") == "sell" and o.get("status") == "filled" and not is_stop(o)
                         and (now - dt.datetime.fromisoformat(o["filled_at"].replace("Z", "+00:00"))).days < 3}
 
@@ -259,7 +268,7 @@ def run(agent, previous, backtest=None):
             "company": (asset or {}).get("name") or pos.get("symbol"), "exchange": (asset or {}).get("exchange") or pos.get("exchange"),
             "asset_class": (asset or {}).get("class") or pos.get("asset_class") or "us_equity",
             "fractionable": (asset or {}).get("fractionable"),
-            "account_equity_before": equity, "account_cash_before": cash, "slot_pct": round(100 / SLOTS, 2),
+            "account_equity_before": equity, "account_cash_before": cash, "slot_pct": SLOT_PCT,
             "price_at_decision": d.get("price") or b.get("price") or num(pos.get("current_price")) or None,
             "move_today_pct": d.get("move_today_pct", b.get("move_today_pct")),
             "agent_run_at": agent.get("generated_at"), "agent_rank": d.get("rank"),
@@ -348,12 +357,17 @@ def run(agent, previous, backtest=None):
         sig = b.get("signal") if b else None
         line = stop_line(entry, peak) if entry else None
         trailing = line is not None and line > entry * (1 - STOP_LOSS_PCT / 100) + 1e-9
-        if flatten_now:
-            place(sym, "sell", f"End of day: sell everything {round(minutes_left)} min before the close (no overnight risk), "
-                               f"{plpc:+.1f}% from the buy price", qty=qty, rule="end of day")
-        elif FLATTEN and sym not in bought_today:
-            place(sym, "sell", f"Held overnight because the end-of-day run was missed: sold at the first run, {plpc:+.1f}%",
-                  qty=qty, rule="overnight catch-up")
+        last_close = num(p.get("lastday_price"))
+        closed_pl = (last_close / entry - 1) * 100 if last_close and entry else None
+        if flatten_now and plpc < KEEP_OVERNIGHT_PCT:
+            place(sym, "sell", f"Evening: {plpc:+.1f}% from the buy price (under +{KEEP_OVERNIGHT_PCT:g}%), sold "
+                               f"{round(minutes_left)} min before the close", qty=qty, rule="evening under 10%")
+        elif flatten_now:
+            out["notes"].append(f"{sym} is up {plpc:+.1f}% (+{KEEP_OVERNIGHT_PCT:g}% or more): kept overnight with its sell line at ${line:,.2f}.")
+        elif (FLATTEN and sym not in bought_today and closed_pl is not None and closed_pl < KEEP_OVERNIGHT_PCT
+              and not (line is not None and price > line and plpc >= KEEP_OVERNIGHT_PCT)):
+            place(sym, "sell", f"Held overnight at {closed_pl:+.1f}% although the evening rule sells under +{KEEP_OVERNIGHT_PCT:g}% "
+                               f"(the evening run was missed): sold at the first run, now {plpc:+.1f}%", qty=qty, rule="overnight catch-up")
         elif line is not None and price <= line and trailing:
             place(sym, "sell", f"Trailing stop: highest ${peak:,.2f}, fell {drop_from_peak:.1f}% to ${price:,.2f} "
                                f"(line ${line:,.2f}), {plpc:+.1f}% from the buy price", qty=qty, rule="trailing stop")
@@ -392,8 +406,7 @@ def run(agent, previous, backtest=None):
     elif last_equity and (equity / last_equity - 1) * 100 <= -DAILY_LOSS_PCT:
         out["notes"].append(f"Account down {(equity/last_equity-1)*100:.1f}% today. No new buys until tomorrow.")
     else:
-        slot = equity / SLOTS
-        free = SLOTS - len(owned)
+        free = MAX_POSITIONS - len(owned)
         if FLATTEN and not PAPER and equity < 25000:
             budget = max(0, 3 - int(num(account.get("daytrade_count"))) - len(bought_today))
             if budget < free:
@@ -408,7 +421,7 @@ def run(agent, previous, backtest=None):
             if bought >= free:
                 break
             sym = c["symbol"]
-            if sym in positions or sym in open_syms or board.get(sym, {}).get("signal") != "buy":
+            if sym in positions or sym in open_syms or sym in sold_today or board.get(sym, {}).get("signal") != "buy":
                 continue
             try:
                 asset = call("GET", f"/v2/assets/{urllib.parse.quote(sym)}")
@@ -419,12 +432,13 @@ def run(agent, previous, backtest=None):
             if not ALLOW_ETF and FUND_WORDS.search(asset.get("name") or ""):
                 out["notes"].append(f"Skipped {sym}: looks like a fund ({asset.get('name')}).")
                 continue
-            amount = math.floor(min(slot, spend) * 100) / 100
+            amount = math.floor(spend * SLOT_PCT / 100 * 100) / 100
+            if amount < MIN_ORDER:
+                out["notes"].append(f"Next order would be ${amount:.2f} ({SLOT_PCT:g}% of ${spend:,.2f} cash), under the ${MIN_ORDER:g} minimum. Stopped buying.")
+                break
             if asset.get("fractionable"):
-                if amount < 1:
-                    out["notes"].append("Not enough cash for another $1 order.")
-                    break
-                act = place(sym, "buy", f"{c.get('greens')} of 5 green, time machine green, rank #{c.get('rank')}, one slot ({100/SLOTS:.1f}%)", notional=amount, rule="4+/5 green", asset=asset)
+                act = place(sym, "buy", f"{c.get('greens')} of 5 green, time machine green, rank #{c.get('rank')}, "
+                                        f"{SLOT_PCT:g}% of ${spend:,.2f} cash", notional=amount, rule="4+/5 green", asset=asset)
             else:
                 price = num(c.get("price"))
                 shares = math.floor(amount / price) if price else 0
@@ -439,7 +453,7 @@ def run(agent, previous, backtest=None):
         if not candidates:
             out["notes"].append("No stock is buy-ready right now. Nothing to buy.")
         elif bought == 0 and free <= 0:
-            out["notes"].append(f"All {SLOTS} slots are full.")
+            out["notes"].append(f"Holding the maximum of {MAX_POSITIONS} stocks.")
 
     protect = set()
     # ---- protective stop orders at Alpaca: exactly STOP_LOSS_PCT below the average buy price

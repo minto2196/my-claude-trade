@@ -31,7 +31,8 @@ TRADE = "https://paper-api.alpaca.markets" if PAPER else "https://api.alpaca.mar
 GH_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GH_REPO = os.environ.get("GITHUB_REPOSITORY", "")
 STOP = float(os.environ.get("AUTOTRADE_STOP_LOSS_PCT", "5") or 5)
-SLOTS = int(os.environ.get("AUTOTRADE_SLOTS", "12") or 12)
+SLOTS = int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "40") or 40)
+KEEP = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "10") or 10)
 EVERY_MIN = 55
 UTC = dt.timezone.utc
 RANK = {"ok": 0, "warn": 1, "alert": 2}
@@ -196,7 +197,7 @@ def main():
         if late:
             s.alert(f"Past the {STOP:g}% stop-loss but still held: {', '.join(late)}. Check the auto-trader runs.")
         if len(owned) > SLOTS:
-            s.alert(f"The auto-trader holds {len(owned)} positions but has only {SLOTS} slots.")
+            s.alert(f"The auto-trader holds {len(owned)} positions, more than its maximum of {SLOTS}.")
         acct = alpaca("/v2/account")
         if float(acct.get("cash") or 0) < 0:
             s.alert("Cash is negative: the account is using margin.")
@@ -214,10 +215,19 @@ def main():
             for e in journal:
                 if e.get("side") == "buy" and e.get("filled_at_utc"):
                     last_buy[e["symbol"]] = max(last_buy.get(e["symbol"], ""), e["filled_at_utc"][:10])
-            overnight = sorted(x for x in owned & held_syms if last_buy.get(x, ny_today) < ny_today)
+            pmap = {p["symbol"]: p for p in positions}
+            def closed_pl(x):
+                p = pmap[x]
+                e, c = float(p.get("avg_entry_price") or 0), float(p.get("lastday_price") or 0)
+                return (c / e - 1) * 100 if e and c else None
+            overnight = sorted(x for x in owned & held_syms if last_buy.get(x, ny_today) < ny_today
+                               and closed_pl(x) is not None and closed_pl(x) < KEEP)
+            kept = sorted(x for x in owned & held_syms if last_buy.get(x, ny_today) < ny_today and x not in overnight)
             if overnight:
-                s.alert(f"Held overnight although everything should be sold before the close: {', '.join(overnight)}. "
-                        "The first run after the open sells them; check why the end-of-day run was missed.")
+                s.alert(f"Held overnight under +{KEEP:g}% although the evening rule sells those: {', '.join(overnight)}. "
+                        "The first run after the open sells them; check why the evening run was missed.")
+            if kept:
+                s.ok(f"Kept overnight at +{KEEP:g}% or more, as the rules allow: {', '.join(kept)}.")
         stuck = [o["symbol"] for o in orders if (age_min(o.get("submitted_at"), now) or 0) > 24 * 60]
         if stuck:
             s.warn(f"Orders open for more than a day: {', '.join(stuck)}.")
