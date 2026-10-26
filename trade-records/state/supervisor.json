@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-26T09:31:48+00:00",
- "next_check": "2026-10-26T10:31:48+00:00",
- "overall": "warn",
+ "generated_at": "2026-10-26T13:50:59+00:00",
+ "next_check": "2026-10-26T14:50:59+00:00",
+ "overall": "alert",
  "supervisors": [
   {
    "name": "Data watch",
@@ -29,15 +29,15 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,198 \u2192 5,000 \u2192 500 \u2192 102 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,200 \u2192 5,000 \u2192 500 \u2192 102 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "96% of stocks pass 'data is real'."
+     "text": "95% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
-     "text": "Time machine judged the shortlist: 148 of 500 have a green past."
+     "text": "Time machine judged the shortlist: 159 of 500 have a green past."
     }
    ]
   },
@@ -82,11 +82,15 @@
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "ok",
+   "status": "alert",
    "checks": [
     {
      "status": "ok",
-     "text": "3 run(s) in the last 3 hours, none failed, longest gap 74 min."
+     "text": "1 run(s) in the last 3 hours, none failed."
+    },
+    {
+     "status": "alert",
+     "text": "The every-minute watchdog hasn't reported for ever while the market is open. Held stocks are only checked every 5 minutes."
     }
    ]
   }
@@ -96,6 +100,11 @@
    "level": "warn",
    "supervisor": "Trade watch",
    "text": "Master switch OFF: the 6-month replay returned -13.85%. Buying is paused, exits still run."
+  },
+  {
+   "level": "alert",
+   "supervisor": "Schedule watch",
+   "text": "The every-minute watchdog hasn't reported for ever while the market is open. Held stocks are only checked every 5 minutes."
   }
  ]
 }
