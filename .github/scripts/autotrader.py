@@ -6,6 +6,8 @@ THIS PLACES REAL ORDERS when ALPACA_PAPER is false. It does nothing unless you s
 Kill switch: the AUTOTRADE repository variable (or secret).
   off        (default, also when unset or anything unrecognised)  no orders at all
   sell-only  no new buys; exits below still run
+  sell-all   (also "no", "stop", "close") no buys, cancel every open order and sell EVERY position in
+             the account at the next run while the market is open, so it is all cash to withdraw
   on         buys and exits
 
 Level 0 master switch: the weekly time machine (backtest.py) replays the last ~6 months with these
@@ -64,7 +66,8 @@ PAPER = os.environ.get("ALPACA_PAPER", "true").strip().lower() != "false"
 TRADE = "https://paper-api.alpaca.markets" if PAPER else "https://api.alpaca.markets"
 
 MODE = os.environ.get("AUTOTRADE", "off").strip().lower()
-MODE = MODE if MODE in ("on", "sell-only") else "off"
+MODE = {"no": "sell-all", "stop": "sell-all", "close": "sell-all", "sell-all": "sell-all"}.get(MODE, MODE)
+MODE = MODE if MODE in ("on", "sell-only", "sell-all") else "off"
 SLOTS = max(1, int(os.environ.get("AUTOTRADE_SLOTS", "12") or 12))
 STOP_LOSS_PCT = float(os.environ.get("AUTOTRADE_STOP_LOSS_PCT", "5") or 5)
 TRAIL_ARM_PCT = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "0") or 0)
@@ -290,8 +293,12 @@ def run(agent, previous, backtest=None):
         return out
     if not clock.get("is_open"):
         out["notes"].append(f"Market closed. Next open {clock.get('next_open', '?')}. Orders wait until then.")
+        if MODE == "sell-all":
+            out["notes"].append(f"SELL-ALL is on: {len(positions)} position(s) will be sold when the market opens.")
         out["history"] = history
         return out
+    if MODE == "sell-all":
+        return sell_everything(out, positions, history, equity, cash)
     age = (now - dt.datetime.fromisoformat(agent.get("generated_at", "1970-01-01T00:00:00+00:00"))).total_seconds() / 60
     if agent.get("error") or not agent.get("board") or age > MAX_AGENT_AGE_MIN:
         out["notes"].append("The verification agent's results are missing, failed or stale. No orders this run.")
@@ -597,6 +604,49 @@ def run(agent, previous, backtest=None):
     out["history"] = (history + out["actions"])[-300:]
     if not out["actions"]:
         out["notes"].append("No orders needed this run.")
+    return out
+
+
+def sell_everything(out, positions, history, equity, cash):
+    """AUTOTRADE = sell-all: cancel every open order, then sell every position in the account."""
+    out["notes"].append("SELL-ALL: no buys. Cancelling every open order and selling every position.")
+    try:
+        call("DELETE", "/v2/orders")
+        time.sleep(2)
+    except Exception as e:
+        out["notes"].append(f"Couldn't cancel the open orders: {str(e)[:150]}")
+    now_iso = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+    for sym in sorted(positions):
+        p = positions[sym]
+        qty = num(p.get("qty"))
+        if not qty:
+            continue
+        side = "sell" if qty > 0 else "buy"
+        body = {"symbol": sym, "side": side, "type": "market",
+                "time_in_force": "gtc" if p.get("asset_class") == "crypto" else "day",
+                "qty": f"{abs(qty):.9f}".rstrip("0").rstrip("."),
+                "client_order_id": f"{TAG}{side}-{sym}-{int(time.time()*1000)}"[:48]}
+        reason = f"SELL-ALL switch: closing the whole position ({num(p.get('unrealized_plpc')) * 100:+.1f}%)"
+        act = {"time": now_iso, "symbol": sym, "side": side, "qty": body["qty"], "reason": reason}
+        entry = {"side": side, "symbol": sym, "reason": reason, "rule": "sell-all switch", "mode": "paper" if PAPER else "live",
+                 "client_order_id": body["client_order_id"], "order_type": "market", "time_in_force": body["time_in_force"],
+                 "qty_requested": abs(qty), "decided_at_utc": now_iso, "account_equity_before": equity,
+                 "account_cash_before": cash, "position_avg_entry": num(p.get("avg_entry_price")) or None,
+                 "position_plpc_before": round(num(p.get("unrealized_plpc")) * 100, 2),
+                 "price_at_decision": num(p.get("current_price")) or None}
+        try:
+            o = call("POST", "/v2/orders", body=body)
+            act.update(status=o.get("status"), order_id=o.get("id"))
+            entry.update(status=o.get("status"), order_id=o.get("id"), submitted_at_utc=o.get("submitted_at"))
+        except Exception as e:
+            act.update(status="rejected", error=str(e)[:200])
+            entry.update(status="rejected", error=str(e)[:200])
+        out["actions"].append(act)
+        JOURNAL.append(entry)
+    PEAKS.clear()
+    if not positions:
+        out["notes"].append(f"SELL-ALL: nothing left to sell. Cash ${cash:,.2f}; it can be withdrawn once the sales have settled.")
+    out["history"] = (history + out["actions"])[-300:]
     return out
 
 

@@ -215,7 +215,7 @@ def main():
                 groups.append({"symbol": sym, "group": group, "label": T.GROUP_LABEL[group], "reasons": why, "price": price,
                                "entry": round(entry, 4), "highest": round(peak, 4), "line": line, "line_pct": T.LINE_PCT[group],
                                "plpc": round(plpc, 2), "day_pct": round(day, 2), "to_line_pct": round((price / line - 1) * 100, 2)})
-                if T.MODE == "off" or sym in busy:
+                if T.MODE in ("off", "sell-all") or sym in busy:   # sell-all: the 5-minute run sells everything
                     continue
                 if pdt_limited and sym in bought_today:
                     continue

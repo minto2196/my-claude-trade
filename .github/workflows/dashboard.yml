@@ -84,7 +84,8 @@ jobs:
         run: python3 .github/scripts/backtest.py trade-records $DATA/agent.json $DATA
 
       # AUTO-TRADER. Places REAL orders when ALPACA_PAPER is false.
-      # Kill switch: repository variable or secret AUTOTRADE = on | sell-only | off (default off).
+      # Kill switch: repository variable or secret AUTOTRADE = on | sell-only | sell-all (or no) | off (default off).
+      # sell-all: no buys, cancels every open order and sells every position so it is all cash.
       - name: Auto-trader (kill switch AUTOTRADE)
         timeout-minutes: 4
         env:
