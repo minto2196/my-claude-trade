@@ -8,10 +8,10 @@
   "low": 4.0,
   "high": 3.0
  },
- "checks": 131,
+ "checks": 142,
  "actions_today": [],
- "generated_at": "2026-10-26T16:02:11+00:00",
- "minutes_to_close": 238,
+ "generated_at": "2026-10-26T16:13:11+00:00",
+ "minutes_to_close": 227,
  "groups": [],
  "counts": {
   "safe": 0,
