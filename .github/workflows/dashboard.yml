@@ -52,6 +52,8 @@ jobs:
       AUTOTRADE_MIN_ORDER: ${{ vars.AUTOTRADE_MIN_ORDER || '5' }}
       AUTOTRADE_BAD_DAY_PCT: ${{ vars.AUTOTRADE_BAD_DAY_PCT || '3' }}
       AUTOTRADE_DAILY_LOSS_PCT: ${{ vars.AUTOTRADE_DAILY_LOSS_PCT || '5' }}
+      # Safety switch: on | off | auto (auto = off on paper, on with real money)
+      AUTOTRADE_SAFETY_SWITCH: ${{ vars.AUTOTRADE_SAFETY_SWITCH || secrets.AUTOTRADE_SAFETY_SWITCH || 'auto' }}
       DATA: site/trader-skill/trader-skill/data
     steps:
       - uses: actions/checkout@v4

@@ -83,6 +83,10 @@ BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)      
 DAILY_LOSS_PCT = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5)
 NO_BUY_MINUTES = float(os.environ.get("AUTOTRADE_NO_BUY_MINUTES", "60" if FLATTEN else "30") or 30)
 ALLOW_ETF = os.environ.get("AUTOTRADE_ALLOW_ETF", "false").strip().lower() == "true"
+# Safety switch (the time machine master switch): on = buy only when the 6-month replay made money,
+# off = buy without it, auto (default) = off on a paper account, on for real money.
+SAFETY_SETTING = os.environ.get("AUTOTRADE_SAFETY_SWITCH", "auto").strip().lower()
+SAFETY_ON = SAFETY_SETTING == "on" or (SAFETY_SETTING not in ("on", "off") and not PAPER)
 MAX_AGENT_AGE_MIN = 30
 TAG = "tdagent-"
 STOP_TAG = TAG + "stop-"
@@ -464,8 +468,13 @@ def run(agent, previous, backtest=None):
         bt_age = (now - dt.datetime.fromisoformat(bt["generated_at"])).days
     except Exception:
         pass
-    out["master_switch"] = {"buys_allowed": bool(bt.get("buys_allowed")) and bt_age is not None and bt_age <= 10,
+    test_passed = bool(bt.get("buys_allowed")) and bt_age is not None and bt_age <= 10
+    out["master_switch"] = {"buys_allowed": test_passed or not SAFETY_ON, "test_passed": test_passed,
+                            "safety_switch": "on" if SAFETY_ON else "off", "setting": SAFETY_SETTING,
                             "total_return_pct": bt.get("total_return_pct"), "generated_at": bt.get("generated_at")}
+    if not SAFETY_ON and not test_passed:
+        out["notes"].append(f"Safety switch OFF ({SAFETY_SETTING}): buying even though the 6-month replay returned "
+                            f"{bt.get('total_return_pct')}%.")
     if MODE != "on":
         out["notes"].append("Sell-only: exits run, no new buys.")
     elif not out["master_switch"]["buys_allowed"]:
