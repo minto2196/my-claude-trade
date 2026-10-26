@@ -18,7 +18,7 @@ Buying (only while the US market is open):
   * LOOP: each buy uses AUTOTRADE_SLOT_PCT (8.33%) of the cash available at that moment, then the
     next buy-ready stock gets 8.33% of what is left, and so on (cash only, never margin), until no
     stock is buy-ready, the order would be under AUTOTRADE_MIN_ORDER ($5), or AUTOTRADE_MAX_POSITIONS
-    (40) are held. $1,000 -> $83.30, $76.36, $70.00, ... so more than 12 stocks are possible.
+    (12) are held. $1,000 -> $83.30, $76.36, $70.00, ... up to 12 stocks.
   * never buys back a stock it sold today
   * no buys on a day the account is down AUTOTRADE_DAILY_LOSS_PCT (default 5%) or more
   * no buys in the last AUTOTRADE_NO_BUY_MINUTES (default 60 with same-day selling, else 30) before the close
@@ -29,8 +29,8 @@ Exits (only on positions the auto-trader bought itself; your manual positions ar
   * SELL LINE = 5% below the highest price since buying, never below 5% under the buy price
     (bought 100 -> line 95; rises to 200 -> line 190). Price at or under the line -> sell all.
     EVENING: in the last AUTOTRADE_FLATTEN_MINUTES (30) before the close, every position up less than
-    AUTOTRADE_KEEP_OVERNIGHT_PCT (10%) from its buy price is sold; positions up 10%+ stay overnight
-    and keep their sell line. No buys in the last 60 minutes. A position that closed under +10% but
+    AUTOTRADE_KEEP_OVERNIGHT_PCT (5%) from its buy price is sold; positions up 5%+ stay overnight
+    and keep their sell line. No buys in the last 60 minutes. A position that closed under +5% but
     is still held at the next open (missed evening run) is sold at once. Take-profit is off.
   * The sell line is also kept as a REAL stop order at Alpaca: right after a
     buy fills, a sell-stop is placed on the line and raised every run as the price climbs, so Alpaca's own
@@ -75,9 +75,9 @@ GROUPS = {}           # risk group per owned symbol, this run
 TAKE_PROFIT_PCT = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0)   # 0 = off: let winners run
 FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"   # sell everything before the close
 FLATTEN_MINUTES = float(os.environ.get("AUTOTRADE_FLATTEN_MINUTES", "30") or 30)
-KEEP_OVERNIGHT_PCT = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "10") or 10)   # evening: keep only positions up this much
+KEEP_OVERNIGHT_PCT = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "5") or 5)   # evening: keep only positions up this much
 SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33)                    # each buy = this % of the cash available then
-MAX_POSITIONS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "40") or 40))
+MAX_POSITIONS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "12") or 12))
 MIN_ORDER = float(os.environ.get("AUTOTRADE_MIN_ORDER", "5") or 5)
 BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)        # 5 = buy only 5/5 green
 DAILY_LOSS_PCT = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5)
@@ -88,8 +88,8 @@ TAG = "tdagent-"
 STOP_TAG = TAG + "stop-"
 WD_RULES = {"line": ("sell line (watchdog)", "price reached its sell line"),
             "signal": ("2 or fewer green (watchdog)", "high risk and the checks say sell"),
-            "evening": ("evening under 10% (watchdog)", "evening rule, under +10% before the close"),
-            "overnight": ("overnight catch-up (watchdog)", "held overnight under +10%, sold at the open")}
+            "evening": (f"evening under {KEEP_OVERNIGHT_PCT:g}% (watchdog)", f"evening rule, under +{KEEP_OVERNIGHT_PCT:g}% before the close"),
+            "overnight": ("overnight catch-up (watchdog)", f"held overnight under +{KEEP_OVERNIGHT_PCT:g}%, sold at the open")}
 FUND_WORDS = re.compile(r"\b(ETF|ETN|FUND|TRUST|ISHARES|SPDR|PROSHARES|DIREXION|VANGUARD|INVESCO QQQ|SELECT SECTOR|ULTRA|INVERSE|2X|3X|LEVERAGED)\b", re.I)
 
 
@@ -182,13 +182,13 @@ def fetch_orders(days):
 
 
 LINE_PCT = {"safe": float(os.environ.get("AUTOTRADE_LINE_SAFE_PCT", "5") or 5),
-            "low": float(os.environ.get("AUTOTRADE_LINE_LOW_PCT", "4") or 4),
-            "high": float(os.environ.get("AUTOTRADE_LINE_HIGH_PCT", "3") or 3)}
+            "low": float(os.environ.get("AUTOTRADE_LINE_LOW_PCT", "5") or 5),
+            "high": float(os.environ.get("AUTOTRADE_LINE_HIGH_PCT", "5") or 5)}
 GROUP_LABEL = {"safe": "Safe", "low": "Low risk", "high": "High risk"}
 
 
 def stop_line(entry, peak=None, pct=None):
-    """The sell line: pct (5% safe, 4% low risk, 3% high risk) below the highest price since buying,
+    """The sell line: pct (5% for every group by default) below the highest price since buying,
     never lower than STOP_LOSS_PCT under the buy price. Bought 100, high 200, safe -> 190."""
     pct = TRAIL_PCT if pct is None else pct
     px = entry * (1 - STOP_LOSS_PCT / 100)
@@ -432,7 +432,7 @@ def run(agent, previous, backtest=None):
         closed_pl = (last_close / entry - 1) * 100 if last_close and entry else None
         if flatten_now and plpc < KEEP_OVERNIGHT_PCT:
             place(sym, "sell", f"Evening: {plpc:+.1f}% from the buy price (under +{KEEP_OVERNIGHT_PCT:g}%), sold "
-                               f"{round(minutes_left)} min before the close", qty=qty, rule="evening under 10%")
+                               f"{round(minutes_left)} min before the close", qty=qty, rule=f"evening under {KEEP_OVERNIGHT_PCT:g}%")
         elif flatten_now:
             out["notes"].append(f"{sym} is up {plpc:+.1f}% (+{KEEP_OVERNIGHT_PCT:g}% or more): kept overnight with its sell line at ${line:,.2f}.")
         elif (FLATTEN and sym not in bought_today and closed_pl is not None and closed_pl < KEEP_OVERNIGHT_PCT
@@ -576,7 +576,7 @@ def run(agent, previous, backtest=None):
                 cancel_stops(sym)
         out["protective_stops"] = stops
         if stops:
-            out["notes"].append(f"Alpaca stop orders on each stock's sell line (safe 5%, low risk 4%, high risk 3% below the highest price) in place: {', '.join(stops)}.")
+            out["notes"].append(f"Alpaca stop orders on each stock's sell line (safe {LINE_PCT['safe']:g}%, low risk {LINE_PCT['low']:g}%, high risk {LINE_PCT['high']:g}% below the highest price) in place: {', '.join(stops)}.")
     except Exception as e:
         out["notes"].append(f"Couldn't check the Alpaca stop orders: {str(e)[:150]}")
 
