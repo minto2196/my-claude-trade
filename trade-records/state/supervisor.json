@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-26T19:42:48+00:00",
- "next_check": "2026-10-26T20:42:48+00:00",
+ "generated_at": "2026-10-26T20:54:54+00:00",
+ "next_check": "2026-10-26T21:54:54+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -29,7 +29,7 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,200 \u2192 5,000 \u2192 500 \u2192 23 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,200 \u2192 5,000 \u2192 500 \u2192 19 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -75,7 +75,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 0.6 MB of 1 GB."
+     "text": "Repository storage 0.7 MB of 1 GB."
     }
    ]
   },
@@ -86,11 +86,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "31 run(s) in the last 3 hours, none failed, longest gap 6 min."
-    },
-    {
-     "status": "ok",
-     "text": "Every-minute watchdog alive: 350 checks today, last saved 2 min ago."
+     "text": "23 run(s) in the last 3 hours, none failed, longest gap 61 min."
     }
    ]
   }
