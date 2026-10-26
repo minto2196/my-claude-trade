@@ -173,5 +173,65 @@ class Cli(unittest.TestCase):
         self.assertIn("no targets file", err)
 
 
+class Slots(unittest.TestCase):
+    """8.33% slots: the same loop as the Trade Desk auto-trader."""
+
+    TICKERS = "NVDA,MSFT,AAPL,AMZN,META,GOOGL,AVGO,TSLA,JPM,V,LLY,WMT"
+
+    def test_matches_the_autotrader_example(self):
+        r = size.size_slots(size.tickers_to_rows(self.TICKERS), cfg(cash_buffer_pct=0), budget=1000)
+        d = [p["dollars"] for p in r["positions"]]
+        self.assertEqual(d[:3], [83.30, 76.36, 70.00])
+        self.assertEqual([p["ticker"] for p in r["positions"]][:3], ["NVDA", "MSFT", "AAPL"])
+        self.assertEqual(len(d), 12)
+        self.assertAlmostEqual(r["invested"] + r["idle"], 1000, places=2)
+
+    def test_cash_buffer_comes_off_the_top(self):
+        r = size.size_slots(size.tickers_to_rows("AAPL,KO"), cfg(), budget=1000)
+        self.assertEqual(r["cash_buffer"], 100)
+        self.assertEqual(r["positions"][0]["dollars"], 74.97)   # 8.33% of $900
+
+    def test_stops_at_the_minimum_order(self):
+        r = size.size_slots(size.tickers_to_rows(self.TICKERS), cfg(cash_buffer_pct=0), budget=100)
+        self.assertEqual([p["dollars"] for p in r["positions"]], [8.33, 7.63, 7.0, 6.41, 5.88, 5.39])
+        self.assertIn("under your $5 minimum", r["dropped"][0]["reason"])
+
+    def test_max_positions(self):
+        r = size.size_slots(size.tickers_to_rows(self.TICKERS), cfg(cash_buffer_pct=0, max_positions=3), budget=1000)
+        self.assertEqual(len(r["positions"]), 3)
+        self.assertIn("maximum of 3", r["dropped"][0]["reason"])
+
+    def test_custom_percent_and_cap(self):
+        r = size.size_slots(size.tickers_to_rows("AAPL"), cfg(cash_buffer_pct=0), budget=1000, slot_pct=50)
+        self.assertEqual(r["positions"][0]["dollars"], 250)          # capped at 25% of the budget
+        self.assertTrue(r["positions"][0]["capped"])
+
+    def test_whole_shares_skip_a_share_bigger_than_its_slot(self):
+        r = size.size_slots(size.tickers_to_rows("AAPL,KO"), cfg(cash_buffer_pct=0), budget=2000,
+                            prices=PRICES, whole=True)   # slot $166.60: AAPL $341 no, KO $90 yes
+        self.assertEqual([p["ticker"] for p in r["positions"]], ["KO"])
+        self.assertEqual(r["positions"][0]["shares"], 1)
+        self.assertIn("more than its", r["dropped"][0]["reason"])
+
+    def test_cli_and_orders(self):
+        code, text, _ = run(["--slots", "--budget", "1000", "--config", CFG, "--tickers", "AAPL,KO", "--json"])
+        self.assertEqual(code, 0)
+        out = json.loads(text)
+        self.assertEqual(out["orders"][0]["notional"], "74.97")
+        self.assertIn("slot 1: 8.33% of $1,000 cash left".replace("$1,000", "$900"), out["orders"][0]["why"])
+        code, text, _ = run(["--slots", "10", "--budget", "1000", "--config", CFG, "--tickers", "AAPL", "--json"])
+        self.assertEqual(json.loads(text)["orders"][0]["notional"], "90")
+
+    def test_config_switches_mode(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "config.json")
+            with open(p, "w") as fh:
+                json.dump(cfg(sizing="slots", cash_buffer_pct=0), fh)
+            code, text, _ = run(["--budget", "1000", "--config", p, "--tickers", "AAPL,KO", "--json"])
+            self.assertEqual(json.loads(text)["result"]["sizing"], "slots")
+            code, text, _ = run(["--budget", "1000", "--config", p, "--tickers", "AAPL,KO", "--json", "--weights-mode"])
+            self.assertNotIn("sizing", json.loads(text)["result"])
+
+
 if __name__ == "__main__":
     unittest.main()
