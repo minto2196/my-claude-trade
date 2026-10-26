@@ -3,11 +3,11 @@
 
 Runs as its own GitHub job during US market hours and checks every held stock every 60 seconds:
   * sorts it into Safe / Low risk / High risk (same rules as the auto-trader)
-  * sell line: 5% (safe), 4% (low risk), 3% (high risk) below the highest price since buying,
+  * sell line: 5% below the highest price since buying (every risk group, by default),
     never lower than 5% under the buy price; at or under the line -> sells at once
   * high risk and the checks say "sell" (2 or fewer green, or a red time machine) -> sells
   * raises the Alpaca stop order to the line as prices climb (never lowers it)
-  * evening rule: in the last 30 minutes, sells everything under +10% from its buy price
+  * evening rule: in the last 30 minutes, sells everything under +5% from its buy price
   * respects the AUTOTRADE kill switch: off = watches only, sells nothing
 
 The 5-minute runs keep doing the market scan and the buying. Every sale here uses a client order id

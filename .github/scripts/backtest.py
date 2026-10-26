@@ -10,11 +10,11 @@ known on each day:
     news (assumed quiet = green; old headlines aren't replayed), time machine (walk-forward:
     only outcomes already known that day)
   * buys at the next day's open when 4+/5 green, vetoes green, no red; 12 equal slots, cash only
-  * buys at the open: each one 8.33% of the cash still available (loop, up to 40 stocks)
+  * buys at the open: each one 8.33% of the cash still available (loop, up to 12 stocks)
   * sell line 5% under the highest price, never under -5% from the buy (checked against each day's
     low/high; with daily prices the order of the high and low is unknown, so a new high followed by
     a close under the raised line counts as sold on the line)
-  * evening: everything under +10% from its buy price is sold at the close; +10% or more is kept
+  * evening: everything under +5% from its buy price is sold at the close; +5% or more is kept
   * bad day and signal exits (3/5 half, 2/5 or red time machine all) at the close
   * 0.05% slippage per trade, no buys after a -5% day
 
@@ -43,9 +43,9 @@ TRAIL_ARM = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "0") or 0) / 100
 TRAIL = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "5") or 5) / 100
 TAKE = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0) / 100      # 0 = off
 FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"
-KEEP = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "10") or 10) / 100
+KEEP = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "5") or 5) / 100
 SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33) / 100
-MAX_POS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "40") or 40))
+MAX_POS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "12") or 12))
 BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)
 BAD_DAY = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3) / 100
 DAILY_LOSS = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5) / 100
@@ -194,7 +194,7 @@ def group_pct(bars, i, sts, entry, peak):
 
 def run_sim(data, dates, statuses, spy_by, t0):
     """Day by day with the live rules: morning buys (8.33% of the cash left, again and again), the sell line
-    during the day, the evening rule (sell anything under +10%), bad-day and signal exits at the close."""
+    during the day, the evening rule (sell anything under +5%), bad-day and signal exits at the close."""
     cash, pos, trades, curve, picks = START_CASH, {}, [], [], []
     prev_equity, spy0 = START_CASH, None
     pick_pct, groups_seen = {}, {"safe": 0, "low": 0, "high": 0}
@@ -254,7 +254,7 @@ def run_sim(data, dates, statuses, spy_by, t0):
             if not b:
                 continue
             if FLATTEN and b["c"] < p["entry"] * (1 + KEEP):
-                sell(s, b["c"], day, "evening under 10%")
+                sell(s, b["c"], day, f"evening under {KEEP * 100:g}%")
                 continue
             st, i = statuses(s, day), data[s]["idx"].get(day)
             if not st or not i:
