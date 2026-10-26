@@ -64,7 +64,7 @@ def current_rules():
             "take_profit_pct": TAKE * 100, "bad_day_pct": BAD_DAY * 100, "slippage_pct": SLIP * 100,
             "tm_lookback_days": A.TM_LOOKBACK, "sell_all_before_close": FLATTEN, "keep_overnight_pct": KEEP * 100,
             "buy_pct_of_cash": SLOT_PCT * 100, "max_positions": MAX_POS, "line_pct": AT.LINE_PCT,
-            "buy_min_greens": BUY_MIN_GREENS}
+            "buy_min_greens": BUY_MIN_GREENS, "buy_needs_prediction": A.BUY_NEEDS_PREDICTION}
 
 
 def is_due(latest, now):

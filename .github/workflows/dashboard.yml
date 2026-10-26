@@ -36,11 +36,12 @@ jobs:
       ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
       ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
       AUTOTRADE_SLOTS: ${{ vars.AUTOTRADE_SLOTS || '12' }}
+      AGENT_BUY_NEEDS_PREDICTION: ${{ vars.AGENT_BUY_NEEDS_PREDICTION || 'true' }}
       AUTOTRADE_STOP_LOSS_PCT: ${{ vars.AUTOTRADE_STOP_LOSS_PCT || '5' }}
       AUTOTRADE_TAKE_PROFIT_PCT: ${{ vars.AUTOTRADE_TAKE_PROFIT_PCT || '0' }}
       AUTOTRADE_TRAIL_ARM_PCT: ${{ vars.AUTOTRADE_TRAIL_ARM_PCT || '0' }}
       AUTOTRADE_TRAIL_PCT: ${{ vars.AUTOTRADE_TRAIL_PCT || '5' }}
-      AUTOTRADE_FLATTEN: ${{ vars.AUTOTRADE_FLATTEN || 'true' }}
+      AUTOTRADE_FLATTEN: ${{ vars.AUTOTRADE_FLATTEN || 'false' }}
       AUTOTRADE_FLATTEN_MINUTES: ${{ vars.AUTOTRADE_FLATTEN_MINUTES || '30' }}
       AUTOTRADE_KEEP_OVERNIGHT_PCT: ${{ vars.AUTOTRADE_KEEP_OVERNIGHT_PCT || '10' }}
       AUTOTRADE_LINE_SAFE_PCT: ${{ vars.AUTOTRADE_LINE_SAFE_PCT || '5' }}
@@ -87,7 +88,7 @@ jobs:
         env:
           AUTOTRADE: ${{ vars.AUTOTRADE || secrets.AUTOTRADE || 'off' }}
           AUTOTRADE_ALLOW_ETF: ${{ vars.AUTOTRADE_ALLOW_ETF || 'false' }}
-          AUTOTRADE_NO_BUY_MINUTES: ${{ vars.AUTOTRADE_NO_BUY_MINUTES || '60' }}
+          AUTOTRADE_NO_BUY_MINUTES: ${{ vars.AUTOTRADE_NO_BUY_MINUTES || '30' }}
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
           base="https://${owner}.github.io/${{ github.event.repository.name }}/trader-skill/trader-skill/data"

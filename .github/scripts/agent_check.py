@@ -64,6 +64,7 @@ LOG_KEEP = 3000
 TM_LOOKBACK = int(os.environ.get("AGENT_TM_LOOKBACK", "250"))   # trading days of history the time machine replays
 TM_MIN_SIGNALS = 6
 TM_HIT_OK = 0.55
+BUY_NEEDS_PREDICTION = os.environ.get("AGENT_BUY_NEEDS_PREDICTION", "true").strip().lower() != "false"
 EXCHANGES = {"NYSE", "NASDAQ", "ARCA", "AMEX", "BATS"}
 
 HIGH_IMPACT = ["earnings", "guidance", "outlook", "downgrade", "upgrade", "sec ", "investigation", "lawsuit",
@@ -538,7 +539,8 @@ def signal(statuses, held):
             return "sell"
         return "start_selling" if greens == 3 else "hold"
     vetoes = statuses[0] == "ok" and statuses[4] == "ok"
-    if greens >= 4 and vetoes and "alert" not in statuses:
+    pred_ok = statuses[2] == "ok" or not BUY_NEEDS_PREDICTION     # the 5-day prediction must say "up"
+    if greens >= 4 and vetoes and pred_ok and "alert" not in statuses:
         return "buy"
     return "watch" if greens >= 3 else None
 
@@ -546,6 +548,8 @@ def signal(statuses, held):
 def can_still_buy(statuses):
     """Worth reading the news for: vetoes green, nothing red so far, and organic or prediction green."""
     s0, s1, s2, s4 = statuses[0], statuses[1], statuses[2], statuses[4]
+    if BUY_NEEDS_PREDICTION:
+        return s0 == "ok" and s4 == "ok" and s2 == "ok" and s1 != "alert"
     return s0 == "ok" and s4 == "ok" and "alert" not in (s1, s2) and "ok" in (s1, s2)
 
 
@@ -698,7 +702,8 @@ def run(portfolio, previous, watchlist, tm_cache=None):
     names = ("price", "organic", "prediction", "news", "history")
     return {
         "generated_at": now.isoformat(timespec="seconds"), "horizon_days": HORIZON,
-        "hierarchy": "vetoes: time machine + data is real; then 2 of organic, prediction, news; buy at 4+/5 with no red",
+        "hierarchy": ("vetoes: time machine + data is real; buy at 4+/5 green with the prediction saying up and nothing red"
+                      if BUY_NEEDS_PREDICTION else "vetoes: time machine + data is real; then 2 of organic, prediction, news; buy at 4+/5 with no red"),
         "rules": {"observe": OBSERVE, "shortlist": SHORTLIST, "min_price": MIN_PRICE, "max_position_pct": MAX_POSITION_PCT,
                   "tm_lookback_days": TM_LOOKBACK, "tm_min_signals": TM_MIN_SIGNALS, "tm_hit_ok": TM_HIT_OK,
                   "cash_buffer_pct": CASH_BUFFER_PCT, "max_buys": MAX_BUYS},
