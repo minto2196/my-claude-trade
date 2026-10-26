@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-26T20:54:54+00:00",
- "next_check": "2026-10-26T21:54:54+00:00",
+ "generated_at": "2026-10-26T23:16:14+00:00",
+ "next_check": "2026-10-27T00:16:14+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -52,7 +52,7 @@
     },
     {
      "status": "warn",
-     "text": "Master switch OFF: the 6-month replay returned -1.16%. Buying is paused, exits still run."
+     "text": "Safety switch OFF by your setting: buying although the 6-month replay returned -1.73%."
     },
     {
      "status": "ok",
@@ -86,7 +86,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "23 run(s) in the last 3 hours, none failed, longest gap 61 min."
+     "text": "7 run(s) in the last 3 hours, none failed, longest gap 107 min."
     }
    ]
   }
@@ -95,7 +95,7 @@
   {
    "level": "warn",
    "supervisor": "Trade watch",
-   "text": "Master switch OFF: the 6-month replay returned -1.16%. Buying is paused, exits still run."
+   "text": "Safety switch OFF by your setting: buying although the 6-month replay returned -1.73%."
   }
  ]
 }
