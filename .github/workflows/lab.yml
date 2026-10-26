@@ -1,0 +1,34 @@
+name: Time machine lab
+
+# Replays several versions of the trading rules on real prices and picks one fairly
+# (chosen on the first 4 months, checked on the last 2). Read-only: never trades.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      ALPACA_PAPER: ${{ secrets.ALPACA_PAPER || vars.ALPACA_PAPER || 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+      - name: Replay rule versions
+        run: |
+          owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          python3 .github/scripts/lab.py trade-records/lab \
+            "https://${owner}.github.io/${{ github.event.repository.name }}/trader-skill/trader-skill/data/agent.json"
+      - name: Save results
+        run: |
+          git config user.name "trade-desk-bot"
+          git config user.email "trade-desk-bot@users.noreply.github.com"
+          git add trade-records/lab
+          git commit -q -m "lab: $(date -u +'%Y-%m-%d %H:%M UTC')" || exit 0
+          for i in 1 2 3; do git pull -q --rebase origin main && git push -q origin HEAD:main && break; sleep 5; done

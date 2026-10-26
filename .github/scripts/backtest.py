@@ -46,6 +46,7 @@ FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"
 KEEP = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "10") or 10) / 100
 SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33) / 100
 MAX_POS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "40") or 40))
+BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)
 BAD_DAY = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3) / 100
 DAILY_LOSS = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5) / 100
 SLIP = 0.0005
@@ -62,7 +63,8 @@ def current_rules():
     return {"slots": SLOTS, "stop_loss_pct": STOP * 100, "trail_arm_pct": TRAIL_ARM * 100, "trail_pct": TRAIL * 100,
             "take_profit_pct": TAKE * 100, "bad_day_pct": BAD_DAY * 100, "slippage_pct": SLIP * 100,
             "tm_lookback_days": A.TM_LOOKBACK, "sell_all_before_close": FLATTEN, "keep_overnight_pct": KEEP * 100,
-            "buy_pct_of_cash": SLOT_PCT * 100, "max_positions": MAX_POS, "line_pct": AT.LINE_PCT}
+            "buy_pct_of_cash": SLOT_PCT * 100, "max_positions": MAX_POS, "line_pct": AT.LINE_PCT,
+            "buy_min_greens": BUY_MIN_GREENS}
 
 
 def is_due(latest, now):
@@ -106,6 +108,12 @@ class History:
 
 
 def simulate(daily, spy, sim_days):
+    data, dates, statuses, spy_by, t0 = prepare(daily, spy, sim_days)
+    return run_sim(data, dates, statuses, spy_by, t0)
+
+
+def prepare(daily, spy, sim_days):
+    """The slow part (replaying every stock's checks for every day), done once and reusable."""
     t0 = time.time()
     dates = [b["t"][:10] for b in spy][-sim_days:]
     if len(dates) < 20:
@@ -129,7 +137,7 @@ def simulate(daily, spy, sim_days):
         pred = {"up": "ok", "flat": "watch", "down": "alert"}.get(call, "watch")
         return ["ok", org, pred, "ok", h], hit
 
-    return run_sim(data, dates, statuses, {b['t'][:10]: b for b in spy}, t0)
+    return data, dates, statuses, {b['t'][:10]: b for b in spy}, t0
 
 
 def summarize(curve, trades, open_end, dates, universe, t0):
@@ -273,7 +281,7 @@ def run_sim(data, dates, statuses, spy_by, t0):
                 if s in pos:
                     continue
                 st = statuses(s, day)
-                if st and A.signal(st[0], False) == "buy":
+                if st and A.signal(st[0], False) == "buy" and st[0].count("ok") >= BUY_MIN_GREENS:
                     cands.append((st[1] or 0, st[0].count("ok"), s))
             cands.sort(reverse=True)
             picks = [s for _, _, s in cands[:MAX_POS - len(pos)]]

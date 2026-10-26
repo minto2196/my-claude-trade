@@ -79,6 +79,7 @@ KEEP_OVERNIGHT_PCT = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "10") 
 SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33)                    # each buy = this % of the cash available then
 MAX_POSITIONS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "40") or 40))
 MIN_ORDER = float(os.environ.get("AUTOTRADE_MIN_ORDER", "5") or 5)
+BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)        # 5 = buy only 5/5 green
 DAILY_LOSS_PCT = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5)
 NO_BUY_MINUTES = float(os.environ.get("AUTOTRADE_NO_BUY_MINUTES", "60" if FLATTEN else "30") or 30)
 ALLOW_ETF = os.environ.get("AUTOTRADE_ALLOW_ETF", "false").strip().lower() == "true"
@@ -262,7 +263,7 @@ def run(agent, previous, backtest=None):
                      "no_buy_minutes_before_close": NO_BUY_MINUTES,
                      "sell_all_before_close": FLATTEN, "sell_all_minutes_before_close": FLATTEN_MINUTES,
                      "keep_overnight_pct": KEEP_OVERNIGHT_PCT, "buy_pct_of_cash": SLOT_PCT, "max_positions": MAX_POSITIONS,
-                     "min_order": MIN_ORDER, "line_pct": LINE_PCT},
+                     "min_order": MIN_ORDER, "line_pct": LINE_PCT, "buy_min_greens": BUY_MIN_GREENS},
            "actions": [], "notes": []}
     history = previous.get("history", [])
     if MODE == "off":
@@ -484,7 +485,7 @@ def run(agent, previous, backtest=None):
                                     f"3 per 5 days. Buying at most {budget} today.")
             free = min(free, budget)
         spend = cash
-        candidates = [s for s in agent.get("symbols", []) if s.get("signal") == "buy" and (s.get("greens") or 0) >= 4]
+        candidates = [s for s in agent.get("symbols", []) if s.get("signal") == "buy" and (s.get("greens") or 0) >= BUY_MIN_GREENS]
         candidates.sort(key=lambda s: s.get("rank") or 999)
         bought = 0
         for c in candidates:
