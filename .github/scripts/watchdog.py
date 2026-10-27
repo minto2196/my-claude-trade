@@ -90,7 +90,8 @@ def ensure():
         return
     clock = T.call("GET", "/v2/clock")
     soon = (T.iso_utc(clock["next_open"]) - dt.datetime.now(UTC)).total_seconds() <= 20 * 60
-    if (clock.get("is_open") or soon) and not gh_active("watchdog.yml"):
+    awake = STAY_AWAKE and T.MODE != "off"   # stay-awake: a watchdog should always be alive, open or closed
+    if (clock.get("is_open") or soon or awake) and not gh_active("watchdog.yml"):
         gh_start("watchdog.yml")
     else:
         print("watchdog ensure: nothing to do", "(open)" if clock.get("is_open") else "(closed)")
