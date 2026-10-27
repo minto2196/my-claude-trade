@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-27T17:05:53+00:00",
- "next_check": "2026-10-27T18:05:53+00:00",
+ "generated_at": "2026-10-27T18:05:46+00:00",
+ "next_check": "2026-10-27T19:05:46+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 1 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
@@ -60,7 +60,7 @@
     },
     {
      "status": "ok",
-     "text": "1 position(s), 1 open order(s), no stop-loss missed."
+     "text": "2 position(s), 2 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 1 order(s) recorded."
+     "text": "Journal complete: 2 order(s) recorded."
     },
     {
      "status": "ok",
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "11 run(s) in the last 3 hours, none failed, longest gap 7 min."
+     "text": "21 run(s) in the last 3 hours, none failed, longest gap 7 min."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 55 checks today, last saved 7 min ago."
+     "text": "Every-minute watchdog alive: 110 checks today, last saved 12 min ago."
     }
    ]
   }
