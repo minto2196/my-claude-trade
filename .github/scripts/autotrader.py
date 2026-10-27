@@ -76,7 +76,7 @@ BAD_DAY_PCT = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3)
 PEAKS = {}            # best price seen per owned symbol (trailing stop); loaded/saved via --state
 GROUPS = {}           # risk group per owned symbol, this run
 TAKE_PROFIT_PCT = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0)   # 0 = off: let winners run
-FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "false").strip().lower() == "true"   # sell everything before the close
+FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"   # sell everything before the close
 FLATTEN_MINUTES = float(os.environ.get("AUTOTRADE_FLATTEN_MINUTES", "30") or 30)
 KEEP_OVERNIGHT_PCT = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "5") or 5)   # evening: keep only positions up this much
 SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33)                    # each buy = this % of ...
