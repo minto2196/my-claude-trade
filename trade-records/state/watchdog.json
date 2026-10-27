@@ -8,35 +8,36 @@
   "low": 5.0,
   "high": 5.0
  },
- "checks": 55,
+ "checks": 66,
  "actions_today": [],
- "generated_at": "2026-10-27T16:59:03+00:00",
- "minutes_to_close": 181,
+ "generated_at": "2026-10-27T17:10:03+00:00",
+ "minutes_to_close": 170,
  "groups": [
   {
    "symbol": "TMO",
-   "group": "low",
-   "label": "Low risk",
+   "group": "safe",
+   "label": "Safe",
    "reasons": [
-    "-0.2% from the buy price"
+    "5 of 5 green, calm (\u00b11.6% a day)",
+    "+0.0% from the buy price"
    ],
-   "price": 693.835,
+   "price": 695.04,
    "entry": 694.93,
-   "highest": 694.93,
-   "line": 660.18,
+   "highest": 695.71,
+   "line": 660.92,
    "line_pct": 5.0,
-   "plpc": -0.16,
-   "day_pct": 1.31,
-   "to_line_pct": 5.1
+   "plpc": 0.02,
+   "day_pct": 1.48,
+   "to_line_pct": 5.16
   }
  ],
  "counts": {
-  "safe": 0,
-  "low": 1,
+  "safe": 1,
+  "low": 0,
   "high": 0
  },
  "error": null,
  "peaks": {
-  "TMO": 694.93
+  "TMO": 695.71
  }
 }
