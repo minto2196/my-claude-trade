@@ -42,7 +42,7 @@ STOP = float(os.environ.get("AUTOTRADE_STOP_LOSS_PCT", "5") or 5) / 100
 TRAIL_ARM = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "0") or 0) / 100
 TRAIL = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "5") or 5) / 100
 TAKE = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0) / 100      # 0 = off
-FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "false").strip().lower() == "true"
+FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"
 KEEP = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "5") or 5) / 100
 SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33) / 100
 MAX_POS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "12") or 12))
