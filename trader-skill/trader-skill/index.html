@@ -90,6 +90,8 @@ a { color: var(--accent); }
 .dot.mid { background: var(--warn); } .dot.off { background: var(--down); }
 @keyframes blink { 50% { opacity: 0.35; } }
 .iconbtn { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 4px 9px; cursor: pointer; font-size: 0.78rem; color: var(--ink-2); }
+a.iconbtn { text-decoration: none; display: inline-flex; align-items: center; }
+.iconbtn:disabled { opacity: 0.7; cursor: default; }
 .iconbtn:hover { border-color: var(--accent); color: var(--accent); }
 .tape { height: 46px; margin-top: -8px; position: relative; }
 
@@ -449,8 +451,10 @@ footer p { margin: 0; max-width: 120ch; }
       <span class="st"><span class="dot on"></span><span class="k">Crypto</span><b>24/7</b></span>
       <span class="st"><span class="dot" id="alp-dot"></span><span class="k">Alpaca</span><b id="alp-status">connecting…</b></span>
       <span class="st"><span class="dot" id="ag-dot"></span><span class="k">Agent</span><b id="ag-status">waiting…</b></span>
-      <span class="st clock"><span class="k">NY</span><b class="num" id="t-ny">--:--</b><span class="k">Berlin</span><b class="num" id="t-be">--:--</b></span>
+      <span class="st clock"><span class="k">NY</span><b class="num" id="t-ny">--:--</b><span class="k">Berlin</span><b class="num" id="t-be">--:--</b><span class="k" id="t-lc-k" hidden>Local</span><b class="num" id="t-lc" hidden>--:--</b></span>
       <button class="iconbtn" type="button" id="theme-btn" aria-label="Switch light or dark theme">◐ Theme</button>
+      <button class="iconbtn" type="button" id="refresh-btn" aria-label="Load the newest data now">↻ Refresh</button>
+      <a class="iconbtn" id="run-btn" target="_blank" rel="noopener" title="Opens GitHub: tap 'Run workflow' to scan and trade now">▶ Run scan</a>
     </div>
   </div>
 
@@ -944,6 +948,9 @@ function usSession() {
   if (mins < 1200) return ["After-hours", "mid"];
   return day === "Fri" ? ["Closed · weekend", "off"] : ["Overnight", "mid"];
 }
+/* The viewer's own time zone (it follows the phone when travelling); Berlin stays as the home clock. */
+const LOCAL_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin";
+const LOCAL_CITY = (LOCAL_TZ.split("/").pop() || "local").replace(/_/g, " ");
 /* Countdown to the close (or the next open) from Alpaca's clock, which knows holidays and early closes. */
 function hm(ms) {
   const m = Math.max(0, Math.floor(ms / 60000)), h = Math.floor(m / 60);
@@ -954,23 +961,26 @@ function marketCountdown() {
   try { c = (SNAP && SNAP.clock) || {}; } catch (e) { return null; }   // SNAP is declared further down
   const close = c.next_close ? new Date(c.next_close) : null, open = c.next_open ? new Date(c.next_open) : null;
   if (!close || !open || isNaN(close) || isNaN(open)) return null;
-  const now = new Date(), be = d => d.toLocaleTimeString("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
+  const now = new Date(), be = d => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   const R = window.TRADE_RULES || {};
   const evening = R.sell_all_before_close === false ? 0 : (R.sell_all_minutes_before_close ?? 30);
   if (close < open && now < close) {          // open now: the close comes before the next open
     const left = close - now, sellAt = new Date(close - evening * 60000);
-    let t = `Open · closes in ${hm(left)} (${be(close)} Berlin)`;
+    let t = `Open · closes in ${hm(left)} (${be(close)} ${LOCAL_CITY})`;
     if (evening) t += now < sellAt ? ` · evening sell in ${hm(sellAt - now)}` : " · evening sell running";
     return [t, left <= evening * 60000 ? "mid" : "on"];
   }
   const next = open > now ? open : (close < open ? null : open);
-  return next ? [`Closed · opens in ${hm(next - now)} (${be(next)} Berlin)`, "off"] : null;
+  return next ? [`Closed · opens in ${hm(next - now)} (${be(next)} ${LOCAL_CITY})`, "off"] : null;
 }
 function tickClock() {
   const [label, cls] = marketCountdown() || usSession();
   $("us-session").textContent = label; $("us-dot").className = "dot " + cls;
   const f = z => new Date().toLocaleTimeString("en-GB", { timeZone: z, hour: "2-digit", minute: "2-digit" });
   $("t-ny").textContent = f("America/New_York"); $("t-be").textContent = f("Europe/Berlin");
+  if (LOCAL_TZ !== "Europe/Berlin" && LOCAL_TZ !== "America/New_York") {
+    $("t-lc-k").hidden = $("t-lc").hidden = false; $("t-lc-k").textContent = LOCAL_CITY; $("t-lc").textContent = f(LOCAL_TZ);
+  }
 }
 tickClock(); setInterval(tickClock, 5000);
 
@@ -1574,6 +1584,21 @@ mountAll();
 const refreshAll = async () => { await loadPortfolio(); await loadBacktest(); await loadAgent(); await loadTrades(); await loadWatchdog(); await loadRecords(); await loadSupervisors(); };
 refreshAll();
 setInterval(refreshAll, CONFIG.refreshSeconds * 1000);
+
+/* Refresh: load the newest data now. Run scan: GitHub's page for the 5-minute run ("Run workflow" starts it). */
+(() => {
+  const owner = location.hostname.endsWith(".github.io") ? location.hostname.split(".")[0] : "minto2196";
+  const repo = location.hostname.endsWith(".github.io") ? (location.pathname.split("/")[1] || "my-claude-trade") : "my-claude-trade";
+  $("run-btn").href = `https://github.com/${owner}/${repo}/actions/workflows/dashboard.yml`;
+  const btn = $("refresh-btn");
+  btn.addEventListener("click", async () => {
+    btn.disabled = true; btn.textContent = "↻ Checking…";
+    try { await refreshAll(); btn.textContent = "✓ " + new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" }); }
+    catch (e) { btn.textContent = "↻ Failed, retry"; }
+    tickClock();
+    setTimeout(() => { btn.disabled = false; btn.textContent = "↻ Refresh"; }, 4000);
+  });
+})();
 </script>
 </body>
 </html>
