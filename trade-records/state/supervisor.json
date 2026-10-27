@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-27T18:05:46+00:00",
- "next_check": "2026-10-27T19:05:46+00:00",
+ "generated_at": "2026-10-27T19:05:47+00:00",
+ "next_check": "2026-10-27T20:05:47+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "94% of stocks pass 'data is real'."
+     "text": "95% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -56,7 +56,7 @@
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 1 position(s)."
+     "text": "Alpaca stop orders at \u22125% protect 2 position(s)."
     },
     {
      "status": "ok",
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "21 run(s) in the last 3 hours, none failed, longest gap 7 min."
+     "text": "30 run(s) in the last 3 hours, none failed, longest gap 7 min."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 110 checks today, last saved 12 min ago."
+     "text": "Every-minute watchdog alive: 176 checks today, last saved 6 min ago."
     }
    ]
   }
