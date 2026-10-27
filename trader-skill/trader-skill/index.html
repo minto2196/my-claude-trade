@@ -83,6 +83,8 @@ a { color: var(--accent); }
 .st { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
 .st .k, .k { color: var(--muted); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
 .st b { font-weight: 600; }
+.st.us { white-space: normal; flex-basis: 100%; align-items: baseline; }
+.st.us .dot { align-self: center; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; display: inline-block; }
 .dot.on { background: var(--up); animation: blink 1.6s infinite; }
 .dot.mid { background: var(--warn); } .dot.off { background: var(--down); }
@@ -443,7 +445,7 @@ footer p { margin: 0; max-width: 120ch; }
   <div class="bar">
     <div class="brand"><h1>Trade Desk <span>Live</span></h1><span class="mode" id="mode" hidden>Paper</span></div>
     <div class="status" aria-live="polite">
-      <span class="st"><span class="dot" id="us-dot"></span><span class="k">US</span><b id="us-session">…</b></span>
+      <span class="st us"><span class="dot" id="us-dot"></span><span class="k">US</span><b id="us-session">…</b></span>
       <span class="st"><span class="dot on"></span><span class="k">Crypto</span><b>24/7</b></span>
       <span class="st"><span class="dot" id="alp-dot"></span><span class="k">Alpaca</span><b id="alp-status">connecting…</b></span>
       <span class="st"><span class="dot" id="ag-dot"></span><span class="k">Agent</span><b id="ag-status">waiting…</b></span>
@@ -942,13 +944,35 @@ function usSession() {
   if (mins < 1200) return ["After-hours", "mid"];
   return day === "Fri" ? ["Closed · weekend", "off"] : ["Overnight", "mid"];
 }
+/* Countdown to the close (or the next open) from Alpaca's clock, which knows holidays and early closes. */
+function hm(ms) {
+  const m = Math.max(0, Math.floor(ms / 60000)), h = Math.floor(m / 60);
+  return h ? `${h}h ${String(m % 60).padStart(2, "0")}m` : `${m}m`;
+}
+function marketCountdown() {
+  let c = {};
+  try { c = (SNAP && SNAP.clock) || {}; } catch (e) { return null; }   // SNAP is declared further down
+  const close = c.next_close ? new Date(c.next_close) : null, open = c.next_open ? new Date(c.next_open) : null;
+  if (!close || !open || isNaN(close) || isNaN(open)) return null;
+  const now = new Date(), be = d => d.toLocaleTimeString("en-GB", { timeZone: "Europe/Berlin", hour: "2-digit", minute: "2-digit" });
+  const R = window.TRADE_RULES || {};
+  const evening = R.sell_all_before_close === false ? 0 : (R.sell_all_minutes_before_close ?? 30);
+  if (close < open && now < close) {          // open now: the close comes before the next open
+    const left = close - now, sellAt = new Date(close - evening * 60000);
+    let t = `Open · closes in ${hm(left)} (${be(close)} Berlin)`;
+    if (evening) t += now < sellAt ? ` · evening sell in ${hm(sellAt - now)}` : " · evening sell running";
+    return [t, left <= evening * 60000 ? "mid" : "on"];
+  }
+  const next = open > now ? open : (close < open ? null : open);
+  return next ? [`Closed · opens in ${hm(next - now)} (${be(next)} Berlin)`, "off"] : null;
+}
 function tickClock() {
-  const [label, cls] = usSession();
+  const [label, cls] = marketCountdown() || usSession();
   $("us-session").textContent = label; $("us-dot").className = "dot " + cls;
   const f = z => new Date().toLocaleTimeString("en-GB", { timeZone: z, hour: "2-digit", minute: "2-digit" });
   $("t-ny").textContent = f("America/New_York"); $("t-be").textContent = f("Europe/Berlin");
 }
-tickClock(); setInterval(tickClock, 15000);
+tickClock(); setInterval(tickClock, 5000);
 
 /* ---------- shared selection: a holding row, an agent row and a chart chip all point at one symbol ---------- */
 let SNAP = null, AGENT = null, SEL = null;
@@ -1385,6 +1409,7 @@ async function loadTrades() {
   if (!t) { $("at-notes").innerHTML = "<li>The auto-trader hasn't run yet.</li>"; return; }
   TRADES_GROUPS = t.groups ? { at: t.generated_at, groups: t.groups } : TRADES_GROUPS;
   const mode = t.mode || "off", R = t.rules || {};
+  window.TRADE_RULES = R; tickClock();
   $("at-state").className = "atstate " + mode;
   $("at-state").querySelector(".dot").className = "dot " + (mode === "on" ? "on" : mode === "sell-only" ? "mid" : "");
   $("at-label").textContent = { on: "On · trading", "sell-only": "Sell-only", off: "Off" }[mode];
