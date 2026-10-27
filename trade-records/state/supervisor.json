@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-27T20:12:02+00:00",
- "next_check": "2026-10-27T21:12:02+00:00",
+ "generated_at": "2026-10-27T23:04:19+00:00",
+ "next_check": "2026-10-28T00:04:19+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "94% of stocks pass 'data is real'."
+     "text": "93% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -86,7 +86,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "32 run(s) in the last 3 hours, none failed, longest gap 13 min."
+     "text": "4 run(s) in the last 3 hours, none failed, longest gap 145 min."
     }
    ]
   }
