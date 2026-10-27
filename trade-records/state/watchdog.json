@@ -1,17 +1,17 @@
 {
- "started_at": "2026-10-26T13:52:10+00:00",
- "day": "2026-10-26",
+ "started_at": "2026-10-27T16:05:02+00:00",
+ "day": "2026-10-27",
  "mode": "on",
  "paper": true,
  "line_pct": {
   "safe": 5.0,
-  "low": 4.0,
-  "high": 3.0
+  "low": 5.0,
+  "high": 5.0
  },
- "checks": 350,
+ "checks": 11,
  "actions_today": [],
- "generated_at": "2026-10-26T19:41:11+00:00",
- "minutes_to_close": 19,
+ "generated_at": "2026-10-27T16:15:03+00:00",
+ "minutes_to_close": 225,
  "groups": [],
  "counts": {
   "safe": 0,
@@ -19,6 +19,5 @@
   "high": 0
  },
  "error": null,
- "peaks": {},
- "ended_at": "2026-10-26T19:42:12+00:00"
+ "peaks": {}
 }
