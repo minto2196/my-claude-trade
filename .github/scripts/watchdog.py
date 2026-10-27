@@ -46,6 +46,9 @@ def fetch_json(url):
 
 GH_TOKEN = os.environ.get("GITHUB_TOKEN", "")
 GH_REPO = os.environ.get("GITHUB_REPOSITORY", "")
+# Stay awake: outside market hours the watchdog sleeps and hands over to the next one, so a watchdog is
+# always alive and starts the scan itself just before the open (GitHub's scheduler can be hours late).
+STAY_AWAKE = os.environ.get("WATCHDOG_STAY_AWAKE", "true").strip().lower() != "false"
 
 
 def gh(method, path, body=None):
@@ -109,6 +112,34 @@ def git_save(rec, msg):
         print("save failed:", e)
 
 
+def sleep_until_open(rec, status, status_p, clock, started, budget_min):
+    """Market closed: sleep, start a fresh scan ~6 minutes before the open, then wait for the bell.
+    Returns True when the open has come; False after handing over to the next watchdog (time limit)."""
+    next_open = T.iso_utc(clock["next_open"])
+    deadline = started + dt.timedelta(minutes=budget_min)
+    status.update(state="sleeping", next_open=next_open.isoformat(), generated_at=dt.datetime.now(UTC).isoformat(timespec="seconds"))
+    json.dump(status, open(status_p, "w"), indent=1)
+    git_save(rec, f"watchdog: sleeping until the open {next_open.isoformat()[:16]} UTC")
+    print(f"watchdog: market closed, sleeping until {next_open.isoformat()} (wake-up scan 6 min before)")
+    kicked = False
+    while True:
+        now = dt.datetime.now(UTC)
+        to_open = (next_open - now).total_seconds()
+        if to_open <= 0:
+            return True
+        if not kicked and to_open <= 6 * 60:
+            if not gh_active("dashboard.yml"):
+                gh_start("dashboard.yml")      # fresh scan and dashboard right before the bell
+            kicked = True
+        if (deadline - now).total_seconds() < 5 * 60 and to_open > 5 * 60:
+            gh_start("watchdog.yml")           # time limit: the next watchdog keeps sleeping
+            status.update(state="handed over", ended_at=now.isoformat(timespec="seconds"))
+            json.dump(status, open(status_p, "w"), indent=1)
+            print("watchdog: time limit while the market is closed, handed over to the next watchdog")
+            return False
+        time.sleep(max(1, min(60, to_open)))
+
+
 def main():
     if "--ensure" in sys.argv:
         ensure()
@@ -133,6 +164,17 @@ def main():
         print("watchdog: no Alpaca keys")
         return
     clock = T.call("GET", "/v2/clock")
+    if not clock.get("is_open") and STAY_AWAKE and T.MODE != "off":
+        if not sleep_until_open(rec, status, status_p, clock, started, budget_min):
+            return
+        for _ in range(10):                    # Alpaca's clock flips a moment after the bell
+            clock = T.call("GET", "/v2/clock")
+            if clock.get("is_open"):
+                break
+            time.sleep(30)
+        if not clock.get("is_open"):           # a holiday or a delayed open: start again and sleep on
+            gh_start("watchdog.yml")
+            return
     if not clock.get("is_open"):
         wait = (T.iso_utc(clock["next_open"]) - dt.datetime.now(UTC)).total_seconds()
         if 0 < wait <= 20 * 60:
@@ -146,6 +188,7 @@ def main():
     agent, agent_t, owned, owned_t, last_save, bought_today = None, 0, set(), 0, time.time(), set()
     last_kick = 0
     account = T.call("GET", "/v2/account")
+    status["state"] = "watching"
     print(f"watchdog: started, market closes {close_at.isoformat()}, mode={T.MODE}, paper={T.PAPER}")
 
     while (dt.datetime.now(UTC) - started).total_seconds() / 60 < budget_min:
@@ -262,6 +305,8 @@ def main():
         time.sleep(max(1, 60 - (time.time() - loop_t)))
     if (close_at - dt.datetime.now(UTC)).total_seconds() > 120:
         gh_start("watchdog.yml")             # time limit reached while the market is still open: hand over
+    elif STAY_AWAKE and T.MODE != "off":
+        gh_start("watchdog.yml")             # after the close: the next watchdog sleeps until the next open
     status["ended_at"] = dt.datetime.now(UTC).isoformat(timespec="seconds")
     json.dump(status, open(status_p, "w"), indent=1)
     git_save(rec, f"watchdog: ended after {status['checks']} checks")

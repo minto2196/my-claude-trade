@@ -2,11 +2,13 @@ name: Watchdog (every minute)
 
 # Watches every stock the auto-trader holds once a minute during US market hours: risk group
 # (safe / low / high), sell line, Alpaca stop order, evening rule. One job runs at a time and
-# keeps looping until the close; the hourly schedule restarts it if it ever stops early.
-# Scheduled jobs on GitHub can start a few minutes late.
+# keeps looping until the close. Outside market hours it stays awake (sleeps and hands over to the next
+# watchdog), wakes itself 6 minutes before the open and starts a fresh scan, so the open never depends on
+# GitHub's scheduler, which can be hours late. The schedules below only restart the chain if it breaks.
 on:
   schedule:
     - cron: "28 13-20 * * 1-5"
+    - cron: "7,17,37,47 12,13,14 * * 1-5"   # extra tries before the open (summer and winter time)
   workflow_dispatch:
 
 permissions:
