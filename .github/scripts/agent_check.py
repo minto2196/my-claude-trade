@@ -57,7 +57,7 @@ SHORTLIST = int(os.environ.get("AGENT_SHORTLIST", "500"))
 MIN_PRICE = float(os.environ.get("AGENT_MIN_PRICE", "5"))
 MAX_POSITION_PCT = float(os.environ.get("AGENT_MAX_POSITION_PCT", "10"))   # never suggest more than this % of the account in one stock
 CASH_BUFFER_PCT = float(os.environ.get("AGENT_CASH_BUFFER_PCT", "10"))     # always leave this % of the account in cash
-MAX_BUYS = int(os.environ.get("AGENT_MAX_BUYS", "12"))
+MAX_BUYS = int(os.environ.get("AGENT_MAX_BUYS", "60"))   # every buy-ready stock goes to the auto-trader (it skips funds itself)
 WORKERS = int(os.environ.get("AGENT_WORKERS", "8"))
 HORIZON = 5
 LOG_KEEP = 3000
@@ -679,7 +679,10 @@ def run(portfolio, previous, watchlist, tm_cache=None):
 
     # Prediction log: holdings, top buys and 3-green stocks
     log = [score_prediction(p, daily.get(p["symbol"], [])) if "hit" not in p else p for p in previous.get("log", [])]
-    detailed = [r for r in rows.values() if r["held"] or r["watch"] or r in top or r["signal"] == "watch"][:80]
+    top_ids = {id(r) for r in top}
+    first = [r for r in rows.values() if r["held"] or r["watch"] or id(r) in top_ids]   # never cut off by the 80 limit
+    first_ids = {id(r) for r in first}
+    detailed = (first + [r for r in rows.values() if r["signal"] == "watch" and id(r) not in first_ids])[:max(80, len(first))]
     seen = {(p["symbol"], p["made_on"]) for p in log}
     for r in detailed:
         p = r["pred"]
