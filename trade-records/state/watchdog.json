@@ -8,26 +8,26 @@
   "low": 5.0,
   "high": 5.0
  },
- "checks": 132,
+ "checks": 143,
  "actions_today": [],
- "generated_at": "2026-10-27T18:16:03+00:00",
- "minutes_to_close": 104,
+ "generated_at": "2026-10-27T18:27:03+00:00",
+ "minutes_to_close": 93,
  "groups": [
   {
    "symbol": "SHEL",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "down 1.7% today"
+    "down 1.9% today"
    ],
-   "price": 105.04,
+   "price": 104.93,
    "entry": 104.93,
    "highest": 105.06,
    "line": 99.81,
    "line_pct": 5.0,
-   "plpc": 0.1,
-   "day_pct": -1.75,
-   "to_line_pct": 5.24
+   "plpc": 0.0,
+   "day_pct": -1.85,
+   "to_line_pct": 5.13
   },
   {
    "symbol": "TMO",
@@ -35,16 +35,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.6% a day)",
-    "+0.5% from the buy price"
+    "+0.3% from the buy price"
    ],
-   "price": 698.255,
+   "price": 697.16,
    "entry": 694.93,
    "highest": 698.645,
    "line": 663.71,
    "line_pct": 5.0,
-   "plpc": 0.48,
-   "day_pct": 1.95,
-   "to_line_pct": 5.2
+   "plpc": 0.32,
+   "day_pct": 1.79,
+   "to_line_pct": 5.04
   }
  ],
  "counts": {
