@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-28T19:13:47+00:00",
- "next_check": "2026-10-28T20:13:47+00:00",
- "overall": "alert",
+ "generated_at": "2026-10-28T21:47:55+00:00",
+ "next_check": "2026-10-28T22:47:55+00:00",
+ "overall": "warn",
  "supervisors": [
   {
    "name": "Data watch",
@@ -29,15 +29,15 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,189 \u2192 5,000 \u2192 500 \u2192 3 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,189 \u2192 5,000 \u2192 500 \u2192 27 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "94% of stocks pass 'data is real'."
+     "text": "87% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
-     "text": "Time machine judged the shortlist: 162 of 504 have a green past."
+     "text": "Time machine judged the shortlist: 158 of 500 have a green past."
     }
    ]
   },
@@ -56,11 +56,7 @@
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 29 position(s)."
-    },
-    {
-     "status": "ok",
-     "text": "29 position(s), 29 open order(s), no stop-loss missed."
+     "text": "0 position(s), 0 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +67,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 45 order(s) recorded."
+     "text": "Journal complete: 74 order(s) recorded."
     },
     {
      "status": "ok",
@@ -86,15 +82,11 @@
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "alert",
+   "status": "ok",
    "checks": [
     {
      "status": "ok",
-     "text": "31 run(s) in the last 3 hours, none failed, longest gap 7 min."
-    },
-    {
-     "status": "alert",
-     "text": "The every-minute watchdog hasn't reported for 174 minutes while the market is open. Held stocks are only checked every 5 minutes."
+     "text": "13 run(s) in the last 3 hours, none failed, longest gap 114 min."
     }
    ]
   }
@@ -104,11 +96,6 @@
    "level": "warn",
    "supervisor": "Trade watch",
    "text": "Safety switch OFF by your setting: buying although the 6-month replay returned -13.95%."
-  },
-  {
-   "level": "alert",
-   "supervisor": "Schedule watch",
-   "text": "The every-minute watchdog hasn't reported for 174 minutes while the market is open. Held stocks are only checked every 5 minutes."
   }
  ]
 }
