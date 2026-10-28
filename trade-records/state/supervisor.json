@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-28T14:23:32+00:00",
- "next_check": "2026-10-28T15:23:32+00:00",
+ "generated_at": "2026-10-28T15:21:48+00:00",
+ "next_check": "2026-10-28T16:21:48+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (0 min old)."
+     "text": "Portfolio snapshot is fresh (1 min old)."
     }
    ]
   },
@@ -25,15 +25,15 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 0 min ago."
+     "text": "Agent ran 1 min ago."
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,189 \u2192 5,000 \u2192 500 \u2192 17 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,189 \u2192 5,000 \u2192 500 \u2192 3 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "95% of stocks pass 'data is real'."
+     "text": "94% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -52,15 +52,15 @@
     },
     {
      "status": "warn",
-     "text": "Safety switch OFF by your setting: buying although the 6-month replay returned -11.11%."
+     "text": "Safety switch OFF by your setting: buying although the 6-month replay returned -13.95%."
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 12 position(s)."
+     "text": "Alpaca stop orders at \u22125% protect 26 position(s)."
     },
     {
      "status": "ok",
-     "text": "12 position(s), 12 open order(s), no stop-loss missed."
+     "text": "26 position(s), 26 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 18 order(s) recorded."
+     "text": "Journal complete: 36 order(s) recorded."
     },
     {
      "status": "ok",
@@ -79,26 +79,22 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 0.8 MB of 1 GB."
+     "text": "Repository storage 1.0 MB of 1 GB."
     }
    ]
   },
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "warn",
+   "status": "ok",
    "checks": [
     {
-     "status": "warn",
-     "text": "GitHub left a 111-minute gap between runs while the market was open. Exits can only act when a run happens."
+     "status": "ok",
+     "text": "22 run(s) in the last 3 hours, none failed, longest gap 7 min."
     },
     {
      "status": "ok",
-     "text": "12 run(s) in the last 3 hours, none failed, longest gap 111 min."
-    },
-    {
-     "status": "ok",
-     "text": "Every-minute watchdog alive: 44 checks today, last saved 11 min ago."
+     "text": "Every-minute watchdog alive: 109 checks today, last saved 4 min ago."
     }
    ]
   }
@@ -107,12 +103,7 @@
   {
    "level": "warn",
    "supervisor": "Trade watch",
-   "text": "Safety switch OFF by your setting: buying although the 6-month replay returned -11.11%."
-  },
-  {
-   "level": "warn",
-   "supervisor": "Schedule watch",
-   "text": "GitHub left a 111-minute gap between runs while the market was open. Exits can only act when a run happens."
+   "text": "Safety switch OFF by your setting: buying although the 6-month replay returned -13.95%."
   }
  ]
 }
