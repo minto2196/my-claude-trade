@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-28T11:34:12+00:00",
- "next_check": "2026-10-28T12:34:12+00:00",
+ "generated_at": "2026-10-28T13:25:26+00:00",
+ "next_check": "2026-10-28T14:25:26+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -29,11 +29,11 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,189 \u2192 5,000 \u2192 500 \u2192 22 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,194 \u2192 5,000 \u2192 500 \u2192 23 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "93% of stocks pass 'data is real'."
+     "text": "85% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -86,7 +86,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "2 run(s) in the last 3 hours, none failed, longest gap 96 min."
+     "text": "2 run(s) in the last 3 hours, none failed, longest gap 112 min."
     }
    ]
   }
