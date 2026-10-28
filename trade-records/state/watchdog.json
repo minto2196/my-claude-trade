@@ -8,9 +8,55 @@
   "low": 5.0,
   "high": 5.0
  },
- "checks": 0,
+ "checks": 11,
  "actions_today": [],
- "state": "sleeping",
+ "state": "watching",
  "next_open": "2026-10-28T09:30:00-04:00",
- "generated_at": "2026-10-28T10:30:56+00:00"
+ "generated_at": "2026-10-28T13:40:03+00:00",
+ "minutes_to_close": 380,
+ "groups": [
+  {
+   "symbol": "SHEL",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "4 of 5 green"
+   ],
+   "price": 105.4,
+   "entry": 105.0,
+   "highest": 105.4,
+   "line": 100.13,
+   "line_pct": 5.0,
+   "plpc": 0.38,
+   "day_pct": 0.59,
+   "to_line_pct": 5.26
+  },
+  {
+   "symbol": "TMO",
+   "group": "safe",
+   "label": "Safe",
+   "reasons": [
+    "5 of 5 green, calm (\u00b11.6% a day)",
+    "+0.5% from the buy price"
+   ],
+   "price": 701.4625,
+   "entry": 698.1934,
+   "highest": 701.4625,
+   "line": 666.39,
+   "line_pct": 5.0,
+   "plpc": 0.47,
+   "day_pct": 1.22,
+   "to_line_pct": 5.26
+  }
+ ],
+ "counts": {
+  "safe": 1,
+  "low": 1,
+  "high": 0
+ },
+ "error": null,
+ "peaks": {
+  "SHEL": 105.4,
+  "TMO": 701.4625
+ }
 }
