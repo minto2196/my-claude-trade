@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-28T15:21:48+00:00",
- "next_check": "2026-10-28T16:21:48+00:00",
+ "generated_at": "2026-10-28T16:19:31+00:00",
+ "next_check": "2026-10-28T17:19:31+00:00",
  "overall": "warn",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -25,15 +25,15 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 1 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,189 \u2192 5,000 \u2192 500 \u2192 3 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,189 \u2192 5,000 \u2192 500 \u2192 4 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "94% of stocks pass 'data is real'."
+     "text": "95% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -56,11 +56,11 @@
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 26 position(s)."
+     "text": "Alpaca stop orders at \u22125% protect 28 position(s)."
     },
     {
      "status": "ok",
-     "text": "26 position(s), 26 open order(s), no stop-loss missed."
+     "text": "28 position(s), 28 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 36 order(s) recorded."
+     "text": "Journal complete: 40 order(s) recorded."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 1.0 MB of 1 GB."
+     "text": "Repository storage 1.1 MB of 1 GB."
     }
    ]
   },
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "22 run(s) in the last 3 hours, none failed, longest gap 7 min."
+     "text": "32 run(s) in the last 3 hours, none failed, longest gap 6 min."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 109 checks today, last saved 4 min ago."
+     "text": "Every-minute watchdog alive: 162 checks today, last saved 9 min ago."
     }
    ]
   }
