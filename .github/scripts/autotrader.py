@@ -81,8 +81,11 @@ FLATTEN_MINUTES = float(os.environ.get("AUTOTRADE_FLATTEN_MINUTES", "30") or 30)
 KEEP_OVERNIGHT_PCT = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "5") or 5)   # evening: keep only positions up this much
 SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33)                    # each buy = this % of ...
 # ... the whole account (equity: 12 equal slots of 8.33% use all the money) or of the cash still left (cash)
-SLOT_OF = "cash" if os.environ.get("AUTOTRADE_SLOT_OF", "account").strip().lower() == "cash" else "account"
-MAX_POSITIONS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "12") or 12))
+# split (default): each run the free cash is split into AUTOTRADE_SLOTS (12) equal parts of SLOT_PCT, one per new
+# stock, so the money from one sale buys 12 new companies; account: SLOT_PCT of the whole account per stock;
+# cash: SLOT_PCT of the cash still left, again and again
+SLOT_OF = {"cash": "cash", "account": "account"}.get(os.environ.get("AUTOTRADE_SLOT_OF", "split").strip().lower(), "split")
+MAX_POSITIONS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "100") or 100))
 MIN_ORDER = float(os.environ.get("AUTOTRADE_MIN_ORDER", "5") or 5)
 BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)        # 5 = buy only 5/5 green
 DAILY_LOSS_PCT = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5)
@@ -503,6 +506,9 @@ def run(agent, previous, backtest=None):
                                     f"3 per 5 days. Buying at most {budget} today.")
             free = min(free, budget)
         spend = cash
+        cash_at_start = cash
+        if SLOT_OF == "split":
+            free = min(free, SLOTS)              # at most 12 new stocks per run, each 1/12 of the free cash
         candidates = [s for s in agent.get("symbols", []) if s.get("signal") == "buy" and (s.get("greens") or 0) >= BUY_MIN_GREENS]
         candidates.sort(key=lambda s: s.get("rank") or 999)
         bought = 0
@@ -521,15 +527,16 @@ def run(agent, previous, backtest=None):
             if not ALLOW_ETF and FUND_WORDS.search(asset.get("name") or ""):
                 out["notes"].append(f"Skipped {sym}: looks like a fund ({asset.get('name')}).")
                 continue
-            base = equity if SLOT_OF == "account" else spend
+            base = {"account": equity, "split": cash_at_start}.get(SLOT_OF, spend)
+            what = {"account": "account", "split": "free cash split 12 ways"}.get(SLOT_OF, "cash left")
             amount = math.floor(min(base * SLOT_PCT / 100, spend) * 100) / 100
             if amount < MIN_ORDER:
-                out["notes"].append(f"Next order would be ${amount:.2f} ({SLOT_PCT:g}% of the {'account' if SLOT_OF == 'account' else 'cash left'}, "
+                out["notes"].append(f"Next order would be ${amount:.2f} ({SLOT_PCT:g}% of the {what}, "
                                     f"${spend:,.2f} cash left), under the ${MIN_ORDER:g} minimum. Stopped buying.")
                 break
             if asset.get("fractionable"):
                 act = place(sym, "buy", f"{c.get('greens')} of 5 green, time machine green, rank #{c.get('rank')}, "
-                                        f"{SLOT_PCT:g}% of the ${base:,.2f} {'account' if SLOT_OF == 'account' else 'cash left'}", notional=amount, rule="4+/5 green", asset=asset)
+                                        f"{SLOT_PCT:g}% of the ${base:,.2f} {what}", notional=amount, rule="4+/5 green", asset=asset)
             else:
                 price = num(c.get("price"))
                 shares = math.floor(amount / price) if price else 0

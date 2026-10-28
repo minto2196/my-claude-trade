@@ -45,7 +45,7 @@ TAKE = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0) / 100      #
 FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"
 KEEP = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "5") or 5) / 100
 SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33) / 100
-MAX_POS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "12") or 12))
+MAX_POS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "100") or 100))
 BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)
 BAD_DAY = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3) / 100
 DAILY_LOSS = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5) / 100
@@ -219,11 +219,14 @@ def run_sim(data, dates, statuses, spy_by, t0):
     for di, day in enumerate(dates):
         # 1. morning: buy yesterday's picks, each SLOT_PCT of the account at the open (or of the cash still left)
         equity_open = cash + sum(p["qty"] * (bar(s, day) or {"o": p["entry"]})["o"] for s, p in pos.items())
+        cash_open, new_today = cash, 0
         for s in picks:
-            if s in pos or len(pos) >= MAX_POS:
+            if s in pos or len(pos) >= MAX_POS or (AT.SLOT_OF == "split" and new_today >= SLOTS):
                 continue
             b = bar(s, day)
-            amt = min(equity_open * SLOT_PCT, cash) if AT.SLOT_OF == "account" else cash * SLOT_PCT
+            amt = {"account": min(equity_open * SLOT_PCT, cash), "split": min(cash_open * SLOT_PCT, cash)}.get(AT.SLOT_OF, cash * SLOT_PCT)
+            if b and amt >= 1:
+                new_today += 1
             if not b or amt < 1:
                 continue
             entry = b["o"] * (1 + SLIP)
