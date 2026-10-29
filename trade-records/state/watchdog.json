@@ -8,12 +8,12 @@
   "low": 5.0,
   "high": 5.0
  },
- "checks": 262,
+ "checks": 273,
  "actions_today": [],
  "state": "watching",
  "next_open": "2026-10-29T09:30:00-04:00",
- "generated_at": "2026-10-29T17:51:02+00:00",
- "minutes_to_close": 129,
+ "generated_at": "2026-10-29T18:02:00+00:00",
+ "minutes_to_close": 118,
  "groups": [
   {
    "symbol": "ACN",
@@ -22,14 +22,14 @@
    "reasons": [
     "only 3 of 5 green"
    ],
-   "price": 246.115,
+   "price": 245.915,
    "entry": 243.84,
    "highest": 246.24,
    "line": 233.93,
    "line_pct": 5.0,
-   "plpc": 0.93,
-   "day_pct": 1.11,
-   "to_line_pct": 5.21
+   "plpc": 0.85,
+   "day_pct": 1.03,
+   "to_line_pct": 5.12
   },
   {
    "symbol": "DT",
@@ -38,30 +38,14 @@
    "reasons": [
     "down 3.0% today"
    ],
-   "price": 60.915,
+   "price": 60.94,
    "entry": 60.75,
    "highest": 61.16,
    "line": 58.1,
    "line_pct": 5.0,
-   "plpc": 0.27,
-   "day_pct": -3.02,
-   "to_line_pct": 4.85
-  },
-  {
-   "symbol": "EBAY",
-   "group": "high",
-   "label": "High risk",
-   "reasons": [
-    "only 3 of 5 green"
-   ],
-   "price": 120.89,
-   "entry": 121.4,
-   "highest": 121.555,
-   "line": 115.48,
-   "line_pct": 5.0,
-   "plpc": -0.42,
-   "day_pct": 2.43,
-   "to_line_pct": 4.68
+   "plpc": 0.31,
+   "day_pct": -2.98,
+   "to_line_pct": 4.89
   },
   {
    "symbol": "MA",
@@ -71,14 +55,14 @@
     "a red check: news",
     "only 3 of 5 green"
    ],
-   "price": 635.71,
+   "price": 635.195,
    "entry": 639.3697,
    "highest": 640.66,
    "line": 608.63,
    "line_pct": 5.0,
-   "plpc": -0.57,
-   "day_pct": 4.16,
-   "to_line_pct": 4.45
+   "plpc": -0.65,
+   "day_pct": 4.08,
+   "to_line_pct": 4.36
   },
   {
    "symbol": "XOM",
@@ -87,94 +71,95 @@
    "reasons": [
     "only 3 of 5 green"
    ],
-   "price": 182.17,
+   "price": 182.4665,
    "entry": 181.72,
-   "highest": 182.435,
-   "line": 173.31,
+   "highest": 182.485,
+   "line": 173.36,
    "line_pct": 5.0,
-   "plpc": 0.25,
-   "day_pct": 0.08,
-   "to_line_pct": 5.11
+   "plpc": 0.41,
+   "day_pct": 0.24,
+   "to_line_pct": 5.25
   },
   {
    "symbol": "ABBV",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.6% from the buy price"
+    "-0.5% from the buy price"
    ],
-   "price": 288.52,
+   "price": 288.88,
    "entry": 290.24,
    "highest": 290.55,
    "line": 276.02,
    "line_pct": 5.0,
-   "plpc": -0.59,
-   "day_pct": 0.89,
-   "to_line_pct": 4.53
+   "plpc": -0.47,
+   "day_pct": 1.01,
+   "to_line_pct": 4.66
   },
   {
    "symbol": "ADI",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.0% from the buy price"
+    "-0.4% from the buy price"
    ],
-   "price": 427.165,
+   "price": 425.51,
    "entry": 427.1914,
    "highest": 431.54,
    "line": 409.96,
    "line_pct": 5.0,
-   "plpc": -0.01,
-   "day_pct": -0.26,
-   "to_line_pct": 4.2
+   "plpc": -0.39,
+   "day_pct": -0.64,
+   "to_line_pct": 3.79
   },
   {
    "symbol": "ADP",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-1.0% from the buy price"
+    "-0.8% from the buy price"
    ],
-   "price": 286.02,
+   "price": 286.59,
    "entry": 288.99,
    "highest": 289.635,
    "line": 275.15,
    "line_pct": 5.0,
-   "plpc": -1.03,
-   "day_pct": 0.23,
-   "to_line_pct": 3.95
-  },
-  {
-   "symbol": "AVTR",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "4 of 5 green"
-   ],
-   "price": 16.595,
-   "entry": 16.49,
-   "highest": 16.725,
-   "line": 15.89,
-   "line_pct": 5.0,
-   "plpc": 0.64,
-   "day_pct": -0.57,
-   "to_line_pct": 4.44
+   "plpc": -0.83,
+   "day_pct": 0.43,
+   "to_line_pct": 4.16
   },
   {
    "symbol": "DUK",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.3% from the buy price"
+    "-0.2% from the buy price"
    ],
-   "price": 125.37,
+   "price": 125.545,
    "entry": 125.74,
    "highest": 125.765,
    "line": 119.48,
    "line_pct": 5.0,
-   "plpc": -0.29,
-   "day_pct": 1.46,
-   "to_line_pct": 4.93
+   "plpc": -0.16,
+   "day_pct": 1.6,
+   "to_line_pct": 5.08
+  },
+  {
+   "symbol": "EBAY",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "4 of 5 green",
+    "-0.2% from the buy price"
+   ],
+   "price": 121.2,
+   "entry": 121.4,
+   "highest": 121.555,
+   "line": 115.48,
+   "line_pct": 5.0,
+   "plpc": -0.16,
+   "day_pct": 2.69,
+   "to_line_pct": 4.95
   },
   {
    "symbol": "EQNR",
@@ -183,14 +168,14 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 47.31,
+   "price": 47.415,
    "entry": 47.09,
-   "highest": 47.35,
-   "line": 44.98,
+   "highest": 47.415,
+   "line": 45.04,
    "line_pct": 5.0,
-   "plpc": 0.47,
-   "day_pct": -0.73,
-   "to_line_pct": 5.18
+   "plpc": 0.69,
+   "day_pct": -0.51,
+   "to_line_pct": 5.27
   },
   {
    "symbol": "IQV",
@@ -198,32 +183,16 @@
    "label": "Low risk",
    "reasons": [
     "-0.9% from the buy price",
-    "down 1.4% today"
+    "down 1.5% today"
    ],
-   "price": 275.04,
+   "price": 274.935,
    "entry": 277.5,
    "highest": 278.41,
    "line": 264.49,
    "line_pct": 5.0,
-   "plpc": -0.89,
-   "day_pct": -1.43,
-   "to_line_pct": 3.99
-  },
-  {
-   "symbol": "ISRG",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.0% from the buy price"
-   ],
-   "price": 447.59,
-   "entry": 447.6074,
-   "highest": 448.79,
-   "line": 426.35,
-   "line_pct": 5.0,
-   "plpc": -0.0,
-   "day_pct": 0.77,
-   "to_line_pct": 4.98
+   "plpc": -0.92,
+   "day_pct": -1.47,
+   "to_line_pct": 3.95
   },
   {
    "symbol": "LIN",
@@ -234,30 +203,31 @@
     "-0.2% from the buy price",
     "down 1.5% today"
    ],
-   "price": 500.39,
+   "price": 500.465,
    "entry": 501.46,
    "highest": 502.8,
    "line": 477.66,
    "line_pct": 5.0,
-   "plpc": -0.21,
-   "day_pct": -1.53,
-   "to_line_pct": 4.76
+   "plpc": -0.2,
+   "day_pct": -1.51,
+   "to_line_pct": 4.77
   },
   {
    "symbol": "MCK",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.9% from the buy price"
+    "4 of 5 green",
+    "-0.8% from the buy price"
    ],
-   "price": 966.53,
+   "price": 967.145,
    "entry": 975.3515,
    "highest": 978.0,
    "line": 929.1,
    "line_pct": 5.0,
-   "plpc": -0.9,
-   "day_pct": 0.62,
-   "to_line_pct": 4.03
+   "plpc": -0.84,
+   "day_pct": 0.69,
+   "to_line_pct": 4.09
   },
   {
    "symbol": "NTRA",
@@ -266,7 +236,7 @@
    "reasons": [
     "swings \u00b13.5% a day"
    ],
-   "price": 429.65,
+   "price": 429.66,
    "entry": 424.8449,
    "highest": 431.645,
    "line": 410.06,
@@ -282,14 +252,14 @@
    "reasons": [
     "-0.5% from the buy price"
    ],
-   "price": 62.725,
+   "price": 62.745,
    "entry": 63.05,
    "highest": 63.33,
    "line": 60.16,
    "line_pct": 5.0,
-   "plpc": -0.52,
-   "day_pct": -0.21,
-   "to_line_pct": 4.26
+   "plpc": -0.48,
+   "day_pct": -0.18,
+   "to_line_pct": 4.3
   },
   {
    "symbol": "SHEL",
@@ -298,14 +268,14 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 107.52,
+   "price": 107.64,
    "entry": 107.49,
    "highest": 108.26,
    "line": 102.85,
    "line_pct": 5.0,
-   "plpc": 0.03,
-   "day_pct": 2.21,
-   "to_line_pct": 4.54
+   "plpc": 0.14,
+   "day_pct": 2.33,
+   "to_line_pct": 4.66
   },
   {
    "symbol": "VEEV",
@@ -315,14 +285,31 @@
     "swings \u00b12.8% a day",
     "down 1.9% today"
    ],
-   "price": 311.92,
+   "price": 311.81,
    "entry": 311.71,
    "highest": 313.675,
    "line": 297.99,
    "line_pct": 5.0,
-   "plpc": 0.07,
-   "day_pct": -1.86,
-   "to_line_pct": 4.67
+   "plpc": 0.03,
+   "day_pct": -1.89,
+   "to_line_pct": 4.64
+  },
+  {
+   "symbol": "ISRG",
+   "group": "safe",
+   "label": "Safe",
+   "reasons": [
+    "5 of 5 green, calm (\u00b11.8% a day)",
+    "+0.0% from the buy price"
+   ],
+   "price": 447.63,
+   "entry": 447.6074,
+   "highest": 448.79,
+   "line": 426.35,
+   "line_pct": 5.0,
+   "plpc": 0.01,
+   "day_pct": 0.78,
+   "to_line_pct": 4.99
   },
   {
    "symbol": "KR",
@@ -330,16 +317,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.8% a day)",
-    "+0.4% from the buy price"
+    "+0.6% from the buy price"
    ],
-   "price": 65.72,
+   "price": 65.845,
    "entry": 65.48,
-   "highest": 65.82,
-   "line": 62.53,
+   "highest": 65.86,
+   "line": 62.57,
    "line_pct": 5.0,
-   "plpc": 0.37,
-   "day_pct": 1.08,
-   "to_line_pct": 5.1
+   "plpc": 0.56,
+   "day_pct": 1.27,
+   "to_line_pct": 5.23
   },
   {
    "symbol": "REGN",
@@ -347,16 +334,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.7% a day)",
-    "+0.0% from the buy price"
+    "+0.1% from the buy price"
    ],
-   "price": 813.055,
+   "price": 813.64,
    "entry": 812.87,
-   "highest": 813.055,
-   "line": 772.4,
+   "highest": 813.925,
+   "line": 773.23,
    "line_pct": 5.0,
-   "plpc": 0.02,
-   "day_pct": -0.03,
-   "to_line_pct": 5.26
+   "plpc": 0.09,
+   "day_pct": 0.04,
+   "to_line_pct": 5.23
   },
   {
    "symbol": "SO",
@@ -364,39 +351,22 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.1% a day)",
-    "+0.0% from the buy price"
-   ],
-   "price": 93.005,
-   "entry": 92.97,
-   "highest": 93.11,
-   "line": 88.45,
-   "line_pct": 5.0,
-   "plpc": 0.04,
-   "day_pct": 1.62,
-   "to_line_pct": 5.15
-  },
-  {
-   "symbol": "TMO",
-   "group": "safe",
-   "label": "Safe",
-   "reasons": [
-    "5 of 5 green, calm (\u00b11.6% a day)",
     "+0.2% from the buy price"
    ],
-   "price": 705.54,
-   "entry": 704.2023,
-   "highest": 711.8545,
-   "line": 676.26,
+   "price": 93.125,
+   "entry": 92.97,
+   "highest": 93.13,
+   "line": 88.47,
    "line_pct": 5.0,
-   "plpc": 0.19,
-   "day_pct": 0.2,
-   "to_line_pct": 4.33
+   "plpc": 0.17,
+   "day_pct": 1.75,
+   "to_line_pct": 5.26
   }
  ],
  "counts": {
   "safe": 4,
-  "low": 14,
-  "high": 5
+  "low": 13,
+  "high": 4
  },
  "error": null,
  "peaks": {
@@ -414,19 +384,19 @@
   "ISRG": 448.79,
   "ABBV": 290.55,
   "DT": 61.16,
-  "EQNR": 47.35,
+  "EQNR": 47.415,
   "ILMN": 293.17,
-  "KR": 65.82,
+  "KR": 65.86,
   "SHEL": 108.26,
   "ACN": 246.24,
   "AVTR": 16.725,
   "DUK": 125.765,
   "LIN": 502.8,
   "VEEV": 313.675,
-  "XOM": 182.435,
+  "XOM": 182.485,
   "EQT": 55.14,
-  "SO": 93.11,
+  "SO": 93.13,
   "EBAY": 121.555,
-  "REGN": 813.055
+  "REGN": 813.925
  }
 }
