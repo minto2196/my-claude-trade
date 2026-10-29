@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-29T15:22:43+00:00",
- "next_check": "2026-10-29T16:22:43+00:00",
- "overall": "warn",
+ "generated_at": "2026-10-29T16:20:49+00:00",
+ "next_check": "2026-10-29T17:20:49+00:00",
+ "overall": "ok",
  "supervisors": [
   {
    "name": "Data watch",
@@ -25,11 +25,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 0 min ago."
+     "text": "Agent ran 1 min ago."
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,214 \u2192 5,000 \u2192 500 \u2192 4 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,214 \u2192 5,000 \u2192 500 \u2192 2 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -44,23 +44,23 @@
   {
    "name": "Trade watch",
    "role": "Auto-trader rules, positions and orders",
-   "status": "warn",
+   "status": "ok",
    "checks": [
     {
      "status": "ok",
      "text": "Auto-trader switch is ON on a paper account."
     },
     {
-     "status": "warn",
-     "text": "Safety switch OFF by your setting: buying although the 6-month replay returned -13.95%."
+     "status": "ok",
+     "text": "Master switch ON: the 6-month replay returned 28.93% (S&P 500 7.41%), max drop 5.82%."
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 23 position(s)."
+     "text": "Alpaca stop orders at \u22125% protect 24 position(s)."
     },
     {
      "status": "ok",
-     "text": "23 position(s), 23 open order(s), no stop-loss missed."
+     "text": "24 position(s), 24 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 99 order(s) recorded."
+     "text": "Journal complete: 105 order(s) recorded."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 1.7 MB of 1 GB."
+     "text": "Repository storage 2.0 MB of 1 GB."
     }
    ]
   },
@@ -90,20 +90,14 @@
    "checks": [
     {
      "status": "ok",
-     "text": "22 run(s) in the last 3 hours, none failed, longest gap 7 min."
+     "text": "32 run(s) in the last 3 hours, none failed, longest gap 8 min."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 109 checks today, last saved 5 min ago."
+     "text": "Every-minute watchdog alive: 164 checks today, last saved 8 min ago."
     }
    ]
   }
  ],
- "comments": [
-  {
-   "level": "warn",
-   "supervisor": "Trade watch",
-   "text": "Safety switch OFF by your setting: buying although the 6-month replay returned -13.95%."
-  }
- ]
+ "comments": []
 }
