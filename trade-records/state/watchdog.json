@@ -8,9 +8,215 @@
   "low": 5.0,
   "high": 5.0
  },
- "checks": 0,
+ "checks": 11,
  "actions_today": [],
- "state": "sleeping",
+ "state": "watching",
  "next_open": "2026-10-29T09:30:00-04:00",
- "generated_at": "2026-10-29T13:16:16+00:00"
+ "generated_at": "2026-10-29T13:40:02+00:00",
+ "minutes_to_close": 380,
+ "groups": [
+  {
+   "symbol": "LLY",
+   "group": "high",
+   "label": "High risk",
+   "reasons": [
+    "a red check: news",
+    "only 3 of 5 green"
+   ],
+   "price": 1402.97,
+   "entry": 1382.8815,
+   "highest": 1402.97,
+   "line": 1332.82,
+   "line_pct": 5.0,
+   "plpc": 1.45,
+   "day_pct": 8.9,
+   "to_line_pct": 5.26
+  },
+  {
+   "symbol": "MA",
+   "group": "high",
+   "label": "High risk",
+   "reasons": [
+    "a red check: news",
+    "only 3 of 5 green"
+   ],
+   "price": 636.12,
+   "entry": 639.3697,
+   "highest": 639.5889,
+   "line": 607.61,
+   "line_pct": 5.0,
+   "plpc": -0.51,
+   "day_pct": 4.23,
+   "to_line_pct": 4.69
+  },
+  {
+   "symbol": "ADI",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.4% from the buy price"
+   ],
+   "price": 425.53,
+   "entry": 427.1914,
+   "highest": 428.62,
+   "line": 407.19,
+   "line_pct": 5.0,
+   "plpc": -0.39,
+   "day_pct": -0.64,
+   "to_line_pct": 4.5
+  },
+  {
+   "symbol": "ADP",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "4 of 5 green",
+    "-0.7% from the buy price"
+   ],
+   "price": 286.87,
+   "entry": 288.99,
+   "highest": 288.99,
+   "line": 274.54,
+   "line_pct": 5.0,
+   "plpc": -0.73,
+   "day_pct": 0.53,
+   "to_line_pct": 4.49
+  },
+  {
+   "symbol": "IQV",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "4 of 5 green",
+    "-0.5% from the buy price",
+    "down 1.0% today"
+   ],
+   "price": 276.19,
+   "entry": 277.5,
+   "highest": 277.5,
+   "line": 263.62,
+   "line_pct": 5.0,
+   "plpc": -0.47,
+   "day_pct": -1.02,
+   "to_line_pct": 4.77
+  },
+  {
+   "symbol": "MCK",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.8% from the buy price"
+   ],
+   "price": 967.25,
+   "entry": 975.3515,
+   "highest": 978.0,
+   "line": 929.1,
+   "line_pct": 5.0,
+   "plpc": -0.83,
+   "day_pct": 0.7,
+   "to_line_pct": 4.11
+  },
+  {
+   "symbol": "MPC",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.9% from the buy price"
+   ],
+   "price": 438.97,
+   "entry": 442.8395,
+   "highest": 442.8395,
+   "line": 420.7,
+   "line_pct": 5.0,
+   "plpc": -0.87,
+   "day_pct": -0.41,
+   "to_line_pct": 4.34
+  },
+  {
+   "symbol": "NTRA",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "swings \u00b13.5% a day",
+    "-0.1% from the buy price"
+   ],
+   "price": 424.5,
+   "entry": 424.8449,
+   "highest": 427.305,
+   "line": 405.94,
+   "line_pct": 5.0,
+   "plpc": -0.08,
+   "day_pct": 0.02,
+   "to_line_pct": 4.57
+  },
+  {
+   "symbol": "TMO",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.3% from the buy price"
+   ],
+   "price": 702.03,
+   "entry": 704.2023,
+   "highest": 704.5,
+   "line": 669.27,
+   "line_pct": 5.0,
+   "plpc": -0.31,
+   "day_pct": -0.3,
+   "to_line_pct": 4.89
+  },
+  {
+   "symbol": "WTW",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.6% from the buy price",
+    "down 1.1% today"
+   ],
+   "price": 318.16,
+   "entry": 320.0342,
+   "highest": 321.57,
+   "line": 305.49,
+   "line_pct": 5.0,
+   "plpc": -0.59,
+   "day_pct": -1.08,
+   "to_line_pct": 4.15
+  },
+  {
+   "symbol": "OXY",
+   "group": "safe",
+   "label": "Safe",
+   "reasons": [
+    "5 of 5 green, calm (\u00b11.9% a day)",
+    "+0.0% from the buy price"
+   ],
+   "price": 63.05,
+   "entry": 63.05,
+   "highest": 63.33,
+   "line": 60.16,
+   "line_pct": 5.0,
+   "plpc": 0.0,
+   "day_pct": 0.3,
+   "to_line_pct": 4.8
+  }
+ ],
+ "counts": {
+  "safe": 1,
+  "low": 8,
+  "high": 2
+ },
+ "error": null,
+ "peaks": {
+  "OXY": 63.33,
+  "ADI": 428.62,
+  "ADP": 288.99,
+  "IQV": 277.5,
+  "LLY": 1402.97,
+  "MA": 639.588889,
+  "MCK": 978.0,
+  "MPC": 442.839476,
+  "NTRA": 427.305,
+  "TMO": 704.5,
+  "WTW": 321.57
+ }
 }
