@@ -39,20 +39,21 @@ jobs:
       AGENT_BUY_NEEDS_PREDICTION: ${{ vars.AGENT_BUY_NEEDS_PREDICTION || 'true' }}
       AUTOTRADE_STOP_LOSS_PCT: ${{ vars.AUTOTRADE_STOP_LOSS_PCT || '5' }}
       AUTOTRADE_TAKE_PROFIT_PCT: ${{ vars.AUTOTRADE_TAKE_PROFIT_PCT || '0' }}
-      AUTOTRADE_TRAIL_ARM_PCT: ${{ vars.AUTOTRADE_TRAIL_ARM_PCT || '0' }}
+      AUTOTRADE_TRAIL_ARM_PCT: ${{ vars.AUTOTRADE_TRAIL_ARM_PCT || '1' }}
       AUTOTRADE_TRAIL_PCT: ${{ vars.AUTOTRADE_TRAIL_PCT || '5' }}
       AUTOTRADE_FLATTEN: ${{ vars.AUTOTRADE_FLATTEN || 'true' }}
       AUTOTRADE_FLATTEN_MINUTES: ${{ vars.AUTOTRADE_FLATTEN_MINUTES || '30' }}
       AUTOTRADE_KEEP_OVERNIGHT_PCT: ${{ vars.AUTOTRADE_KEEP_OVERNIGHT_PCT || '5' }}
-      AUTOTRADE_LINE_SAFE_PCT: ${{ vars.AUTOTRADE_LINE_SAFE_PCT || '5' }}
-      AUTOTRADE_LINE_LOW_PCT: ${{ vars.AUTOTRADE_LINE_LOW_PCT || '5' }}
-      AUTOTRADE_LINE_HIGH_PCT: ${{ vars.AUTOTRADE_LINE_HIGH_PCT || '5' }}
+      AUTOTRADE_LINE_SAFE_PCT: ${{ vars.AUTOTRADE_LINE_SAFE_PCT || '1' }}
+      AUTOTRADE_LINE_LOW_PCT: ${{ vars.AUTOTRADE_LINE_LOW_PCT || '1' }}
+      AUTOTRADE_LINE_HIGH_PCT: ${{ vars.AUTOTRADE_LINE_HIGH_PCT || '1' }}
       AUTOTRADE_SLOT_PCT: ${{ vars.AUTOTRADE_SLOT_PCT || '8.33' }}
       AUTOTRADE_SLOT_OF: ${{ vars.AUTOTRADE_SLOT_OF || 'split' }}   # split = free cash into 12 new stocks | account | cash
       AUTOTRADE_MAX_POSITIONS: ${{ vars.AUTOTRADE_MAX_POSITIONS || '100' }}
       AUTOTRADE_MIN_ORDER: ${{ vars.AUTOTRADE_MIN_ORDER || '5' }}
       AUTOTRADE_BAD_DAY_PCT: ${{ vars.AUTOTRADE_BAD_DAY_PCT || '3' }}
       AUTOTRADE_DAILY_LOSS_PCT: ${{ vars.AUTOTRADE_DAILY_LOSS_PCT || '5' }}
+      AUTOTRADE_DAILY_TARGET_PCT: ${{ vars.AUTOTRADE_DAILY_TARGET_PCT || '20' }}   # up this much today -> sell all, stop for the day
       # Safety switch: on | off | auto (auto = off on paper, on with real money)
       AUTOTRADE_SAFETY_SWITCH: ${{ vars.AUTOTRADE_SAFETY_SWITCH || secrets.AUTOTRADE_SAFETY_SWITCH || 'auto' }}
       DATA: site/trader-skill/trader-skill/data
