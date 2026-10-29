@@ -70,7 +70,7 @@ MODE = {"no": "sell-all", "stop": "sell-all", "close": "sell-all", "sell-all": "
 MODE = MODE if MODE in ("on", "sell-only", "sell-all") else "off"
 SLOTS = max(1, int(os.environ.get("AUTOTRADE_SLOTS", "12") or 12))
 STOP_LOSS_PCT = float(os.environ.get("AUTOTRADE_STOP_LOSS_PCT", "5") or 5)
-TRAIL_ARM_PCT = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "0") or 0)
+TRAIL_ARM_PCT = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "1") or 0)   # once up this much, the tight peak line applies
 TRAIL_PCT = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "5") or 5)
 BAD_DAY_PCT = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3)
 PEAKS = {}            # best price seen per owned symbol (trailing stop); loaded/saved via --state
@@ -89,6 +89,8 @@ MAX_POSITIONS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "100") or 1
 MIN_ORDER = float(os.environ.get("AUTOTRADE_MIN_ORDER", "5") or 5)
 BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)        # 5 = buy only 5/5 green
 DAILY_LOSS_PCT = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5)
+# Daily target: once the account is up this much today, sell everything and buy nothing more until tomorrow (0 = off)
+DAILY_TARGET_PCT = float(os.environ.get("AUTOTRADE_DAILY_TARGET_PCT", "20") or 0)
 NO_BUY_MINUTES = float(os.environ.get("AUTOTRADE_NO_BUY_MINUTES", "60" if FLATTEN else "30") or 30)
 ALLOW_ETF = os.environ.get("AUTOTRADE_ALLOW_ETF", "false").strip().lower() == "true"
 # Safety switch (the time machine master switch): on = buy only when the 6-month replay made money,
@@ -193,9 +195,9 @@ def fetch_orders(days):
     return out
 
 
-LINE_PCT = {"safe": float(os.environ.get("AUTOTRADE_LINE_SAFE_PCT", "5") or 5),
-            "low": float(os.environ.get("AUTOTRADE_LINE_LOW_PCT", "5") or 5),
-            "high": float(os.environ.get("AUTOTRADE_LINE_HIGH_PCT", "5") or 5)}
+LINE_PCT = {"safe": float(os.environ.get("AUTOTRADE_LINE_SAFE_PCT", "1") or 1),
+            "low": float(os.environ.get("AUTOTRADE_LINE_LOW_PCT", "1") or 1),
+            "high": float(os.environ.get("AUTOTRADE_LINE_HIGH_PCT", "1") or 1)}
 GROUP_LABEL = {"safe": "Safe", "low": "Low risk", "high": "High risk"}
 
 
@@ -271,7 +273,7 @@ def run(agent, previous, backtest=None):
     out = {"generated_at": now.isoformat(timespec="seconds"), "mode": MODE, "paper": PAPER,
            "rules": {"slots": SLOTS, "slot_pct": SLOT_PCT, "stop_loss_pct": STOP_LOSS_PCT,
                      "trail_arm_pct": TRAIL_ARM_PCT, "trail_pct": TRAIL_PCT, "bad_day_pct": BAD_DAY_PCT,
-                     "take_profit_pct": TAKE_PROFIT_PCT, "daily_loss_pct": DAILY_LOSS_PCT, "allow_etf": ALLOW_ETF,
+                     "take_profit_pct": TAKE_PROFIT_PCT, "daily_loss_pct": DAILY_LOSS_PCT, "daily_target_pct": DAILY_TARGET_PCT, "allow_etf": ALLOW_ETF,
                      "no_buy_minutes_before_close": NO_BUY_MINUTES,
                      "sell_all_before_close": FLATTEN, "sell_all_minutes_before_close": FLATTEN_MINUTES,
                      "keep_overnight_pct": KEEP_OVERNIGHT_PCT, "buy_pct_of_cash": SLOT_PCT, "slot_of": SLOT_OF, "max_positions": MAX_POSITIONS,
@@ -302,6 +304,12 @@ def run(agent, previous, backtest=None):
             out["notes"].append(f"SELL-ALL is on: {len(positions)} position(s) will be sold when the market opens.")
         out["history"] = history
         return out
+    day_pct = (equity / last_equity - 1) * 100 if last_equity else 0
+    out["day_pct"] = round(day_pct, 2)
+    if DAILY_TARGET_PCT and day_pct >= DAILY_TARGET_PCT and MODE != "off":
+        out["notes"].append(f"Daily target reached: the account is up {day_pct:.1f}% today (target +{DAILY_TARGET_PCT:g}%). "
+                            "Selling everything and buying nothing more until tomorrow.")
+        return sell_everything(out, positions, history, equity, cash, why="Daily target reached")
     if MODE == "sell-all":
         return sell_everything(out, positions, history, equity, cash)
     age = (now - dt.datetime.fromisoformat(agent.get("generated_at", "1970-01-01T00:00:00+00:00"))).total_seconds() / 60
@@ -618,9 +626,12 @@ def run(agent, previous, backtest=None):
     return out
 
 
-def sell_everything(out, positions, history, equity, cash):
-    """AUTOTRADE = sell-all: cancel every open order, then sell every position in the account."""
-    out["notes"].append("SELL-ALL: no buys. Cancelling every open order and selling every position.")
+def sell_everything(out, positions, history, equity, cash, why="SELL-ALL switch"):
+    """AUTOTRADE = sell-all (or the daily target): cancel every open order, then sell every position."""
+    if not positions:
+        out["history"] = history
+        return out
+    out["notes"].append(f"{why}: no buys. Cancelling every open order and selling every position.")
     try:
         call("DELETE", "/v2/orders")
         time.sleep(2)
@@ -637,9 +648,9 @@ def sell_everything(out, positions, history, equity, cash):
                 "time_in_force": "gtc" if p.get("asset_class") == "crypto" else "day",
                 "qty": f"{abs(qty):.9f}".rstrip("0").rstrip("."),
                 "client_order_id": f"{TAG}{side}-{sym}-{int(time.time()*1000)}"[:48]}
-        reason = f"SELL-ALL switch: closing the whole position ({num(p.get('unrealized_plpc')) * 100:+.1f}%)"
+        reason = f"{why}: closing the whole position ({num(p.get('unrealized_plpc')) * 100:+.1f}%)"
         act = {"time": now_iso, "symbol": sym, "side": side, "qty": body["qty"], "reason": reason}
-        entry = {"side": side, "symbol": sym, "reason": reason, "rule": "sell-all switch", "mode": "paper" if PAPER else "live",
+        entry = {"side": side, "symbol": sym, "reason": reason, "rule": why.lower(), "mode": "paper" if PAPER else "live",
                  "client_order_id": body["client_order_id"], "order_type": "market", "time_in_force": body["time_in_force"],
                  "qty_requested": abs(qty), "decided_at_utc": now_iso, "account_equity_before": equity,
                  "account_cash_before": cash, "position_avg_entry": num(p.get("avg_entry_price")) or None,
@@ -655,8 +666,6 @@ def sell_everything(out, positions, history, equity, cash):
         out["actions"].append(act)
         JOURNAL.append(entry)
     PEAKS.clear()
-    if not positions:
-        out["notes"].append(f"SELL-ALL: nothing left to sell. Cash ${cash:,.2f}; it can be withdrawn once the sales have settled.")
     out["history"] = (history + out["actions"])[-300:]
     return out
 

@@ -39,7 +39,7 @@ SIM_DAYS = int(os.environ.get("BACKTEST_DAYS", "126"))
 START_CASH = 100_000.0
 SLOTS = int(os.environ.get("AUTOTRADE_SLOTS", "12") or 12)
 STOP = float(os.environ.get("AUTOTRADE_STOP_LOSS_PCT", "5") or 5) / 100
-TRAIL_ARM = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "0") or 0) / 100
+TRAIL_ARM = float(os.environ.get("AUTOTRADE_TRAIL_ARM_PCT", "1") or 0) / 100
 TRAIL = float(os.environ.get("AUTOTRADE_TRAIL_PCT", "5") or 5) / 100
 TAKE = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0) / 100      # 0 = off
 FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"
