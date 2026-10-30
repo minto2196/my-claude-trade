@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-30T09:53:10+00:00",
- "next_check": "2026-10-30T10:53:10+00:00",
- "overall": "ok",
+ "generated_at": "2026-10-30T13:24:46+00:00",
+ "next_check": "2026-10-30T14:24:46+00:00",
+ "overall": "alert",
  "supervisors": [
   {
    "name": "Data watch",
@@ -14,26 +14,26 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
   {
    "name": "Scan watch",
    "role": "Market scan and the four checks",
-   "status": "ok",
+   "status": "alert",
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 1 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,190 \u2192 5,000 \u2192 500 \u2192 24 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,191 \u2192 5,000 \u2192 500 \u2192 21 buy-ready (4+/5 green)."
     },
     {
-     "status": "ok",
-     "text": "85% of stocks pass 'data is real'."
+     "status": "alert",
+     "text": "Only 77% of stocks pass 'data is real'. The price feed itself may be broken; buys should not be trusted."
     },
     {
      "status": "ok",
@@ -75,7 +75,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 2.4 MB of 1 GB."
+     "text": "Repository storage 2.5 MB of 1 GB."
     }
    ]
   },
@@ -91,5 +91,11 @@
    ]
   }
  ],
- "comments": []
+ "comments": [
+  {
+   "level": "alert",
+   "supervisor": "Scan watch",
+   "text": "Only 77% of stocks pass 'data is real'. The price feed itself may be broken; buys should not be trusted."
+  }
+ ]
 }
