@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-31T12:53:06+00:00",
+ "generated_at": "2026-10-31T15:41:52+00:00",
  "branch": "main",
  "folder": "trade-records",
  "files": [
@@ -34,14 +34,11 @@
    "name": "2026-W43_2026-10-19.xlsx"
   }
  ],
- "size_bytes": 1276979,
+ "size_bytes": 1277544,
  "git_bytes": 0,
  "limit_bytes": 1073741824,
  "warning": null,
- "made_this_run": [
-  "reports/2026/10-October/week-44_2026-10-26_to_2026-11-01.pdf",
-  "reports/2026/10-October/monthly-report_2026-10_October.pdf"
- ],
+ "made_this_run": [],
  "removed_this_run": [],
  "journal_orders": 201
 }
