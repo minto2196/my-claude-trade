@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-31T06:20:50+00:00",
- "next_check": "2026-10-31T07:20:50+00:00",
+ "generated_at": "2026-10-31T12:53:08+00:00",
+ "next_check": "2026-10-31T13:53:08+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -52,7 +52,7 @@
     },
     {
      "status": "ok",
-     "text": "Master switch ON: the 6-month replay returned 28.93% (S&P 500 7.41%), max drop 5.82%."
+     "text": "Master switch ON: the 6-month replay returned 24.3% (S&P 500 5.77%), max drop 6.13%."
     },
     {
      "status": "ok",
@@ -72,6 +72,10 @@
     {
      "status": "ok",
      "text": "This week's Excel journal exists."
+    },
+    {
+     "status": "ok",
+     "text": "This week's PDF report is filed."
     },
     {
      "status": "ok",

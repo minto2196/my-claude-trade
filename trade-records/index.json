@@ -1,13 +1,25 @@
 {
- "generated_at": "2026-10-31T06:20:50+00:00",
+ "generated_at": "2026-10-31T12:53:06+00:00",
  "branch": "main",
  "folder": "trade-records",
  "files": [
+  {
+   "path": "reports/2026/10-October/week-44_2026-10-26_to_2026-11-01.pdf",
+   "kind": "weekly_pdf",
+   "bytes": 58825,
+   "name": "week-44_2026-10-26_to_2026-11-01.pdf"
+  },
   {
    "path": "reports/2026/10-October/week-43_2026-10-19_to_2026-10-25.pdf",
    "kind": "weekly_pdf",
    "bytes": 2464,
    "name": "week-43_2026-10-19_to_2026-10-25.pdf"
+  },
+  {
+   "path": "reports/2026/10-October/monthly-report_2026-10_October.pdf",
+   "kind": "monthly_pdf",
+   "bytes": 65957,
+   "name": "monthly-report_2026-10_October.pdf"
   },
   {
    "path": "excel/2026-W44_2026-10-26.xlsx",
@@ -22,11 +34,14 @@
    "name": "2026-W43_2026-10-19.xlsx"
   }
  ],
- "size_bytes": 1076649,
+ "size_bytes": 1276979,
  "git_bytes": 0,
  "limit_bytes": 1073741824,
  "warning": null,
- "made_this_run": [],
+ "made_this_run": [
+  "reports/2026/10-October/week-44_2026-10-26_to_2026-11-01.pdf",
+  "reports/2026/10-October/monthly-report_2026-10_October.pdf"
+ ],
  "removed_this_run": [],
  "journal_orders": 201
 }
