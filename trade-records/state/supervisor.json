@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-10-31T17:27:52+00:00",
- "next_check": "2026-10-31T18:27:52+00:00",
+ "generated_at": "2026-10-31T20:38:41+00:00",
+ "next_check": "2026-10-31T21:38:41+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (0 min old)."
+     "text": "Portfolio snapshot is fresh (1 min old)."
     }
    ]
   },
@@ -90,7 +90,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "2 run(s) in the last 3 hours, none failed, longest gap 106 min."
+     "text": "1 run(s) in the last 3 hours, none failed."
     }
    ]
   }
