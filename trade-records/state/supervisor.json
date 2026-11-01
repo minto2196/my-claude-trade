@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-01T09:46:07+00:00",
- "next_check": "2026-11-01T10:46:07+00:00",
+ "generated_at": "2026-11-01T16:28:17+00:00",
+ "next_check": "2026-11-01T17:28:17+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -25,11 +25,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 1 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,189 \u2192 5,000 \u2192 500 \u2192 24 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,189 \u2192 5,000 \u2192 500 \u2192 25 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 3.5 MB of 1 GB."
+     "text": "Repository storage 3.6 MB of 1 GB."
     }
    ]
   },
