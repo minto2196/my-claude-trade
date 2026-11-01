@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-01T02:39:56+00:00",
- "next_check": "2026-11-01T03:39:56+00:00",
+ "generated_at": "2026-11-01T09:46:07+00:00",
+ "next_check": "2026-11-01T10:46:07+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (0 min old)."
+     "text": "Portfolio snapshot is fresh (1 min old)."
     }
    ]
   },
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 0 min ago."
+     "text": "Agent ran 1 min ago."
     },
     {
      "status": "ok",
@@ -90,7 +90,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "2 run(s) in the last 3 hours, none failed, longest gap 175 min."
+     "text": "1 run(s) in the last 3 hours, none failed."
     }
    ]
   }
