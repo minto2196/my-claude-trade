@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-02T17:39:01+00:00",
- "next_check": "2026-11-02T18:39:01+00:00",
+ "generated_at": "2026-11-02T18:36:51+00:00",
+ "next_check": "2026-11-02T19:36:51+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "96% of stocks pass 'data is real'."
+     "text": "97% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -56,11 +56,11 @@
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 16 position(s)."
+     "text": "Alpaca stop orders at \u22125% protect 15 position(s)."
     },
     {
      "status": "ok",
-     "text": "16 position(s), 16 open order(s), no stop-loss missed."
+     "text": "15 position(s), 15 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 238 order(s) recorded."
+     "text": "Journal complete: 239 order(s) recorded."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 3.5 MB of 1 GB."
+     "text": "Repository storage 3.6 MB of 1 GB."
     }
    ]
   },
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "31 run(s) in the last 3 hours, none failed, longest gap 7 min."
+     "text": "31 run(s) in the last 3 hours, none failed, longest gap 6 min."
     },
     {
      "status": "alert",
-     "text": "The every-minute watchdog hasn't reported for 32 minutes while the market is open. Held stocks are only checked every 5 minutes."
+     "text": "The every-minute watchdog hasn't reported for 90 minutes while the market is open. Held stocks are only checked every 5 minutes."
     }
    ]
   }
@@ -103,7 +103,7 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "The every-minute watchdog hasn't reported for 32 minutes while the market is open. Held stocks are only checked every 5 minutes."
+   "text": "The every-minute watchdog hasn't reported for 90 minutes while the market is open. Held stocks are only checked every 5 minutes."
   }
  ]
 }
