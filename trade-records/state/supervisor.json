@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-02T20:36:53+00:00",
- "next_check": "2026-11-02T21:36:53+00:00",
- "overall": "alert",
+ "generated_at": "2026-11-02T22:29:04+00:00",
+ "next_check": "2026-11-02T23:29:04+00:00",
+ "overall": "ok",
  "supervisors": [
   {
    "name": "Data watch",
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "97% of stocks pass 'data is real'."
+     "text": "94% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -82,24 +82,14 @@
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "alert",
+   "status": "ok",
    "checks": [
     {
      "status": "ok",
-     "text": "31 run(s) in the last 3 hours, none failed, longest gap 6 min."
-    },
-    {
-     "status": "alert",
-     "text": "The every-minute watchdog hasn't reported for 210 minutes while the market is open. Held stocks are only checked every 5 minutes."
+     "text": "16 run(s) in the last 3 hours, none failed, longest gap 95 min."
     }
    ]
   }
  ],
- "comments": [
-  {
-   "level": "alert",
-   "supervisor": "Schedule watch",
-   "text": "The every-minute watchdog hasn't reported for 210 minutes while the market is open. Held stocks are only checked every 5 minutes."
-  }
- ]
+ "comments": []
 }
