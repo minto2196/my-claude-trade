@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-04T16:33:24+00:00",
- "next_check": "2026-11-04T17:33:24+00:00",
+ "generated_at": "2026-11-04T17:51:16+00:00",
+ "next_check": "2026-11-04T18:51:16+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -29,11 +29,11 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,176 \u2192 5,000 \u2192 500 \u2192 7 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,176 \u2192 5,000 \u2192 500 \u2192 6 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "95% of stocks pass 'data is real'."
+     "text": "96% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -56,11 +56,11 @@
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 31 position(s)."
+     "text": "Alpaca stop orders at \u22125% protect 28 position(s)."
     },
     {
      "status": "ok",
-     "text": "31 position(s), 31 open order(s), no stop-loss missed."
+     "text": "28 position(s), 28 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 385 order(s) recorded."
+     "text": "Journal complete: 390 order(s) recorded."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 5.6 MB of 1 GB."
+     "text": "Repository storage 6.0 MB of 1 GB."
     }
    ]
   },
@@ -90,11 +90,15 @@
    "checks": [
     {
      "status": "alert",
-     "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/41852183681"
+     "text": "2 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/41876247424"
+    },
+    {
+     "status": "warn",
+     "text": "GitHub left a 38-minute gap between runs while the market was open. Exits can only act when a run happens."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 118 checks today, last saved 6 min ago."
+     "text": "Every-minute watchdog alive: 193 checks today, last saved 9 min ago."
     }
    ]
   }
@@ -103,7 +107,12 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/41852183681"
+   "text": "2 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/41876247424"
+  },
+  {
+   "level": "warn",
+   "supervisor": "Schedule watch",
+   "text": "GitHub left a 38-minute gap between runs while the market was open. Exits can only act when a run happens."
   }
  ]
 }
