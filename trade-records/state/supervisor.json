@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-04T19:51:03+00:00",
- "next_check": "2026-11-04T20:51:03+00:00",
+ "generated_at": "2026-11-04T20:48:46+00:00",
+ "next_check": "2026-11-04T21:48:46+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -25,11 +25,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 1 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,176 \u2192 5,000 \u2192 500 \u2192 7 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,176 \u2192 5,000 \u2192 500 \u2192 27 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -56,11 +56,11 @@
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 25 position(s)."
+     "text": "Alpaca stop orders at \u22125% protect 1 position(s)."
     },
     {
      "status": "ok",
-     "text": "25 position(s), 25 open order(s), no stop-loss missed."
+     "text": "1 position(s), 1 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 393 order(s) recorded."
+     "text": "Journal complete: 419 order(s) recorded."
     },
     {
      "status": "ok",
@@ -89,16 +89,12 @@
    "status": "alert",
    "checks": [
     {
-     "status": "alert",
-     "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/41876247424"
-    },
-    {
-     "status": "warn",
-     "text": "GitHub left a 34-minute gap between runs while the market was open. Exits can only act when a run happens."
-    },
-    {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 313 checks today, last saved 9 min ago."
+     "text": "31 run(s) in the last 3 hours, none failed, longest gap 7 min."
+    },
+    {
+     "status": "alert",
+     "text": "The every-minute watchdog hasn't reported for 43 minutes while the market is open. Held stocks are only checked every 5 minutes."
     }
    ]
   }
@@ -107,12 +103,7 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/41876247424"
-  },
-  {
-   "level": "warn",
-   "supervisor": "Schedule watch",
-   "text": "GitHub left a 34-minute gap between runs while the market was open. Exits can only act when a run happens."
+   "text": "The every-minute watchdog hasn't reported for 43 minutes while the market is open. Held stocks are only checked every 5 minutes."
   }
  ]
 }
