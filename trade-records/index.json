@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-05T17:05:06+00:00",
+ "generated_at": "2026-11-05T17:10:43+00:00",
  "branch": "main",
  "folder": "trade-records",
  "files": [
@@ -40,13 +40,11 @@
    "name": "2026-W43_2026-10-19.xlsx"
   }
  ],
- "size_bytes": 1838297,
+ "size_bytes": 1838316,
  "git_bytes": 0,
  "limit_bytes": 1073741824,
  "warning": null,
- "made_this_run": [
-  "excel/2026-W45_2026-11-02.xlsx"
- ],
+ "made_this_run": [],
  "removed_this_run": [],
  "journal_orders": 472
 }
