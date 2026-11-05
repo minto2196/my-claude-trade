@@ -1,6 +1,6 @@
 {
- "started_at": "2026-11-05T02:45:49+00:00",
- "day": "2026-11-04",
+ "started_at": "2026-11-05T08:30:59+00:00",
+ "day": "2026-11-05",
  "mode": "on",
  "paper": true,
  "line_pct": {
@@ -9,17 +9,8 @@
   "high": 1.0
  },
  "checks": 0,
- "actions_today": [
-  {
-   "time": "2026-11-04T17:04:02+00:00",
-   "symbol": "COR",
-   "side": "sell",
-   "qty": "1.152941108",
-   "reason": "High risk: price $348.45 reached its sell line $348.55 (1% under the high $352.07), +1.2%",
-   "status": "pending_new"
-  }
- ],
+ "actions_today": [],
  "state": "sleeping",
  "next_open": "2026-11-05T09:30:00-05:00",
- "generated_at": "2026-11-05T02:45:49+00:00"
+ "generated_at": "2026-11-05T08:30:59+00:00"
 }
