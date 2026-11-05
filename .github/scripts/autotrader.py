@@ -84,8 +84,8 @@ SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33)          
 # split (default): each run the free cash is split into AUTOTRADE_SLOTS (12) equal parts of SLOT_PCT, one per new
 # stock, so the money from one sale buys 12 new companies; account: SLOT_PCT of the whole account per stock;
 # cash: SLOT_PCT of the cash still left, again and again
-SLOT_OF = {"cash": "cash", "account": "account"}.get(os.environ.get("AUTOTRADE_SLOT_OF", "split").strip().lower(), "split")
-MAX_POSITIONS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "100") or 100))
+SLOT_OF = {"cash": "cash", "account": "account"}.get(os.environ.get("AUTOTRADE_SLOT_OF", "account").strip().lower(), "split")
+MAX_POSITIONS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "12") or 12))
 MIN_ORDER = float(os.environ.get("AUTOTRADE_MIN_ORDER", "5") or 5)
 BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)        # 5 = buy only 5/5 green
 DAILY_LOSS_PCT = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5)

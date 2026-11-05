@@ -45,7 +45,7 @@ TAKE = float(os.environ.get("AUTOTRADE_TAKE_PROFIT_PCT", "0") or 0) / 100      #
 FLATTEN = os.environ.get("AUTOTRADE_FLATTEN", "true").strip().lower() != "false"
 KEEP = float(os.environ.get("AUTOTRADE_KEEP_OVERNIGHT_PCT", "5") or 5) / 100
 SLOT_PCT = float(os.environ.get("AUTOTRADE_SLOT_PCT", "8.33") or 8.33) / 100
-MAX_POS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "100") or 100))
+MAX_POS = max(1, int(os.environ.get("AUTOTRADE_MAX_POSITIONS", "12") or 12))
 BUY_MIN_GREENS = int(os.environ.get("AUTOTRADE_BUY_MIN_GREENS", "4") or 4)
 BAD_DAY = float(os.environ.get("AUTOTRADE_BAD_DAY_PCT", "3") or 3) / 100
 DAILY_LOSS = float(os.environ.get("AUTOTRADE_DAILY_LOSS_PCT", "5") or 5) / 100
