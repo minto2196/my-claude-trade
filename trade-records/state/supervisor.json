@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-06T21:33:35+00:00",
- "next_check": "2026-11-06T22:33:35+00:00",
+ "generated_at": "2026-11-06T23:47:03+00:00",
+ "next_check": "2026-11-07T00:47:03+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 1 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "96% of stocks pass 'data is real'."
+     "text": "95% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -75,7 +75,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 8.4 MB of 1 GB."
+     "text": "Repository storage 8.5 MB of 1 GB."
     }
    ]
   },
@@ -86,7 +86,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "27 run(s) in the last 3 hours, none failed, longest gap 36 min."
+     "text": "4 run(s) in the last 3 hours, none failed, longest gap 134 min."
     }
    ]
   }
