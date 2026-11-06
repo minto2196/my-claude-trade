@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-06T20:14:08+00:00",
- "next_check": "2026-11-06T21:14:08+00:00",
- "overall": "alert",
+ "generated_at": "2026-11-06T21:33:35+00:00",
+ "next_check": "2026-11-06T22:33:35+00:00",
+ "overall": "ok",
  "supervisors": [
   {
    "name": "Data watch",
@@ -29,7 +29,7 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,177 \u2192 5,000 \u2192 500 \u2192 15 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,177 \u2192 5,000 \u2192 500 \u2192 23 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -56,11 +56,7 @@
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 11 position(s)."
-    },
-    {
-     "status": "ok",
-     "text": "12 position(s), 11 open order(s), no stop-loss missed."
+     "text": "0 position(s), 0 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +67,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 535 order(s) recorded."
+     "text": "Journal complete: 549 order(s) recorded."
     },
     {
      "status": "ok",
@@ -79,31 +75,21 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 8.1 MB of 1 GB."
+     "text": "Repository storage 8.4 MB of 1 GB."
     }
    ]
   },
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "alert",
+   "status": "ok",
    "checks": [
     {
-     "status": "alert",
-     "text": "4 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42269129207"
-    },
-    {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 337 checks today, last saved 8 min ago."
+     "text": "27 run(s) in the last 3 hours, none failed, longest gap 36 min."
     }
    ]
   }
  ],
- "comments": [
-  {
-   "level": "alert",
-   "supervisor": "Schedule watch",
-   "text": "4 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42269129207"
-  }
- ]
+ "comments": []
 }
