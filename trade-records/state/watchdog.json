@@ -8,9 +8,196 @@
   "low": 1.0,
   "high": 1.0
  },
- "checks": 0,
+ "checks": 11,
  "actions_today": [],
- "state": "sleeping",
+ "state": "watching",
  "next_open": "2026-11-06T09:30:00-05:00",
- "generated_at": "2026-11-06T14:16:15+00:00"
+ "generated_at": "2026-11-06T14:40:01+00:00",
+ "minutes_to_close": 380,
+ "groups": [
+  {
+   "symbol": "ACN",
+   "group": "high",
+   "label": "High risk",
+   "reasons": [
+    "down 3.2% today"
+   ],
+   "price": 256.66,
+   "entry": 258.48,
+   "highest": 258.48,
+   "line": 245.56,
+   "line_pct": 1.0,
+   "plpc": -0.7,
+   "day_pct": -3.21,
+   "to_line_pct": 4.52
+  },
+  {
+   "symbol": "ECL",
+   "group": "high",
+   "label": "High risk",
+   "reasons": [
+    "down 2.7% today"
+   ],
+   "price": 297.455,
+   "entry": 298.1815,
+   "highest": 298.345,
+   "line": 283.27,
+   "line_pct": 1.0,
+   "plpc": -0.24,
+   "day_pct": -2.74,
+   "to_line_pct": 5.01
+  },
+  {
+   "symbol": "EXC",
+   "group": "high",
+   "label": "High risk",
+   "reasons": [
+    "down 2.5% today"
+   ],
+   "price": 45.36,
+   "entry": 45.4109,
+   "highest": 45.45,
+   "line": 43.14,
+   "line_pct": 1.0,
+   "plpc": -0.11,
+   "day_pct": -2.51,
+   "to_line_pct": 5.15
+  },
+  {
+   "symbol": "SO",
+   "group": "high",
+   "label": "High risk",
+   "reasons": [
+    "down 2.1% today"
+   ],
+   "price": 91.36,
+   "entry": 91.5189,
+   "highest": 91.655,
+   "line": 86.94,
+   "line_pct": 1.0,
+   "plpc": -0.17,
+   "day_pct": -2.12,
+   "to_line_pct": 5.08
+  },
+  {
+   "symbol": "AMGN",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "4 of 5 green",
+    "-0.4% from the buy price",
+    "down 1.9% today"
+   ],
+   "price": 451.7053,
+   "entry": 453.45,
+   "highest": 453.61,
+   "line": 430.78,
+   "line_pct": 1.0,
+   "plpc": -0.38,
+   "day_pct": -1.86,
+   "to_line_pct": 4.86
+  },
+  {
+   "symbol": "CBOE",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.0% from the buy price"
+   ],
+   "price": 353.0,
+   "entry": 353.07,
+   "highest": 353.07,
+   "line": 335.42,
+   "line_pct": 1.0,
+   "plpc": -0.02,
+   "day_pct": -0.02,
+   "to_line_pct": 5.24
+  },
+  {
+   "symbol": "ISRG",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.1% from the buy price",
+    "down 1.7% today"
+   ],
+   "price": 460.7896,
+   "entry": 461.38,
+   "highest": 461.72,
+   "line": 438.31,
+   "line_pct": 1.0,
+   "plpc": -0.13,
+   "day_pct": -1.65,
+   "to_line_pct": 5.13
+  },
+  {
+   "symbol": "LIN",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.4% from the buy price",
+    "down 1.8% today"
+   ],
+   "price": 512.0232,
+   "entry": 513.95,
+   "highest": 513.95,
+   "line": 488.25,
+   "line_pct": 1.0,
+   "plpc": -0.37,
+   "day_pct": -1.77,
+   "to_line_pct": 4.87
+  },
+  {
+   "symbol": "MA",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "4 of 5 green",
+    "-0.1% from the buy price"
+   ],
+   "price": 650.3179,
+   "entry": 651.1438,
+   "highest": 651.54,
+   "line": 618.59,
+   "line_pct": 1.0,
+   "plpc": -0.13,
+   "day_pct": -0.85,
+   "to_line_pct": 5.13
+  },
+  {
+   "symbol": "TOST",
+   "group": "safe",
+   "label": "Safe",
+   "reasons": [
+    "5 of 5 green, calm (\u00b12.4% a day)",
+    "+0.3% from the buy price"
+   ],
+   "price": 35.16,
+   "entry": 35.05,
+   "highest": 35.16,
+   "line": 33.3,
+   "line_pct": 1.0,
+   "plpc": 0.31,
+   "day_pct": 0.0,
+   "to_line_pct": 5.59
+  }
+ ],
+ "counts": {
+  "safe": 1,
+  "low": 5,
+  "high": 4
+ },
+ "error": null,
+ "peaks": {
+  "ACN": 258.48,
+  "AMGN": 453.61,
+  "CBOE": 353.07,
+  "ECL": 298.345,
+  "EXC": 45.45,
+  "ISRG": 461.72,
+  "LIN": 513.95,
+  "MA": 651.54,
+  "SO": 91.655,
+  "TOST": 35.16
+ }
 }
