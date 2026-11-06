@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-06T15:21:05+00:00",
- "next_check": "2026-11-06T16:21:05+00:00",
+ "generated_at": "2026-11-06T16:20:04+00:00",
+ "next_check": "2026-11-06T17:20:04+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "96% of stocks pass 'data is real'."
+     "text": "97% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -71,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 519 order(s) recorded."
+     "text": "Journal complete: 526 order(s) recorded."
     },
     {
      "status": "ok",
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "7 run(s) in the last 3 hours, none failed, longest gap 12 min."
+     "text": "17 run(s) in the last 3 hours, none failed, longest gap 12 min."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 43 checks today, last saved 9 min ago."
+     "text": "Every-minute watchdog alive: 108 checks today, last saved 3 min ago."
     }
    ]
   }
