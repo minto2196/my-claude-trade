@@ -8,29 +8,13 @@
   "low": 1.0,
   "high": 1.0
  },
- "checks": 294,
+ "checks": 304,
  "actions_today": [],
  "state": "watching",
  "next_open": "2026-11-06T09:30:00-05:00",
- "generated_at": "2026-11-06T19:23:01+00:00",
- "minutes_to_close": 97,
+ "generated_at": "2026-11-06T19:33:01+00:00",
+ "minutes_to_close": 87,
  "groups": [
-  {
-   "symbol": "ACN",
-   "group": "high",
-   "label": "High risk",
-   "reasons": [
-    "down 2.3% today"
-   ],
-   "price": 259.18,
-   "entry": 258.48,
-   "highest": 260.92,
-   "line": 245.56,
-   "line_pct": 1.0,
-   "plpc": 0.27,
-   "day_pct": -2.25,
-   "to_line_pct": 5.55
-  },
   {
    "symbol": "ADSK",
    "group": "high",
@@ -38,16 +22,16 @@
    "reasons": [
     "a red check: organic",
     "only 3 of 5 green",
-    "down 2.2% today"
+    "down 2.1% today"
    ],
-   "price": 263.345,
+   "price": 263.59,
    "entry": 263.2,
-   "highest": 263.345,
+   "highest": 263.7,
    "line": 250.04,
    "line_pct": 1.0,
-   "plpc": 0.06,
-   "day_pct": -2.16,
-   "to_line_pct": 5.32
+   "plpc": 0.15,
+   "day_pct": -2.07,
+   "to_line_pct": 5.42
   },
   {
    "symbol": "AZO",
@@ -58,14 +42,14 @@
     "only 3 of 5 green",
     "down 2.1% today"
    ],
-   "price": 3238.79,
+   "price": 3238.57,
    "entry": 3232.24,
    "highest": 3255.83,
    "line": 3070.63,
    "line_pct": 1.0,
    "plpc": 0.2,
-   "day_pct": -2.12,
-   "to_line_pct": 5.48
+   "day_pct": -2.13,
+   "to_line_pct": 5.47
   },
   {
    "symbol": "ECL",
@@ -75,14 +59,14 @@
     "a red check: organic",
     "only 3 of 5 green"
    ],
-   "price": 302.67,
+   "price": 302.59,
    "entry": 298.1815,
    "highest": 304.0825,
    "line": 301.04,
    "line_pct": 1.0,
-   "plpc": 1.51,
-   "day_pct": -1.03,
-   "to_line_pct": 0.54
+   "plpc": 1.48,
+   "day_pct": -1.06,
+   "to_line_pct": 0.51
   },
   {
    "symbol": "FDX",
@@ -91,14 +75,14 @@
    "reasons": [
     "down 2.4% today"
    ],
-   "price": 309.28,
+   "price": 309.19,
    "entry": 308.4,
    "highest": 309.515,
    "line": 292.98,
    "line_pct": 1.0,
-   "plpc": 0.29,
-   "day_pct": -2.37,
-   "to_line_pct": 5.56
+   "plpc": 0.26,
+   "day_pct": -2.4,
+   "to_line_pct": 5.53
   },
   {
    "symbol": "LIN",
@@ -108,30 +92,47 @@
     "a red check: organic",
     "only 3 of 5 green"
    ],
-   "price": 517.98,
+   "price": 517.72,
    "entry": 513.95,
    "highest": 521.83,
    "line": 516.61,
    "line_pct": 1.0,
-   "plpc": 0.78,
-   "day_pct": -0.62,
-   "to_line_pct": 0.27
+   "plpc": 0.73,
+   "day_pct": -0.67,
+   "to_line_pct": 0.21
+  },
+  {
+   "symbol": "ACN",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "swings \u00b13.5% a day",
+    "down 2.0% today"
+   ],
+   "price": 259.87,
+   "entry": 258.48,
+   "highest": 260.92,
+   "line": 245.56,
+   "line_pct": 1.0,
+   "plpc": 0.54,
+   "day_pct": -1.99,
+   "to_line_pct": 5.83
   },
   {
    "symbol": "ADP",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "down 1.1% today"
+    "down 1.0% today"
    ],
-   "price": 303.69,
+   "price": 304.05,
    "entry": 302.99,
    "highest": 304.76,
    "line": 287.84,
    "line_pct": 1.0,
-   "plpc": 0.23,
-   "day_pct": -1.12,
-   "to_line_pct": 5.51
+   "plpc": 0.35,
+   "day_pct": -1.01,
+   "to_line_pct": 5.63
   },
   {
    "symbol": "AMGN",
@@ -140,14 +141,14 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 460.64,
+   "price": 461.42,
    "entry": 453.45,
    "highest": 462.51,
    "line": 457.88,
    "line_pct": 1.0,
-   "plpc": 1.59,
-   "day_pct": 0.08,
-   "to_line_pct": 0.6
+   "plpc": 1.76,
+   "day_pct": 0.25,
+   "to_line_pct": 0.77
   },
   {
    "symbol": "CMCSA",
@@ -156,16 +157,16 @@
    "reasons": [
     "4 of 5 green",
     "-0.3% from the buy price",
-    "down 1.3% today"
+    "down 1.4% today"
    ],
-   "price": 24.615,
+   "price": 24.595,
    "entry": 24.6789,
    "highest": 24.76,
    "line": 23.44,
    "line_pct": 1.0,
-   "plpc": -0.26,
-   "day_pct": -1.34,
-   "to_line_pct": 5.01
+   "plpc": -0.34,
+   "day_pct": -1.42,
+   "to_line_pct": 4.93
   },
   {
    "symbol": "EXC",
@@ -175,14 +176,14 @@
     "4 of 5 green",
     "down 1.6% today"
    ],
-   "price": 45.785,
+   "price": 45.765,
    "entry": 45.4109,
    "highest": 46.08,
    "line": 45.62,
    "line_pct": 1.0,
-   "plpc": 0.82,
-   "day_pct": -1.6,
-   "to_line_pct": 0.36
+   "plpc": 0.78,
+   "day_pct": -1.64,
+   "to_line_pct": 0.32
   },
   {
    "symbol": "KDP",
@@ -207,20 +208,20 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 92.45,
+   "price": 92.43,
    "entry": 91.5189,
    "highest": 92.5,
    "line": 91.58,
    "line_pct": 1.0,
-   "plpc": 1.02,
-   "day_pct": -0.95,
-   "to_line_pct": 0.95
+   "plpc": 1.0,
+   "day_pct": -0.97,
+   "to_line_pct": 0.93
   }
  ],
  "counts": {
   "safe": 0,
-  "low": 6,
-  "high": 6
+  "low": 7,
+  "high": 5
  },
  "error": null,
  "peaks": {
@@ -238,7 +239,7 @@
   "TYL": 420.44,
   "ICE": 173.07,
   "CMCSA": 24.76,
-  "ADSK": 263.345,
+  "ADSK": 263.7,
   "ADP": 304.76,
   "KDP": 36.885,
   "FDX": 309.515
