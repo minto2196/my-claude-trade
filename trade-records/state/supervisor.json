@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-09T19:21:07+00:00",
- "next_check": "2026-11-09T20:21:07+00:00",
+ "generated_at": "2026-11-09T20:20:44+00:00",
+ "next_check": "2026-11-09T21:20:44+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 1 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "96% of stocks pass 'data is real'."
+     "text": "95% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 9.0 MB of 1 GB."
+     "text": "Repository storage 9.1 MB of 1 GB."
     }
    ]
   },
@@ -94,7 +94,7 @@
     },
     {
      "status": "alert",
-     "text": "The every-minute watchdog hasn't reported for 74 minutes while the market is open. Held stocks are only checked every 5 minutes."
+     "text": "The every-minute watchdog hasn't reported for 134 minutes while the market is open. Held stocks are only checked every 5 minutes."
     }
    ]
   }
@@ -108,7 +108,7 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "The every-minute watchdog hasn't reported for 74 minutes while the market is open. Held stocks are only checked every 5 minutes."
+   "text": "The every-minute watchdog hasn't reported for 134 minutes while the market is open. Held stocks are only checked every 5 minutes."
   }
  ]
 }
