@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-08T23:05:07+00:00",
- "next_check": "2026-11-09T00:05:07+00:00",
+ "generated_at": "2026-11-09T02:38:08+00:00",
+ "next_check": "2026-11-09T03:38:08+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -29,7 +29,7 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,168 \u2192 5,000 \u2192 500 \u2192 26 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,168 \u2192 5,000 \u2192 500 \u2192 27 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
