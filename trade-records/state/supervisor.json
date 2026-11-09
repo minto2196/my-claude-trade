@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-09T18:21:49+00:00",
- "next_check": "2026-11-09T19:21:49+00:00",
+ "generated_at": "2026-11-09T19:21:07+00:00",
+ "next_check": "2026-11-09T20:21:07+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -29,11 +29,11 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,181 \u2192 5,000 \u2192 500 \u2192 31 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,181 \u2192 5,000 \u2192 500 \u2192 29 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "97% of stocks pass 'data is real'."
+     "text": "96% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -71,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 571 order(s) recorded."
+     "text": "Journal complete: 573 order(s) recorded."
     },
     {
      "status": "ok",
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "alert",
-     "text": "2 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42672241456"
+     "text": "3 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42674009801"
     },
     {
-     "status": "ok",
-     "text": "Every-minute watchdog alive: 218 checks today, last saved 15 min ago."
+     "status": "alert",
+     "text": "The every-minute watchdog hasn't reported for 74 minutes while the market is open. Held stocks are only checked every 5 minutes."
     }
    ]
   }
@@ -103,7 +103,12 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "2 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42672241456"
+   "text": "3 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42674009801"
+  },
+  {
+   "level": "alert",
+   "supervisor": "Schedule watch",
+   "text": "The every-minute watchdog hasn't reported for 74 minutes while the market is open. Held stocks are only checked every 5 minutes."
   }
  ]
 }
