@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-09T17:24:44+00:00",
- "next_check": "2026-11-09T18:24:44+00:00",
- "overall": "ok",
+ "generated_at": "2026-11-09T18:21:49+00:00",
+ "next_check": "2026-11-09T19:21:49+00:00",
+ "overall": "alert",
  "supervisors": [
   {
    "name": "Data watch",
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 0 min ago."
+     "text": "Agent ran 1 min ago."
     },
     {
      "status": "ok",
@@ -79,25 +79,31 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 9.1 MB of 1 GB."
+     "text": "Repository storage 9.0 MB of 1 GB."
     }
    ]
   },
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "ok",
+   "status": "alert",
    "checks": [
     {
-     "status": "ok",
-     "text": "30 run(s) in the last 3 hours, none failed, longest gap 7 min."
+     "status": "alert",
+     "text": "2 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42672241456"
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 173 checks today, last saved 3 min ago."
+     "text": "Every-minute watchdog alive: 218 checks today, last saved 15 min ago."
     }
    ]
   }
  ],
- "comments": []
+ "comments": [
+  {
+   "level": "alert",
+   "supervisor": "Schedule watch",
+   "text": "2 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42672241456"
+  }
+ ]
 }
