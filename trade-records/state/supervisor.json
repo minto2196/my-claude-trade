@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-10T11:09:07+00:00",
- "next_check": "2026-11-10T12:09:07+00:00",
- "overall": "alert",
+ "generated_at": "2026-11-10T14:25:21+00:00",
+ "next_check": "2026-11-10T15:25:21+00:00",
+ "overall": "ok",
  "supervisors": [
   {
    "name": "Data watch",
@@ -14,34 +14,30 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (0 min old)."
+     "text": "Portfolio snapshot is fresh (1 min old)."
     }
    ]
   },
   {
    "name": "Scan watch",
    "role": "Market scan and the four checks",
-   "status": "alert",
+   "status": "ok",
    "checks": [
     {
-     "status": "alert",
-     "text": "The verification agent's last run failed: HTTPError: HTTP Error 400: Bad Request"
+     "status": "ok",
+     "text": "Agent ran 1 min ago."
     },
     {
      "status": "ok",
-     "text": "Agent ran 0 min ago."
+     "text": "Funnel normal: 13,183 \u2192 5,000 \u2192 500 \u2192 37 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,178 \u2192 5,000 \u2192 500 \u2192 37 buy-ready (4+/5 green)."
+     "text": "83% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
-     "text": "94% of stocks pass 'data is real'."
-    },
-    {
-     "status": "ok",
-     "text": "Time machine judged the shortlist: 170 of 500 have a green past."
+     "text": "Time machine judged the shortlist: 175 of 500 have a green past."
     }
    ]
   },
@@ -95,11 +91,5 @@
    ]
   }
  ],
- "comments": [
-  {
-   "level": "alert",
-   "supervisor": "Scan watch",
-   "text": "The verification agent's last run failed: HTTPError: HTTP Error 400: Bad Request"
-  }
- ]
+ "comments": []
 }
