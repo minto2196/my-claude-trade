@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-10T18:21:47+00:00",
- "next_check": "2026-11-10T19:21:47+00:00",
+ "generated_at": "2026-11-10T19:16:58+00:00",
+ "next_check": "2026-11-10T20:16:58+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 0 min ago."
+     "text": "Agent ran 1 min ago."
     },
     {
      "status": "ok",
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "alert",
-     "text": "2 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42867782936"
+     "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42867782936"
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 231 checks today, last saved 2 min ago."
+     "text": "Every-minute watchdog alive: 286 checks today, last saved 2 min ago."
     }
    ]
   }
@@ -103,7 +103,7 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "2 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42867782936"
+   "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/42867782936"
   }
  ]
 }
