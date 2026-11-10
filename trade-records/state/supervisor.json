@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-10T02:21:15+00:00",
- "next_check": "2026-11-10T03:21:15+00:00",
- "overall": "ok",
+ "generated_at": "2026-11-10T11:09:07+00:00",
+ "next_check": "2026-11-10T12:09:07+00:00",
+ "overall": "alert",
  "supervisors": [
   {
    "name": "Data watch",
@@ -21,8 +21,12 @@
   {
    "name": "Scan watch",
    "role": "Market scan and the four checks",
-   "status": "ok",
+   "status": "alert",
    "checks": [
+    {
+     "status": "alert",
+     "text": "The verification agent's last run failed: HTTPError: HTTP Error 400: Bad Request"
+    },
     {
      "status": "ok",
      "text": "Agent ran 0 min ago."
@@ -75,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 9.1 MB of 1 GB."
+     "text": "Repository storage 9.2 MB of 1 GB."
     }
    ]
   },
@@ -91,5 +95,11 @@
    ]
   }
  ],
- "comments": []
+ "comments": [
+  {
+   "level": "alert",
+   "supervisor": "Scan watch",
+   "text": "The verification agent's last run failed: HTTPError: HTTP Error 400: Bad Request"
+  }
+ ]
 }
