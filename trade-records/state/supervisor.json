@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-11T18:35:00+00:00",
- "next_check": "2026-11-11T19:35:00+00:00",
+ "generated_at": "2026-11-11T19:32:24+00:00",
+ "next_check": "2026-11-11T20:32:24+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (0 min old)."
+     "text": "Portfolio snapshot is fresh (1 min old)."
     }
    ]
   },
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 0 min ago."
+     "text": "Agent ran 1 min ago."
     },
     {
      "status": "ok",
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "32 run(s) in the last 3 hours, none failed, longest gap 7 min."
+     "text": "32 run(s) in the last 3 hours, none failed, longest gap 8 min."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 229 checks today, last saved 4 min ago."
+     "text": "Every-minute watchdog alive: 284 checks today, last saved 6 min ago."
     }
    ]
   }
