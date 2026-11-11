@@ -15,9 +15,9 @@ permissions:
   contents: write
   actions: write      # start the 5-minute dashboard run and the next watchdog itself
 
-concurrency:
-  group: watchdog
-  cancel-in-progress: false
+# No concurrency group: GitHub queued the hourly backup runs behind the running watchdog, then refused to
+# start its hand-over ("startup_failure") and failed the queued ones ("No jobs were run"). Instead each
+# watchdog checks for an older running one at start and stops if there is one (watchdog.py).
 
 jobs:
   watch:
