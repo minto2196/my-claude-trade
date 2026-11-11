@@ -125,6 +125,7 @@ jobs:
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          AUTOTRADE: ${{ vars.AUTOTRADE || secrets.AUTOTRADE || 'off' }}   # stay-awake restart needs the switch
         run: python3 .github/scripts/watchdog.py --ensure
 
       - name: Save trade records to GitHub (trade-records/ on main)
