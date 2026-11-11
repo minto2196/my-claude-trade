@@ -139,7 +139,7 @@ def git_save(rec, msg):
 def sleep_until_open(rec, status, status_p, clock, started, budget_min):
     """Market closed: sleep, start a fresh scan ~6 minutes before the open, then wait for the bell.
     Returns True when the open has come; False after handing over to the next watchdog (time limit)."""
-    next_open = T.iso_utc(clock["next_open"])
+    next_open = T.iso_utc(clock["next_open"]).astimezone(UTC)
     deadline = started + dt.timedelta(minutes=budget_min)
     status.update(state="sleeping", next_open=next_open.isoformat(), generated_at=dt.datetime.now(UTC).isoformat(timespec="seconds"))
     json.dump(status, open(status_p, "w"), indent=1)
