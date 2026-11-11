@@ -8,28 +8,124 @@
   "low": 1.0,
   "high": 1.0
  },
- "checks": 338,
- "actions_today": [],
+ "checks": 348,
+ "actions_today": [
+  {
+   "time": "2026-11-11T20:30:21+00:00",
+   "symbol": "ADSK",
+   "side": "sell",
+   "qty": "31.480433775",
+   "reason": "Evening: +0.0% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:22+00:00",
+   "symbol": "AZO",
+   "side": "sell",
+   "qty": "2.543587872",
+   "reason": "Evening: +0.6% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:23+00:00",
+   "symbol": "CMCSA",
+   "side": "sell",
+   "qty": "330.764991896",
+   "reason": "Evening: +0.9% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:25+00:00",
+   "symbol": "EXC",
+   "side": "sell",
+   "qty": "179.474389975",
+   "reason": "Evening: +0.7% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:26+00:00",
+   "symbol": "GWW",
+   "side": "sell",
+   "qty": "5.514758376",
+   "reason": "Evening: +0.4% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:27+00:00",
+   "symbol": "ICE",
+   "side": "sell",
+   "qty": "46.109377649",
+   "reason": "Evening: +1.6% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:29+00:00",
+   "symbol": "LIN",
+   "side": "sell",
+   "qty": "15.65410191",
+   "reason": "Evening: +1.0% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:30+00:00",
+   "symbol": "MCK",
+   "side": "sell",
+   "qty": "7.581445713",
+   "reason": "Evening: +0.1% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:31+00:00",
+   "symbol": "NDAQ",
+   "side": "sell",
+   "qty": "74.223930846",
+   "reason": "Evening: +0.2% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:33+00:00",
+   "symbol": "ROP",
+   "side": "sell",
+   "qty": "17.307158618",
+   "reason": "Evening: +1.3% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:34+00:00",
+   "symbol": "TMO",
+   "side": "sell",
+   "qty": "11.309011507",
+   "reason": "Evening: -0.3% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-11T20:30:36+00:00",
+   "symbol": "TYL",
+   "side": "sell",
+   "qty": "19.507389515",
+   "reason": "Evening: +1.5% (under +5%), 30 min before the close",
+   "status": "pending_new"
+  }
+ ],
  "state": "watching",
- "generated_at": "2026-11-11T20:20:22+00:00",
- "minutes_to_close": 40,
+ "generated_at": "2026-11-11T20:30:36+00:00",
+ "minutes_to_close": 30,
  "groups": [
   {
    "symbol": "ADSK",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "swings \u00b12.8% a day",
-    "-0.1% from the buy price"
+    "swings \u00b12.8% a day"
    ],
-   "price": 258.85,
+   "price": 259.2,
    "entry": 259.12,
    "highest": 259.93,
    "line": 246.16,
    "line_pct": 1.0,
-   "plpc": -0.1,
-   "day_pct": -0.48,
-   "to_line_pct": 5.16
+   "plpc": 0.03,
+   "day_pct": -0.35,
+   "to_line_pct": 5.3
   },
   {
    "symbol": "ICE",
@@ -38,14 +134,14 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 180.1599,
+   "price": 179.8,
    "entry": 176.91,
-   "highest": 180.1599,
-   "line": 178.36,
+   "highest": 180.22,
+   "line": 178.42,
    "line_pct": 1.0,
-   "plpc": 1.84,
-   "day_pct": 2.15,
-   "to_line_pct": 1.01
+   "plpc": 1.63,
+   "day_pct": 1.95,
+   "to_line_pct": 0.77
   },
   {
    "symbol": "NDAQ",
@@ -54,14 +150,14 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 110.155,
+   "price": 110.09,
    "entry": 109.9,
    "highest": 110.2,
    "line": 104.41,
    "line_pct": 1.0,
-   "plpc": 0.23,
-   "day_pct": 0.12,
-   "to_line_pct": 5.5
+   "plpc": 0.17,
+   "day_pct": 0.06,
+   "to_line_pct": 5.44
   },
   {
    "symbol": "ROP",
@@ -70,13 +166,13 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 477.31,
+   "price": 477.65,
    "entry": 471.32,
-   "highest": 477.31,
-   "line": 472.54,
+   "highest": 477.65,
+   "line": 472.87,
    "line_pct": 1.0,
-   "plpc": 1.27,
-   "day_pct": 0.6,
+   "plpc": 1.34,
+   "day_pct": 0.67,
    "to_line_pct": 1.01
   },
   {
@@ -84,16 +180,16 @@
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.5% from the buy price"
+    "-0.3% from the buy price"
    ],
-   "price": 717.595,
+   "price": 719.03,
    "entry": 721.3018,
    "highest": 725.95,
    "line": 685.24,
    "line_pct": 1.0,
-   "plpc": -0.51,
-   "day_pct": -0.08,
-   "to_line_pct": 4.72
+   "plpc": -0.31,
+   "day_pct": 0.12,
+   "to_line_pct": 4.93
   },
   {
    "symbol": "AZO",
@@ -101,16 +197,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.8% a day)",
-    "+0.5% from the buy price"
+    "+0.6% from the buy price"
    ],
-   "price": 3224.485,
+   "price": 3224.975,
    "entry": 3206.97,
-   "highest": 3224.485,
+   "highest": 3225.29,
    "line": 3046.62,
    "line_pct": 1.0,
-   "plpc": 0.55,
-   "day_pct": 0.22,
-   "to_line_pct": 5.84
+   "plpc": 0.56,
+   "day_pct": 0.23,
+   "to_line_pct": 5.85
   },
   {
    "symbol": "CMCSA",
@@ -118,16 +214,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b12.0% a day)",
-    "+0.8% from the buy price"
+    "+0.9% from the buy price"
    ],
-   "price": 24.865,
+   "price": 24.88,
    "entry": 24.6616,
-   "highest": 24.8676,
+   "highest": 24.89,
    "line": 23.43,
    "line_pct": 1.0,
-   "plpc": 0.82,
-   "day_pct": 0.46,
-   "to_line_pct": 6.12
+   "plpc": 0.89,
+   "day_pct": 0.53,
+   "to_line_pct": 6.19
   },
   {
    "symbol": "EXC",
@@ -135,16 +231,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.2% a day)",
-    "+0.6% from the buy price"
+    "+0.7% from the buy price"
    ],
-   "price": 45.72,
+   "price": 45.75,
    "entry": 45.4506,
-   "highest": 45.72,
+   "highest": 45.75,
    "line": 43.18,
    "line_pct": 1.0,
-   "plpc": 0.59,
-   "day_pct": 0.42,
-   "to_line_pct": 5.88
+   "plpc": 0.66,
+   "day_pct": 0.48,
+   "to_line_pct": 5.95
   },
   {
    "symbol": "GWW",
@@ -154,14 +250,14 @@
     "5 of 5 green, calm (\u00b11.5% a day)",
     "+0.4% from the buy price"
    ],
-   "price": 1484.79,
+   "price": 1485.47,
    "entry": 1479.16,
    "highest": 1488.88,
    "line": 1405.2,
    "line_pct": 1.0,
-   "plpc": 0.38,
-   "day_pct": 0.81,
-   "to_line_pct": 5.66
+   "plpc": 0.43,
+   "day_pct": 0.85,
+   "to_line_pct": 5.71
   },
   {
    "symbol": "LIN",
@@ -171,14 +267,14 @@
     "5 of 5 green, calm (\u00b11.0% a day)",
     "+1.0% from the buy price"
    ],
-   "price": 526.17,
+   "price": 526.38,
    "entry": 521.0909,
    "highest": 526.41,
    "line": 521.15,
    "line_pct": 1.0,
-   "plpc": 0.97,
-   "day_pct": 0.84,
-   "to_line_pct": 0.96
+   "plpc": 1.02,
+   "day_pct": 0.88,
+   "to_line_pct": 1.0
   },
   {
    "symbol": "MCK",
@@ -188,14 +284,14 @@
     "5 of 5 green, calm (\u00b11.8% a day)",
     "+0.1% from the buy price"
    ],
-   "price": 1076.93,
+   "price": 1077.38,
    "entry": 1075.9439,
    "highest": 1077.49,
    "line": 1022.15,
    "line_pct": 1.0,
-   "plpc": 0.09,
-   "day_pct": -0.52,
-   "to_line_pct": 5.36
+   "plpc": 0.13,
+   "day_pct": -0.48,
+   "to_line_pct": 5.4
   },
   {
    "symbol": "TYL",
@@ -203,16 +299,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b12.5% a day)",
-    "+1.2% from the buy price"
+    "+1.5% from the buy price"
    ],
-   "price": 423.07,
+   "price": 424.63,
    "entry": 418.16,
-   "highest": 424.82,
-   "line": 420.57,
+   "highest": 424.83,
+   "line": 420.58,
    "line_pct": 1.0,
-   "plpc": 1.17,
-   "day_pct": 0.33,
-   "to_line_pct": 0.59
+   "plpc": 1.55,
+   "day_pct": 0.7,
+   "to_line_pct": 0.96
   }
  ],
  "counts": {
@@ -223,16 +319,16 @@
  "error": null,
  "peaks": {
   "ADSK": 259.93,
-  "AZO": 3224.485,
-  "CMCSA": 24.8676,
-  "EXC": 45.72,
+  "AZO": 3225.29,
+  "CMCSA": 24.89,
+  "EXC": 45.75,
   "GWW": 1488.88,
-  "ICE": 180.1599,
+  "ICE": 180.22,
   "LIN": 526.41,
   "MCK": 1077.49,
   "NDAQ": 110.2,
-  "ROP": 477.31,
+  "ROP": 477.65,
   "TMO": 725.95,
-  "TYL": 424.82
+  "TYL": 424.83
  }
 }
