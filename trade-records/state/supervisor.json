@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-11T10:55:59+00:00",
- "next_check": "2026-11-11T11:55:59+00:00",
- "overall": "ok",
+ "generated_at": "2026-11-11T14:43:08+00:00",
+ "next_check": "2026-11-11T15:43:08+00:00",
+ "overall": "alert",
  "supervisors": [
   {
    "name": "Data watch",
@@ -29,15 +29,15 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,184 \u2192 5,000 \u2192 500 \u2192 49 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,184 \u2192 5,000 \u2192 500 \u2192 48 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "96% of stocks pass 'data is real'."
+     "text": "94% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
-     "text": "Time machine judged the shortlist: 179 of 500 have a green past."
+     "text": "Time machine judged the shortlist: 186 of 500 have a green past."
     }
    ]
   },
@@ -56,7 +56,7 @@
     },
     {
      "status": "ok",
-     "text": "0 position(s), 0 open order(s), no stop-loss missed."
+     "text": "12 position(s), 7 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -67,7 +67,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 615 order(s) recorded."
+     "text": "Journal complete: 627 order(s) recorded."
     },
     {
      "status": "ok",
@@ -82,14 +82,24 @@
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "ok",
+   "status": "alert",
    "checks": [
     {
      "status": "ok",
      "text": "1 run(s) in the last 3 hours, none failed."
+    },
+    {
+     "status": "alert",
+     "text": "The every-minute watchdog hasn't reported for 1062 minutes while the market is open. Held stocks are only checked every 5 minutes."
     }
    ]
   }
  ],
- "comments": []
+ "comments": [
+  {
+   "level": "alert",
+   "supervisor": "Schedule watch",
+   "text": "The every-minute watchdog hasn't reported for 1062 minutes while the market is open. Held stocks are only checked every 5 minutes."
+  }
+ ]
 }
