@@ -1,5 +1,5 @@
 {
- "started_at": "2026-11-11T14:43:19+00:00",
+ "started_at": "2026-11-11T21:18:04+00:00",
  "day": "2026-11-11",
  "mode": "on",
  "paper": true,
@@ -8,7 +8,7 @@
   "low": 1.0,
   "high": 1.0
  },
- "checks": 350,
+ "checks": 0,
  "actions_today": [
   {
    "time": "2026-11-11T20:30:21+00:00",
@@ -107,29 +107,7 @@
    "status": "pending_new"
   }
  ],
- "state": "watching",
- "generated_at": "2026-11-11T20:32:19+00:00",
- "minutes_to_close": 28,
- "groups": [],
- "counts": {
-  "safe": 0,
-  "low": 0,
-  "high": 0
- },
- "error": null,
- "peaks": {
-  "ADSK": 259.93,
-  "AZO": 3225.29,
-  "CMCSA": 24.89,
-  "EXC": 45.75,
-  "GWW": 1488.88,
-  "ICE": 180.22,
-  "LIN": 526.41,
-  "MCK": 1077.49,
-  "NDAQ": 110.2,
-  "ROP": 477.65,
-  "TMO": 725.95,
-  "TYL": 424.83
- },
- "ended_at": "2026-11-11T20:33:20+00:00"
+ "state": "sleeping",
+ "next_open": "2026-11-12T09:30:00-05:00",
+ "generated_at": "2026-11-11T21:18:04+00:00"
 }
