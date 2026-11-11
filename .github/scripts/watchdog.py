@@ -72,6 +72,29 @@ def gh_active(workflow):
     return False
 
 
+def older_watchdog_running(wait_min=6):
+    """Single watchdog without GitHub's queue: if an OLDER watchdog run is still running, wait a few minutes
+    (a hand-over: the old one exits right after starting this one). True if it is still running then."""
+    me = int(os.environ.get("GITHUB_RUN_ID") or 0)
+    if not (GH_TOKEN and GH_REPO and me):
+        return False
+    deadline = time.time() + wait_min * 60
+    while True:
+        try:
+            older = [r["id"] for st in ("in_progress", "queued")
+                     for r in gh("GET", f"/actions/workflows/watchdog.yml/runs?status={st}&per_page=20").get("workflow_runs", [])
+                     if r["id"] < me]
+        except Exception as e:
+            print("watchdog: can't read workflow runs:", str(e)[:120])
+            older = []
+        if not older:
+            return False
+        if time.time() >= deadline:
+            print(f"watchdog: another watchdog is already running ({older[0]}), this one stops")
+            return True
+        time.sleep(20)
+
+
 def gh_start(workflow):
     if not (GH_TOKEN and GH_REPO):
         return False
@@ -146,6 +169,8 @@ def main():
         ensure()
         return
     rec, agent_url = sys.argv[1], sys.argv[2]
+    if older_watchdog_running():
+        return
     budget_min = float(sys.argv[sys.argv.index("--minutes") + 1]) if "--minutes" in sys.argv else 350
     started = dt.datetime.now(UTC)
     status_p = os.path.join(rec, "state", "watchdog.json")
