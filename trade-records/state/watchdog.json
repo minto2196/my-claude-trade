@@ -8,11 +8,11 @@
   "low": 1.0,
   "high": 1.0
  },
- "checks": 22,
+ "checks": 31,
  "actions_today": [],
  "state": "watching",
- "generated_at": "2026-11-12T20:50:38+00:00",
- "minutes_to_close": 9,
+ "generated_at": "2026-11-12T20:59:38+00:00",
+ "minutes_to_close": 0,
  "groups": [],
  "counts": {
   "safe": 0,
@@ -33,5 +33,6 @@
   "TYL": 430.752044,
   "WEC": 118.24,
   "XEL": 81.94
- }
+ },
+ "ended_at": "2026-11-12T21:00:39+00:00"
 }
