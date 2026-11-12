@@ -8,11 +8,11 @@
   "low": 1.0,
   "high": 1.0
  },
- "checks": 11,
+ "checks": 22,
  "actions_today": [],
  "state": "watching",
- "generated_at": "2026-11-12T20:39:38+00:00",
- "minutes_to_close": 20,
+ "generated_at": "2026-11-12T20:50:38+00:00",
+ "minutes_to_close": 9,
  "groups": [],
  "counts": {
   "safe": 0,
