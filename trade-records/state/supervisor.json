@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-12T17:20:57+00:00",
- "next_check": "2026-11-12T18:20:57+00:00",
+ "generated_at": "2026-11-12T18:19:55+00:00",
+ "next_check": "2026-11-12T19:19:55+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -29,7 +29,7 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,184 \u2192 5,000 \u2192 500 \u2192 41 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,184 \u2192 5,000 \u2192 500 \u2192 42 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "32 run(s) in the last 3 hours, none failed, longest gap 7 min."
+     "text": "32 run(s) in the last 3 hours, none failed, longest gap 6 min."
     },
     {
      "status": "alert",
-     "text": "The every-minute watchdog hasn't reported for 163 minutes while the market is open. Held stocks are only checked every 5 minutes."
+     "text": "The every-minute watchdog hasn't reported for 222 minutes while the market is open. Held stocks are only checked every 5 minutes."
     }
    ]
   }
@@ -103,7 +103,7 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "The every-minute watchdog hasn't reported for 163 minutes while the market is open. Held stocks are only checked every 5 minutes."
+   "text": "The every-minute watchdog hasn't reported for 222 minutes while the market is open. Held stocks are only checked every 5 minutes."
   }
  ]
 }
