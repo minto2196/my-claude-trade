@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-13T16:16:07+00:00",
- "next_check": "2026-11-13T17:16:07+00:00",
+ "generated_at": "2026-11-13T17:15:37+00:00",
+ "next_check": "2026-11-13T18:15:37+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -25,11 +25,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 1 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,184 \u2192 5,000 \u2192 500 \u2192 30 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,184 \u2192 5,000 \u2192 500 \u2192 31 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 10.5 MB of 1 GB."
+     "text": "Repository storage 10.7 MB of 1 GB."
     }
    ]
   },
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "21 run(s) in the last 3 hours, none failed, longest gap 7 min."
+     "text": "31 run(s) in the last 3 hours, none failed, longest gap 7 min."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 99 checks today, last saved 8 min ago."
+     "text": "Every-minute watchdog alive: 164 checks today, last saved 3 min ago."
     }
    ]
   }
