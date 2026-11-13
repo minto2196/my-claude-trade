@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-12T22:28:12+00:00",
- "next_check": "2026-11-12T23:28:12+00:00",
- "overall": "alert",
+ "generated_at": "2026-11-13T00:39:23+00:00",
+ "next_check": "2026-11-13T01:39:23+00:00",
+ "overall": "ok",
  "supervisors": [
   {
    "name": "Data watch",
@@ -82,20 +82,14 @@
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "alert",
+   "status": "ok",
    "checks": [
     {
-     "status": "alert",
-     "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/43292858716"
+     "status": "ok",
+     "text": "2 run(s) in the last 3 hours, none failed, longest gap 132 min."
     }
    ]
   }
  ],
- "comments": [
-  {
-   "level": "alert",
-   "supervisor": "Schedule watch",
-   "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/43292858716"
-  }
- ]
+ "comments": []
 }
