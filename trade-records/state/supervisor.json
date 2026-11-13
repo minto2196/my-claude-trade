@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-13T02:51:39+00:00",
- "next_check": "2026-11-13T03:51:39+00:00",
+ "generated_at": "2026-11-13T10:21:18+00:00",
+ "next_check": "2026-11-13T11:21:18+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (0 min old)."
+     "text": "Portfolio snapshot is fresh (1 min old)."
     }
    ]
   },
@@ -25,19 +25,19 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 0 min ago."
+     "text": "Agent ran 1 min ago."
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,181 \u2192 5,000 \u2192 500 \u2192 54 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,183 \u2192 5,000 \u2192 500 \u2192 48 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "95% of stocks pass 'data is real'."
+     "text": "94% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
-     "text": "Time machine judged the shortlist: 193 of 500 have a green past."
+     "text": "Time machine judged the shortlist: 188 of 500 have a green past."
     }
    ]
   },
@@ -86,7 +86,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "2 run(s) in the last 3 hours, none failed, longest gap 133 min."
+     "text": "1 run(s) in the last 3 hours, none failed."
     }
    ]
   }
