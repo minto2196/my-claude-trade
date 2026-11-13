@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-13T00:39:23+00:00",
- "next_check": "2026-11-13T01:39:23+00:00",
+ "generated_at": "2026-11-13T02:51:39+00:00",
+ "next_check": "2026-11-13T03:51:39+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -29,7 +29,7 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,184 \u2192 5,000 \u2192 500 \u2192 54 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,181 \u2192 5,000 \u2192 500 \u2192 54 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -86,7 +86,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "2 run(s) in the last 3 hours, none failed, longest gap 132 min."
+     "text": "2 run(s) in the last 3 hours, none failed, longest gap 133 min."
     }
    ]
   }
