@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-14T10:49:02+00:00",
- "next_check": "2026-11-14T11:49:02+00:00",
+ "generated_at": "2026-11-14T16:29:10+00:00",
+ "next_check": "2026-11-14T17:29:10+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (2 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 2 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 10.6 MB of 1 GB."
+     "text": "Repository storage 10.7 MB of 1 GB."
     }
    ]
   },
