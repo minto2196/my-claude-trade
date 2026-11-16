@@ -293,7 +293,7 @@ def main():
                 elif price <= line:
                     sell(sym, qty, "line", f"{T.GROUP_LABEL[group]}: price ${price:,.2f} reached its sell line ${line:,.2f} "
                                            f"({T.LINE_PCT[group]:g}% under the high ${peak:,.2f}), {plpc:+.1f}%")
-                elif group == "high" and (board.get(sym) or {}).get("signal") == "sell":
+                elif group == "high" and sym not in bought_today and (board.get(sym) or {}).get("signal") == "sell":
                     sell(sym, qty, "signal", f"High risk and the checks say sell ({'; '.join(why)}), {plpc:+.1f}%")
                 elif not (T.FLATTEN and minutes_left <= T.FLATTEN_MINUTES):
                     have = stops.get(sym, [])

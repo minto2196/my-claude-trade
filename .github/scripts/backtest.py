@@ -64,7 +64,8 @@ def current_rules():
             "take_profit_pct": TAKE * 100, "bad_day_pct": BAD_DAY * 100, "slippage_pct": SLIP * 100,
             "tm_lookback_days": A.TM_LOOKBACK, "sell_all_before_close": FLATTEN, "keep_overnight_pct": KEEP * 100,
             "buy_pct_of_cash": SLOT_PCT * 100, "slot_of": AT.SLOT_OF, "max_positions": MAX_POS, "line_pct": AT.LINE_PCT,
-            "buy_min_greens": BUY_MIN_GREENS, "buy_needs_prediction": A.BUY_NEEDS_PREDICTION}
+            "buy_min_greens": BUY_MIN_GREENS, "buy_needs_prediction": A.BUY_NEEDS_PREDICTION,
+            "rebuy_cooldown_days": AT.REBUY_COOLDOWN_DAYS, "bad_day_needs_loss": True, "signal_exit_next_day": True}
 
 
 def is_due(latest, now):
@@ -198,6 +199,7 @@ def run_sim(data, dates, statuses, spy_by, t0):
     cash, pos, trades, curve, picks = START_CASH, {}, [], [], []
     prev_equity, spy0 = START_CASH, None
     pick_pct, groups_seen = {}, {"safe": 0, "low": 0, "high": 0}
+    last_sold = {}   # symbol -> index of the day it was last sold (re-buy cooldown, like the live trader)
 
     def bar(s, day):
         i = data[s]["idx"].get(day)
@@ -209,6 +211,7 @@ def run_sim(data, dates, statuses, spy_by, t0):
         px *= 1 - SLIP
         qty = p["qty"] * frac
         cash += qty * px
+        last_sold[s] = dates.index(day)
         trades.append({"symbol": s, "bought": p["day"], "buy_px": round(p["entry"], 4), "sold": day, "sell_px": round(px, 4),
                        "qty": round(qty, 6), "pl": round(qty * (px - p["entry"]), 2), "pl_pct": round((px / p["entry"] - 1) * 100, 2),
                        "days": (dt.date.fromisoformat(day) - dt.date.fromisoformat(p["day"])).days, "rule": rule})
@@ -266,9 +269,12 @@ def run_sim(data, dates, statuses, spy_by, t0):
             sts = st[0]
             p["pct"], p["group"] = group_pct(data[s]["bars"], i, sts, p["entry"], p["peak"])
             groups_seen[p["group"]] += 1
-            if b["c"] <= data[s]["bars"][i - 1]["c"] * (1 - BAD_DAY) and sts.count("ok") < 5:
+            if (b["c"] <= data[s]["bars"][i - 1]["c"] * (1 - BAD_DAY) and b["c"] <= p["entry"] * (1 - BAD_DAY)
+                    and sts.count("ok") < 5):
                 sell(s, b["c"], day, "bad day")
                 continue
+            if p["day"] == day:
+                continue   # like the live trader: signal exits wait until the day after the buy
             sig = A.signal(sts, True)
             if sig == "sell":
                 sell(s, b["c"], day, "time machine red" if sts[4] == "alert" else "2 or fewer green")
@@ -282,7 +288,7 @@ def run_sim(data, dates, statuses, spy_by, t0):
         if equity > prev_equity * (1 - DAILY_LOSS) and len(pos) < MAX_POS:
             cands = []
             for s in data:
-                if s in pos:
+                if s in pos or (s in last_sold and di + 1 - last_sold[s] < AT.REBUY_COOLDOWN_DAYS):
                     continue
                 st = statuses(s, day)
                 if st and A.signal(st[0], False) == "buy" and st[0].count("ok") >= BUY_MIN_GREENS:

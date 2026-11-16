@@ -195,9 +195,11 @@ def fetch_orders(days):
     return out
 
 
-LINE_PCT = {"safe": float(os.environ.get("AUTOTRADE_LINE_SAFE_PCT", "1") or 1),
-            "low": float(os.environ.get("AUTOTRADE_LINE_LOW_PCT", "1") or 1),
-            "high": float(os.environ.get("AUTOTRADE_LINE_HIGH_PCT", "1") or 1)}
+LINE_PCT = {"safe": float(os.environ.get("AUTOTRADE_LINE_SAFE_PCT", "5") or 5),
+            "low": float(os.environ.get("AUTOTRADE_LINE_LOW_PCT", "5") or 5),
+            "high": float(os.environ.get("AUTOTRADE_LINE_HIGH_PCT", "5") or 5)}
+# Don't buy back a stock within this many days of selling it (stops buy/sell/buy churn on the same names)
+REBUY_COOLDOWN_DAYS = float(os.environ.get("AUTOTRADE_REBUY_COOLDOWN_DAYS", "3") or 0)
 GROUP_LABEL = {"safe": "Safe", "low": "Low risk", "high": "High risk"}
 
 
@@ -343,6 +345,8 @@ def run(agent, previous, backtest=None):
     sold_today = {o["symbol"] for o in mine if o.get("side") == "sell" and (o.get("filled_at") or o.get("submitted_at") or "")[:10] == today}
     trimmed_recently = {o["symbol"] for o in mine if o.get("side") == "sell" and o.get("status") == "filled" and not is_stop(o)
                         and (now - dt.datetime.fromisoformat(o["filled_at"].replace("Z", "+00:00"))).days < 3}
+    sold_recently = {o["symbol"] for o in mine if o.get("side") == "sell" and o.get("status") == "filled" and o.get("filled_at")
+                     and (now - iso_utc(o["filled_at"])).total_seconds() < REBUY_COOLDOWN_DAYS * 86400}
 
     cols = agent.get("board_columns", [])
     board = {r[cols.index("symbol")]: dict(zip(cols, r)) for r in agent.get("board", [])}
@@ -468,10 +472,15 @@ def run(agent, previous, backtest=None):
                                f"(line ${line:,.2f}), {plpc:+.1f}% from the buy price", qty=qty, rule="trailing stop")
         elif line is not None and price <= line:
             place(sym, "sell", f"{GROUP_LABEL[group]} sell line: down {abs(plpc):.1f}% from the buy price (line ${line:,.2f})", qty=qty, rule="stop-loss")
-        elif day <= -BAD_DAY_PCT and greens != 5:
-            place(sym, "sell", f"Bad day: down {abs(day):.1f}% today and only {greens if greens is not None else '?'} of 5 green", qty=qty, rule="bad day")
+        elif day <= -BAD_DAY_PCT and plpc <= -BAD_DAY_PCT and greens != 5:
+            # both the day AND our own position must be down: a stock bought after it had already fallen
+            # isn't sold just because of the drop that happened before we bought it
+            place(sym, "sell", f"Bad day: down {abs(day):.1f}% today, {plpc:+.1f}% from the buy price, only "
+                               f"{greens if greens is not None else '?'} of 5 green", qty=qty, rule="bad day")
         elif TAKE_PROFIT_PCT > 0 and plpc >= TAKE_PROFIT_PCT:
             place(sym, "sell", f"Take profit: up {plpc:.1f}% from entry", qty=qty, rule="take-profit")
+        elif sym in bought_today:
+            pass   # signal exits wait a day: the checks flip on intraday noise; the sell line still protects it
         elif b and b.get("history") == "alert":
             place(sym, "sell", "Time machine turned red: this stock usually fell after looking green", qty=qty, rule="time machine red")
         elif sig == "sell":
@@ -526,6 +535,8 @@ def run(agent, previous, backtest=None):
             sym = c["symbol"]
             if sym in positions or sym in open_syms or sym in sold_today or board.get(sym, {}).get("signal") != "buy":
                 continue
+            if sym in sold_recently:
+                continue   # sold within AUTOTRADE_REBUY_COOLDOWN_DAYS
             try:
                 asset = call("GET", f"/v2/assets/{urllib.parse.quote(sym)}")
             except Exception:
