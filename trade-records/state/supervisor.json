@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-16T16:02:58+00:00",
- "next_check": "2026-11-16T17:02:58+00:00",
+ "generated_at": "2026-11-16T17:16:20+00:00",
+ "next_check": "2026-11-16T18:16:20+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 11.0 MB of 1 GB."
+     "text": "Repository storage 11.1 MB of 1 GB."
     }
    ]
   },
@@ -90,15 +90,15 @@
    "checks": [
     {
      "status": "warn",
-     "text": "GitHub left a 60-minute gap between runs while the market was open. Exits can only act when a run happens."
+     "text": "GitHub left a 67-minute gap between runs while the market was open. Exits can only act when a run happens."
     },
     {
      "status": "ok",
-     "text": "10 run(s) in the last 3 hours, none failed, longest gap 60 min."
+     "text": "12 run(s) in the last 3 hours, none failed, longest gap 67 min."
     },
     {
      "status": "alert",
-     "text": "The every-minute watchdog hasn't reported for 61 minutes while the market is open. Held stocks are only checked every 5 minutes."
+     "text": "The every-minute watchdog hasn't reported for 68 minutes while the market is open. Held stocks are only checked every 5 minutes."
     }
    ]
   }
@@ -107,12 +107,12 @@
   {
    "level": "warn",
    "supervisor": "Schedule watch",
-   "text": "GitHub left a 60-minute gap between runs while the market was open. Exits can only act when a run happens."
+   "text": "GitHub left a 67-minute gap between runs while the market was open. Exits can only act when a run happens."
   },
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "The every-minute watchdog hasn't reported for 61 minutes while the market is open. Held stocks are only checked every 5 minutes."
+   "text": "The every-minute watchdog hasn't reported for 68 minutes while the market is open. Held stocks are only checked every 5 minutes."
   }
  ]
 }
