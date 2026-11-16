@@ -8,12 +8,12 @@
   "low": 1.0,
   "high": 1.0
  },
- "checks": 55,
+ "checks": 66,
  "actions_today": [],
  "state": "watching",
  "next_open": "2026-11-16T14:30:00+00:00",
- "generated_at": "2026-11-16T15:24:01+00:00",
- "minutes_to_close": 336,
+ "generated_at": "2026-11-16T15:35:01+00:00",
+ "minutes_to_close": 325,
  "groups": [
   {
    "symbol": "ROP",
@@ -22,14 +22,14 @@
    "reasons": [
     "only 3 of 5 green"
    ],
-   "price": 485.66,
+   "price": 487.17,
    "entry": 488.01,
    "highest": 488.01,
    "line": 463.61,
    "line_pct": 1.0,
-   "plpc": -0.48,
-   "day_pct": 1.18,
-   "to_line_pct": 4.76
+   "plpc": -0.17,
+   "day_pct": 1.5,
+   "to_line_pct": 5.08
   },
   {
    "symbol": "CBOE",
@@ -37,16 +37,16 @@
    "label": "Low risk",
    "reasons": [
     "4 of 5 green",
-    "-1.0% from the buy price"
+    "-1.9% from the buy price"
    ],
-   "price": 375.67,
+   "price": 372.535,
    "entry": 379.5881,
    "highest": 379.73,
    "line": 360.61,
    "line_pct": 1.0,
-   "plpc": -1.03,
-   "day_pct": 0.07,
-   "to_line_pct": 4.18
+   "plpc": -1.86,
+   "day_pct": -0.77,
+   "to_line_pct": 3.31
   },
   {
    "symbol": "CRL",
@@ -55,17 +55,17 @@
    "reasons": [
     "4 of 5 green",
     "swings \u00b13.0% a day",
-    "-0.6% from the buy price",
-    "down 1.6% today"
+    "-0.9% from the buy price",
+    "down 1.8% today"
    ],
-   "price": 332.66,
+   "price": 331.755,
    "entry": 334.8154,
    "highest": 335.16,
    "line": 318.07,
    "line_pct": 1.0,
-   "plpc": -0.64,
-   "day_pct": -1.57,
-   "to_line_pct": 4.59
+   "plpc": -0.91,
+   "day_pct": -1.84,
+   "to_line_pct": 4.3
   },
   {
    "symbol": "GPN",
@@ -73,64 +73,49 @@
    "label": "Low risk",
    "reasons": [
     "swings \u00b13.0% a day",
-    "-0.2% from the buy price"
+    "-0.7% from the buy price"
    ],
-   "price": 92.16,
+   "price": 91.71,
    "entry": 92.3486,
    "highest": 93.205,
    "line": 87.73,
    "line_pct": 1.0,
-   "plpc": -0.2,
-   "day_pct": 0.28,
-   "to_line_pct": 5.05
+   "plpc": -0.69,
+   "day_pct": -0.21,
+   "to_line_pct": 4.54
   },
   {
    "symbol": "GWW",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "4 of 5 green"
+    "4 of 5 green",
+    "-0.0% from the buy price"
    ],
-   "price": 1504.48,
+   "price": 1502.61,
    "entry": 1502.82,
-   "highest": 1504.48,
+   "highest": 1507.14,
    "line": 1427.68,
    "line_pct": 1.0,
-   "plpc": 0.11,
-   "day_pct": 1.02,
-   "to_line_pct": 5.38
-  },
-  {
-   "symbol": "LIN",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.2% from the buy price"
-   ],
-   "price": 528.15,
-   "entry": 528.9735,
-   "highest": 529.12,
-   "line": 502.52,
-   "line_pct": 1.0,
-   "plpc": -0.16,
-   "day_pct": 0.4,
-   "to_line_pct": 5.1
+   "plpc": -0.01,
+   "day_pct": 0.89,
+   "to_line_pct": 5.25
   },
   {
    "symbol": "NDAQ",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.5% from the buy price"
+    "-0.6% from the buy price"
    ],
-   "price": 108.755,
+   "price": 108.7,
    "entry": 109.3287,
    "highest": 109.35,
    "line": 103.86,
    "line_pct": 1.0,
-   "plpc": -0.52,
-   "day_pct": 0.26,
-   "to_line_pct": 4.71
+   "plpc": -0.58,
+   "day_pct": 0.21,
+   "to_line_pct": 4.66
   },
   {
    "symbol": "TMO",
@@ -138,17 +123,17 @@
    "label": "Low risk",
    "reasons": [
     "4 of 5 green",
-    "-1.4% from the buy price",
-    "down 1.3% today"
+    "-1.8% from the buy price",
+    "down 1.8% today"
    ],
-   "price": 690.8175,
+   "price": 687.92,
    "entry": 700.6391,
    "highest": 701.225,
    "line": 665.61,
    "line_pct": 1.0,
-   "plpc": -1.4,
-   "day_pct": -1.34,
-   "to_line_pct": 3.79
+   "plpc": -1.82,
+   "day_pct": -1.76,
+   "to_line_pct": 3.35
   },
   {
    "symbol": "TYL",
@@ -156,32 +141,48 @@
    "label": "Low risk",
    "reasons": [
     "4 of 5 green",
-    "-0.5% from the buy price"
+    "-0.1% from the buy price"
    ],
-   "price": 428.79,
+   "price": 430.32,
    "entry": 430.8649,
    "highest": 430.8649,
    "line": 409.32,
    "line_pct": 1.0,
-   "plpc": -0.48,
-   "day_pct": 1.11,
-   "to_line_pct": 4.76
+   "plpc": -0.13,
+   "day_pct": 1.48,
+   "to_line_pct": 5.13
+  },
+  {
+   "symbol": "XEL",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.1% from the buy price"
+   ],
+   "price": 82.09,
+   "entry": 82.2,
+   "highest": 82.52,
+   "line": 78.09,
+   "line_pct": 1.0,
+   "plpc": -0.13,
+   "day_pct": 0.59,
+   "to_line_pct": 5.12
   },
   {
    "symbol": "ZTS",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.1% from the buy price"
+    "-0.2% from the buy price"
    ],
-   "price": 84.075,
+   "price": 83.955,
    "entry": 84.1541,
    "highest": 84.505,
    "line": 79.95,
    "line_pct": 1.0,
-   "plpc": -0.09,
-   "day_pct": 0.3,
-   "to_line_pct": 5.16
+   "plpc": -0.24,
+   "day_pct": 0.16,
+   "to_line_pct": 5.01
   },
   {
    "symbol": "EXC",
@@ -191,31 +192,31 @@
     "5 of 5 green, calm (\u00b11.2% a day)",
     "+0.3% from the buy price"
    ],
-   "price": 46.635,
+   "price": 46.63,
    "entry": 46.4798,
-   "highest": 46.695,
+   "highest": 46.715,
    "line": 44.16,
    "line_pct": 1.0,
-   "plpc": 0.33,
-   "day_pct": 0.83,
-   "to_line_pct": 5.6
+   "plpc": 0.32,
+   "day_pct": 0.82,
+   "to_line_pct": 5.59
   },
   {
-   "symbol": "XEL",
+   "symbol": "LIN",
    "group": "safe",
    "label": "Safe",
    "reasons": [
-    "5 of 5 green, calm (\u00b11.1% a day)",
-    "+0.0% from the buy price"
+    "5 of 5 green, calm (\u00b11.0% a day)",
+    "+0.1% from the buy price"
    ],
-   "price": 82.21,
-   "entry": 82.2,
-   "highest": 82.52,
-   "line": 78.09,
+   "price": 529.4,
+   "entry": 528.9735,
+   "highest": 529.495,
+   "line": 502.52,
    "line_pct": 1.0,
-   "plpc": 0.01,
-   "day_pct": 0.73,
-   "to_line_pct": 5.28
+   "plpc": 0.08,
+   "day_pct": 0.64,
+   "to_line_pct": 5.35
   }
  ],
  "counts": {
@@ -229,9 +230,9 @@
   "TYL": 430.864879,
   "CBOE": 379.73,
   "CRL": 335.16,
-  "EXC": 46.695,
-  "GWW": 1504.48,
-  "LIN": 529.12,
+  "EXC": 46.715,
+  "GWW": 1507.14,
+  "LIN": 529.495,
   "NDAQ": 109.35,
   "ROP": 488.01,
   "TMO": 701.225,
