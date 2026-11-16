@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-16T00:02:43+00:00",
- "next_check": "2026-11-16T01:02:43+00:00",
+ "generated_at": "2026-11-16T06:15:29+00:00",
+ "next_check": "2026-11-16T07:15:29+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -37,7 +37,7 @@
     },
     {
      "status": "ok",
-     "text": "Time machine judged the shortlist: 183 of 500 have a green past."
+     "text": "Time machine judged the shortlist: 184 of 500 have a green past."
     }
    ]
   },
@@ -72,10 +72,6 @@
     {
      "status": "ok",
      "text": "This week's Excel journal exists."
-    },
-    {
-     "status": "ok",
-     "text": "This week's PDF report is filed."
     },
     {
      "status": "ok",
