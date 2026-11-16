@@ -8,12 +8,12 @@
   "low": 1.0,
   "high": 1.0
  },
- "checks": 110,
+ "checks": 121,
  "actions_today": [],
  "state": "watching",
  "next_open": "2026-11-16T14:30:00+00:00",
- "generated_at": "2026-11-16T16:19:01+00:00",
- "minutes_to_close": 281,
+ "generated_at": "2026-11-16T16:30:01+00:00",
+ "minutes_to_close": 270,
  "groups": [
   {
    "symbol": "ROP",
@@ -22,14 +22,14 @@
    "reasons": [
     "only 3 of 5 green"
    ],
-   "price": 485.43,
+   "price": 485.81,
    "entry": 488.01,
    "highest": 488.01,
    "line": 463.61,
    "line_pct": 1.0,
-   "plpc": -0.53,
-   "day_pct": 1.14,
-   "to_line_pct": 4.71
+   "plpc": -0.45,
+   "day_pct": 1.22,
+   "to_line_pct": 4.79
   },
   {
    "symbol": "CBOE",
@@ -39,14 +39,14 @@
     "4 of 5 green",
     "-1.7% from the buy price"
    ],
-   "price": 372.98,
+   "price": 373.32,
    "entry": 379.5881,
    "highest": 379.73,
    "line": 360.61,
    "line_pct": 1.0,
-   "plpc": -1.74,
-   "day_pct": -0.65,
-   "to_line_pct": 3.43
+   "plpc": -1.65,
+   "day_pct": -0.56,
+   "to_line_pct": 3.52
   },
   {
    "symbol": "CRL",
@@ -56,14 +56,30 @@
     "4 of 5 green",
     "swings \u00b13.0% a day"
    ],
-   "price": 335.34,
+   "price": 335.01,
    "entry": 334.8154,
    "highest": 335.525,
    "line": 318.07,
    "line_pct": 1.0,
-   "plpc": 0.16,
-   "day_pct": -0.78,
-   "to_line_pct": 5.43
+   "plpc": 0.06,
+   "day_pct": -0.88,
+   "to_line_pct": 5.33
+  },
+  {
+   "symbol": "EXC",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.3% from the buy price"
+   ],
+   "price": 46.32,
+   "entry": 46.4798,
+   "highest": 46.75,
+   "line": 44.16,
+   "line_pct": 1.0,
+   "plpc": -0.34,
+   "day_pct": 0.15,
+   "to_line_pct": 4.89
   },
   {
    "symbol": "GPN",
@@ -71,16 +87,16 @@
    "label": "Low risk",
    "reasons": [
     "swings \u00b13.0% a day",
-    "-0.9% from the buy price"
+    "-0.8% from the buy price"
    ],
-   "price": 91.485,
+   "price": 91.58,
    "entry": 92.3486,
    "highest": 93.205,
    "line": 87.73,
    "line_pct": 1.0,
-   "plpc": -0.94,
-   "day_pct": -0.45,
-   "to_line_pct": 4.28
+   "plpc": -0.83,
+   "day_pct": -0.35,
+   "to_line_pct": 4.39
   },
   {
    "symbol": "GWW",
@@ -89,30 +105,30 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 1504.94,
+   "price": 1504.665,
    "entry": 1502.82,
    "highest": 1507.33,
    "line": 1427.68,
    "line_pct": 1.0,
-   "plpc": 0.14,
-   "day_pct": 1.05,
-   "to_line_pct": 5.41
+   "plpc": 0.12,
+   "day_pct": 1.03,
+   "to_line_pct": 5.39
   },
   {
    "symbol": "LIN",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.0% from the buy price"
+    "-0.1% from the buy price"
    ],
-   "price": 528.71,
+   "price": 528.33,
    "entry": 528.9735,
    "highest": 529.91,
    "line": 502.52,
    "line_pct": 1.0,
-   "plpc": -0.05,
-   "day_pct": 0.5,
-   "to_line_pct": 5.21
+   "plpc": -0.12,
+   "day_pct": 0.43,
+   "to_line_pct": 5.14
   },
   {
    "symbol": "NDAQ",
@@ -121,14 +137,14 @@
    "reasons": [
     "-0.7% from the buy price"
    ],
-   "price": 108.51,
+   "price": 108.565,
    "entry": 109.3287,
    "highest": 109.35,
    "line": 103.86,
    "line_pct": 1.0,
-   "plpc": -0.75,
-   "day_pct": 0.04,
-   "to_line_pct": 4.48
+   "plpc": -0.7,
+   "day_pct": 0.09,
+   "to_line_pct": 4.53
   },
   {
    "symbol": "TMO",
@@ -136,87 +152,69 @@
    "label": "Low risk",
    "reasons": [
     "4 of 5 green",
-    "-0.5% from the buy price"
+    "-0.6% from the buy price"
    ],
-   "price": 697.37,
+   "price": 696.43,
    "entry": 700.6391,
    "highest": 701.225,
    "line": 665.61,
    "line_pct": 1.0,
-   "plpc": -0.47,
-   "day_pct": -0.41,
-   "to_line_pct": 4.77
+   "plpc": -0.6,
+   "day_pct": -0.54,
+   "to_line_pct": 4.63
   },
   {
    "symbol": "TYL",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "4 of 5 green",
-    "-0.3% from the buy price"
+    "4 of 5 green"
    ],
-   "price": 429.475,
+   "price": 430.87,
    "entry": 430.8649,
    "highest": 431.085,
    "line": 409.32,
    "line_pct": 1.0,
-   "plpc": -0.32,
-   "day_pct": 1.28,
-   "to_line_pct": 4.92
+   "plpc": 0.0,
+   "day_pct": 1.61,
+   "to_line_pct": 5.26
   },
   {
    "symbol": "XEL",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.4% from the buy price"
+    "-0.6% from the buy price"
    ],
-   "price": 81.91,
+   "price": 81.69,
    "entry": 82.2,
    "highest": 82.52,
    "line": 78.09,
    "line_pct": 1.0,
-   "plpc": -0.35,
-   "day_pct": 0.37,
-   "to_line_pct": 4.89
+   "plpc": -0.62,
+   "day_pct": 0.1,
+   "to_line_pct": 4.61
   },
   {
    "symbol": "ZTS",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.3% from the buy price"
+    "-0.4% from the buy price"
    ],
-   "price": 83.87,
+   "price": 83.8548,
    "entry": 84.1541,
    "highest": 84.505,
    "line": 79.95,
    "line_pct": 1.0,
-   "plpc": -0.34,
-   "day_pct": 0.06,
-   "to_line_pct": 4.9
-  },
-  {
-   "symbol": "EXC",
-   "group": "safe",
-   "label": "Safe",
-   "reasons": [
-    "5 of 5 green, calm (\u00b11.2% a day)",
-    "+0.1% from the buy price"
-   ],
-   "price": 46.515,
-   "entry": 46.4798,
-   "highest": 46.75,
-   "line": 44.16,
-   "line_pct": 1.0,
-   "plpc": 0.08,
-   "day_pct": 0.57,
-   "to_line_pct": 5.33
+   "plpc": -0.36,
+   "day_pct": 0.04,
+   "to_line_pct": 4.88
   }
  ],
  "counts": {
-  "safe": 1,
-  "low": 10,
+  "safe": 0,
+  "low": 11,
   "high": 1
  },
  "error": null,
