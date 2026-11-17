@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-17T16:22:28+00:00",
- "next_check": "2026-11-17T17:22:28+00:00",
+ "generated_at": "2026-11-17T17:22:23+00:00",
+ "next_check": "2026-11-17T18:22:23+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -29,11 +29,11 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,187 \u2192 5,000 \u2192 500 \u2192 23 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,187 \u2192 5,000 \u2192 500 \u2192 22 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "95% of stocks pass 'data is real'."
+     "text": "94% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 11.1 MB of 1 GB."
+     "text": "Repository storage 11.2 MB of 1 GB."
     }
    ]
   },
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "21 run(s) in the last 3 hours, none failed, longest gap 6 min."
+     "text": "31 run(s) in the last 3 hours, none failed, longest gap 6 min."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 110 checks today, last saved 3 min ago."
+     "text": "Every-minute watchdog alive: 164 checks today, last saved 9 min ago."
     }
    ]
   }
