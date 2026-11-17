@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-16T20:41:08+00:00",
- "next_check": "2026-11-16T21:41:08+00:00",
- "overall": "alert",
+ "generated_at": "2026-11-17T00:11:45+00:00",
+ "next_check": "2026-11-17T01:11:45+00:00",
+ "overall": "ok",
  "supervisors": [
   {
    "name": "Data watch",
@@ -75,31 +75,21 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 10.8 MB of 1 GB."
+     "text": "Repository storage 10.9 MB of 1 GB."
     }
    ]
   },
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "alert",
+   "status": "ok",
    "checks": [
     {
      "status": "ok",
-     "text": "20 run(s) in the last 3 hours, none failed, longest gap 7 min."
-    },
-    {
-     "status": "alert",
-     "text": "The every-minute watchdog hasn't reported for 154 minutes while the market is open. Held stocks are only checked every 5 minutes."
+     "text": "1 run(s) in the last 3 hours, none failed."
     }
    ]
   }
  ],
- "comments": [
-  {
-   "level": "alert",
-   "supervisor": "Schedule watch",
-   "text": "The every-minute watchdog hasn't reported for 154 minutes while the market is open. Held stocks are only checked every 5 minutes."
-  }
- ]
+ "comments": []
 }
