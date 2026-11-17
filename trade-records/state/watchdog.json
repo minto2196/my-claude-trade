@@ -8,60 +8,60 @@
   "low": 1.0,
   "high": 1.0
  },
- "checks": 185,
+ "checks": 196,
  "actions_today": [],
  "state": "watching",
  "next_open": "2026-11-17T14:30:00+00:00",
- "generated_at": "2026-11-17T17:34:00+00:00",
- "minutes_to_close": 206,
+ "generated_at": "2026-11-17T17:45:01+00:00",
+ "minutes_to_close": 195,
  "groups": [
   {
    "symbol": "ADSK",
    "group": "high",
    "label": "High risk",
    "reasons": [
-    "down 3.2% today"
+    "down 3.1% today"
    ],
-   "price": 257.13,
+   "price": 257.265,
    "entry": 261.9089,
    "highest": 262.05,
    "line": 248.81,
    "line_pct": 1.0,
-   "plpc": -1.82,
-   "day_pct": -3.16,
-   "to_line_pct": 3.34
+   "plpc": -1.77,
+   "day_pct": -3.11,
+   "to_line_pct": 3.4
   },
   {
    "symbol": "AZO",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-1.0% from the buy price"
+    "-0.5% from the buy price"
    ],
-   "price": 3256.75,
+   "price": 3275.0,
    "entry": 3289.83,
    "highest": 3292.055,
    "line": 3125.34,
    "line_pct": 1.0,
-   "plpc": -1.01,
-   "day_pct": -0.4,
-   "to_line_pct": 4.2
+   "plpc": -0.45,
+   "day_pct": 0.16,
+   "to_line_pct": 4.79
   },
   {
    "symbol": "EXC",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.2% from the buy price"
+    "-0.1% from the buy price"
    ],
-   "price": 46.155,
+   "price": 46.22,
    "entry": 46.2489,
    "highest": 46.495,
    "line": 43.94,
    "line_pct": 1.0,
-   "plpc": -0.2,
-   "day_pct": -0.66,
-   "to_line_pct": 5.04
+   "plpc": -0.06,
+   "day_pct": -0.52,
+   "to_line_pct": 5.19
   },
   {
    "symbol": "KR",
@@ -70,47 +70,47 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 71.025,
+   "price": 70.96,
    "entry": 70.4663,
    "highest": 71.18,
    "line": 70.47,
    "line_pct": 1.0,
-   "plpc": 0.79,
-   "day_pct": 0.5,
-   "to_line_pct": 0.79
+   "plpc": 0.7,
+   "day_pct": 0.41,
+   "to_line_pct": 0.7
   },
   {
    "symbol": "MTD",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.8% from the buy price"
+    "-0.9% from the buy price"
    ],
-   "price": 1722.35,
+   "price": 1720.585,
    "entry": 1735.6,
    "highest": 1740.45,
    "line": 1648.82,
    "line_pct": 1.0,
-   "plpc": -0.76,
-   "day_pct": -0.28,
-   "to_line_pct": 4.46
+   "plpc": -0.87,
+   "day_pct": -0.39,
+   "to_line_pct": 4.35
   },
   {
    "symbol": "NDAQ",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-1.4% from the buy price",
-    "down 1.7% today"
+    "-1.5% from the buy price",
+    "down 1.8% today"
    ],
-   "price": 106.7,
+   "price": 106.6,
    "entry": 108.19,
    "highest": 108.35,
    "line": 102.78,
    "line_pct": 1.0,
-   "plpc": -1.38,
-   "day_pct": -1.68,
-   "to_line_pct": 3.81
+   "plpc": -1.47,
+   "day_pct": -1.77,
+   "to_line_pct": 3.72
   },
   {
    "symbol": "SN",
@@ -119,14 +119,14 @@
    "reasons": [
     "-1.7% from the buy price"
    ],
-   "price": 221.275,
+   "price": 221.24,
    "entry": 224.99,
    "highest": 225.5601,
    "line": 213.74,
    "line_pct": 1.0,
-   "plpc": -1.65,
-   "day_pct": -0.9,
-   "to_line_pct": 3.53
+   "plpc": -1.67,
+   "day_pct": -0.92,
+   "to_line_pct": 3.51
   },
   {
    "symbol": "UPS",
@@ -135,14 +135,14 @@
    "reasons": [
     "-0.2% from the buy price"
    ],
-   "price": 110.99,
+   "price": 111.02,
    "entry": 111.24,
    "highest": 112.08,
    "line": 105.68,
    "line_pct": 1.0,
-   "plpc": -0.22,
-   "day_pct": -0.74,
-   "to_line_pct": 5.02
+   "plpc": -0.2,
+   "day_pct": -0.71,
+   "to_line_pct": 5.05
   },
   {
    "symbol": "UTHR",
@@ -151,33 +151,33 @@
    "reasons": [
     "4 of 5 green",
     "swings \u00b12.5% a day",
-    "-3.4% from the buy price",
-    "down 1.7% today"
+    "-3.2% from the buy price",
+    "down 1.5% today"
    ],
-   "price": 577.91,
+   "price": 578.955,
    "entry": 598.0,
    "highest": 598.0,
    "line": 568.1,
    "line_pct": 1.0,
-   "plpc": -3.36,
-   "day_pct": -1.7,
-   "to_line_pct": 1.73
+   "plpc": -3.18,
+   "day_pct": -1.52,
+   "to_line_pct": 1.91
   },
   {
    "symbol": "XEL",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.2% from the buy price"
+    "-0.0% from the buy price"
    ],
-   "price": 80.985,
+   "price": 81.125,
    "entry": 81.1363,
    "highest": 81.4,
    "line": 77.08,
    "line_pct": 1.0,
-   "plpc": -0.19,
-   "day_pct": -0.28,
-   "to_line_pct": 5.07
+   "plpc": -0.01,
+   "day_pct": -0.1,
+   "to_line_pct": 5.25
   },
   {
    "symbol": "ABBV",
@@ -185,16 +185,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.2% a day)",
-    "+0.0% from the buy price"
+    "+0.2% from the buy price"
    ],
-   "price": 293.14,
+   "price": 293.69,
    "entry": 293.0141,
    "highest": 293.99,
    "line": 278.36,
    "line_pct": 1.0,
-   "plpc": 0.04,
-   "day_pct": -0.48,
-   "to_line_pct": 5.31
+   "plpc": 0.23,
+   "day_pct": -0.29,
+   "to_line_pct": 5.51
   },
   {
    "symbol": "LIN",
@@ -202,16 +202,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.0% a day)",
-    "+0.3% from the buy price"
+    "+0.2% from the buy price"
    ],
-   "price": 523.45,
+   "price": 522.925,
    "entry": 522.03,
    "highest": 525.23,
    "line": 495.93,
    "line_pct": 1.0,
-   "plpc": 0.27,
-   "day_pct": -0.0,
-   "to_line_pct": 5.55
+   "plpc": 0.17,
+   "day_pct": -0.1,
+   "to_line_pct": 5.44
   }
  ],
  "counts": {
