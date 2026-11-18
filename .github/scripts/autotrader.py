@@ -103,6 +103,8 @@ STOP_TAG = TAG + "stop-"
 WD_RULES = {"line": ("sell line (watchdog)", "price reached its sell line"),
             "signal": ("2 or fewer green (watchdog)", "high risk and the checks say sell"),
             "evening": (f"evening under {KEEP_OVERNIGHT_PCT:g}% (watchdog)", f"evening rule, under +{KEEP_OVERNIGHT_PCT:g}% before the close"),
+            "tp": ("take profit (watchdog)", "price reached the take-profit target"),
+            "time": ("scalp time limit (watchdog)", "scalp position reached its time limit"),
             "overnight": ("overnight catch-up (watchdog)", f"held overnight under +{KEEP_OVERNIGHT_PCT:g}%, sold at the open")}
 FUND_WORDS = re.compile(r"\b(ETF|ETN|FUND|TRUST|ISHARES|SPDR|PROSHARES|DIREXION|VANGUARD|INVESCO QQQ|SELECT SECTOR|ULTRA|INVERSE|2X|3X|LEVERAGED)\b", re.I)
 
@@ -200,6 +202,66 @@ LINE_PCT = {"safe": float(os.environ.get("AUTOTRADE_LINE_SAFE_PCT", "5") or 5),
             "high": float(os.environ.get("AUTOTRADE_LINE_HIGH_PCT", "5") or 5)}
 # Don't buy back a stock within this many days of selling it (stops buy/sell/buy churn on the same names)
 REBUY_COOLDOWN_DAYS = float(os.environ.get("AUTOTRADE_REBUY_COOLDOWN_DAYS", "3") or 0)
+
+# ---- STYLE: swing (default, hold for days) or scalp (minutes, small targets, bigger trades after wins)
+# AUTOTRADE_STYLE=scalp: same stock picks, cash only (no margin), but
+#   * take profit at +AUTOTRADE_SCALP_TP_PCT (1%), stop at -AUTOTRADE_SCALP_SL_PCT (0.7%), trailing once up
+#   * sell after AUTOTRADE_SCALP_MAX_HOLD_MIN (60) minutes whatever the result; everything sold before the close
+#   * a stock may be bought again AUTOTRADE_SCALP_COOLDOWN_MIN (30) minutes after it was sold
+#   * WIN STREAK: each win in a row makes the next trade AUTOTRADE_STREAK_STEP_PCT (25%) bigger, up to
+#     AUTOTRADE_STREAK_MAX_MULT (2x) the normal slot; any loss resets it to normal
+#   * AUTOTRADE_SCALP_MAX_LOSSES (3) losses in a row today -> no more buys until tomorrow
+#   * the weekly time machine uses daily prices and can't replay minute trades, so it doesn't gate scalp buys;
+#     the losing-streak pause and the daily loss limit do instead
+STYLE = "scalp" if os.environ.get("AUTOTRADE_STYLE", "swing").strip().lower() == "scalp" else "swing"
+SCALP = STYLE == "scalp"
+SCALP_TP_PCT = float(os.environ.get("AUTOTRADE_SCALP_TP_PCT", "1") or 1)
+SCALP_SL_PCT = float(os.environ.get("AUTOTRADE_SCALP_SL_PCT", "0.7") or 0.7)
+SCALP_MAX_HOLD_MIN = float(os.environ.get("AUTOTRADE_SCALP_MAX_HOLD_MIN", "60") or 0)
+SCALP_COOLDOWN_MIN = float(os.environ.get("AUTOTRADE_SCALP_COOLDOWN_MIN", "30") or 0)
+SCALP_MAX_LOSSES = int(os.environ.get("AUTOTRADE_SCALP_MAX_LOSSES", "3") or 0)
+STREAK_STEP_PCT = float(os.environ.get("AUTOTRADE_STREAK_STEP_PCT", "25") or 0)
+STREAK_MAX_MULT = max(1.0, float(os.environ.get("AUTOTRADE_STREAK_MAX_MULT", "2") or 1))
+if SCALP:
+    STOP_LOSS_PCT = SCALP_SL_PCT
+    TRAIL_PCT = SCALP_SL_PCT
+    TRAIL_ARM_PCT = SCALP_SL_PCT / 2          # once up half the stop distance, the line trails the high
+    LINE_PCT = {k: SCALP_SL_PCT for k in LINE_PCT}
+    TAKE_PROFIT_PCT = SCALP_TP_PCT
+    FLATTEN = True
+    KEEP_OVERNIGHT_PCT = 1e9                  # nothing is kept overnight
+    BAD_DAY_PCT = 1e9                         # the tight stop already covers it
+
+
+def streaks(orders):
+    """(wins in a row, losses in a row today) from the auto-trader's own filled round trips, newest last.
+    A sell counts as a win when it filled above the average price of the buys before it."""
+    fills = sorted((o for o in orders if (o.get("client_order_id") or "").startswith(TAG)
+                    and o.get("status") in ("filled", "partially_filled") and o.get("filled_at")),
+                   key=lambda o: o["filled_at"])
+    cost, results = {}, []
+    for o in fills:
+        q, px = num(o.get("filled_qty")), num(o.get("filled_avg_price"))
+        s = o["symbol"]
+        if o.get("side") == "buy":
+            c = cost.get(s, [0.0, 0.0])
+            cost[s] = [c[0] + q, c[1] + q * px]
+        elif s in cost and cost[s][0] > 0:
+            avg = cost[s][1] / cost[s][0]
+            results.append((o["filled_at"][:10], px > avg))
+            left = max(0.0, cost[s][0] - q)
+            cost[s] = [left, avg * left]
+    wins = 0
+    for _, won in reversed(results):
+        if not won:
+            break
+        wins += 1
+    today, losses = et_today(), 0
+    for day, won in reversed(results):
+        if won or day != today:
+            break
+        losses += 1
+    return wins, losses
 GROUP_LABEL = {"safe": "Safe", "low": "Low risk", "high": "High risk"}
 
 
@@ -279,7 +341,10 @@ def run(agent, previous, backtest=None):
                      "no_buy_minutes_before_close": NO_BUY_MINUTES,
                      "sell_all_before_close": FLATTEN, "sell_all_minutes_before_close": FLATTEN_MINUTES,
                      "keep_overnight_pct": KEEP_OVERNIGHT_PCT, "buy_pct_of_cash": SLOT_PCT, "slot_of": SLOT_OF, "max_positions": MAX_POSITIONS,
-                     "min_order": MIN_ORDER, "line_pct": LINE_PCT, "buy_min_greens": BUY_MIN_GREENS},
+                     "min_order": MIN_ORDER, "line_pct": LINE_PCT, "buy_min_greens": BUY_MIN_GREENS, "style": STYLE,
+                     "scalp": {"tp_pct": SCALP_TP_PCT, "sl_pct": SCALP_SL_PCT, "max_hold_min": SCALP_MAX_HOLD_MIN,
+                               "cooldown_min": SCALP_COOLDOWN_MIN, "max_losses": SCALP_MAX_LOSSES,
+                               "streak_step_pct": STREAK_STEP_PCT, "streak_max_mult": STREAK_MAX_MULT} if SCALP else None},
            "actions": [], "notes": []}
     history = previous.get("history", [])
     if MODE == "off":
@@ -346,7 +411,15 @@ def run(agent, previous, backtest=None):
     trimmed_recently = {o["symbol"] for o in mine if o.get("side") == "sell" and o.get("status") == "filled" and not is_stop(o)
                         and (now - dt.datetime.fromisoformat(o["filled_at"].replace("Z", "+00:00"))).days < 3}
     sold_recently = {o["symbol"] for o in mine if o.get("side") == "sell" and o.get("status") == "filled" and o.get("filled_at")
-                     and (now - iso_utc(o["filled_at"])).total_seconds() < REBUY_COOLDOWN_DAYS * 86400}
+                     and (now - iso_utc(o["filled_at"])).total_seconds()
+                     < (SCALP_COOLDOWN_MIN * 60 if SCALP else REBUY_COOLDOWN_DAYS * 86400)}
+    bought_at = {}
+    for o in mine:
+        if o.get("side") == "buy" and o.get("status") in ("filled", "partially_filled") and o.get("filled_at"):
+            t = iso_utc(o["filled_at"])
+            bought_at[o["symbol"]] = max(bought_at.get(o["symbol"], t), t)
+    win_streak, loss_streak = streaks(mine)
+    out["streak"] = {"wins_in_a_row": win_streak, "losses_in_a_row_today": loss_streak}
 
     cols = agent.get("board_columns", [])
     board = {r[cols.index("symbol")]: dict(zip(cols, r)) for r in agent.get("board", [])}
@@ -479,6 +552,9 @@ def run(agent, previous, backtest=None):
                                f"{greens if greens is not None else '?'} of 5 green", qty=qty, rule="bad day")
         elif TAKE_PROFIT_PCT > 0 and plpc >= TAKE_PROFIT_PCT:
             place(sym, "sell", f"Take profit: up {plpc:.1f}% from entry", qty=qty, rule="take-profit")
+        elif SCALP and SCALP_MAX_HOLD_MIN and sym in bought_at and (now - bought_at[sym]).total_seconds() / 60 >= SCALP_MAX_HOLD_MIN:
+            held = (now - bought_at[sym]).total_seconds() / 60
+            place(sym, "sell", f"Scalp time limit: held {held:.0f} min (limit {SCALP_MAX_HOLD_MIN:g}), {plpc:+.2f}%", qty=qty, rule="scalp time limit")
         elif sym in bought_today:
             pass   # signal exits wait a day: the checks flip on intraday noise; the sell line still protects it
         elif b and b.get("history") == "alert":
@@ -498,9 +574,12 @@ def run(agent, previous, backtest=None):
     except Exception:
         pass
     test_passed = bool(bt.get("buys_allowed")) and bt_age is not None and bt_age <= 10
-    out["master_switch"] = {"buys_allowed": test_passed or not SAFETY_ON, "test_passed": test_passed,
+    out["master_switch"] = {"buys_allowed": test_passed or not SAFETY_ON or SCALP, "test_passed": test_passed,
                             "safety_switch": "on" if SAFETY_ON else "off", "setting": SAFETY_SETTING,
                             "total_return_pct": bt.get("total_return_pct"), "generated_at": bt.get("generated_at")}
+    if SCALP and SAFETY_ON and not test_passed:
+        out["notes"].append("Scalp style: the daily-price time machine can't judge minute trades, so it doesn't pause buying. "
+                            f"Guards instead: {SCALP_MAX_LOSSES} losses in a row or -{DAILY_LOSS_PCT:g}% today stops buying.")
     if not SAFETY_ON and not test_passed:
         out["notes"].append(f"Safety switch OFF ({SAFETY_SETTING}): buying even though the 6-month replay returned "
                             f"{bt.get('total_return_pct')}%.")
@@ -510,6 +589,8 @@ def run(agent, previous, backtest=None):
         why = ("there is no recent time-machine result" if bt_age is None or bt_age > 10 or bt.get("buys_allowed") is None
                else f"the time machine says these rules would have returned {bt.get('total_return_pct')}% over the last 6 months")
         out["notes"].append(f"Master switch: buying paused because {why}. Exits still run.")
+    elif SCALP and SCALP_MAX_LOSSES and loss_streak >= SCALP_MAX_LOSSES:
+        out["notes"].append(f"Scalp: {loss_streak} losing trades in a row today. No new buys until tomorrow.")
     elif closing:
         out["notes"].append(f"{round(minutes_left)} min to the close: no new buys, sells only.")
     elif last_equity and (equity / last_equity - 1) * 100 <= -DAILY_LOSS_PCT:
@@ -533,7 +614,7 @@ def run(agent, previous, backtest=None):
             if bought >= free:
                 break
             sym = c["symbol"]
-            if sym in positions or sym in open_syms or sym in sold_today or board.get(sym, {}).get("signal") != "buy":
+            if sym in positions or sym in open_syms or (sym in sold_today and not SCALP) or board.get(sym, {}).get("signal") != "buy":
                 continue
             if sym in sold_recently:
                 continue   # sold within AUTOTRADE_REBUY_COOLDOWN_DAYS
@@ -548,14 +629,16 @@ def run(agent, previous, backtest=None):
                 continue
             base = {"account": equity, "split": cash_at_start}.get(SLOT_OF, spend)
             what = {"account": "account", "split": "free cash split 12 ways"}.get(SLOT_OF, "cash left")
-            amount = math.floor(min(base * SLOT_PCT / 100, spend) * 100) / 100
+            mult = min(STREAK_MAX_MULT, (1 + STREAK_STEP_PCT / 100) ** win_streak) if SCALP else 1.0
+            amount = math.floor(min(base * SLOT_PCT / 100 * mult, spend) * 100) / 100   # cash only, never margin
             if amount < MIN_ORDER:
                 out["notes"].append(f"Next order would be ${amount:.2f} ({SLOT_PCT:g}% of the {what}, "
                                     f"${spend:,.2f} cash left), under the ${MIN_ORDER:g} minimum. Stopped buying.")
                 break
             if asset.get("fractionable"):
                 act = place(sym, "buy", f"{c.get('greens')} of 5 green, time machine green, rank #{c.get('rank')}, "
-                                        f"{SLOT_PCT:g}% of the ${base:,.2f} {what}", notional=amount, rule="4+/5 green", asset=asset)
+                                        f"{SLOT_PCT:g}% of the ${base:,.2f} {what}"
+                                        + (f", x{mult:.2f} after {win_streak} win(s) in a row" if mult > 1 else ""), notional=amount, rule="4+/5 green", asset=asset)
             else:
                 price = num(c.get("price"))
                 shares = math.floor(amount / price) if price else 0
