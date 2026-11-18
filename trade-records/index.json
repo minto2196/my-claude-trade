@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-18T15:06:30+00:00",
+ "generated_at": "2026-11-18T15:12:40+00:00",
  "branch": "main",
  "folder": "trade-records",
  "files": [
@@ -52,7 +52,7 @@
    "name": "2026-W45_2026-11-02.xlsx"
   }
  ],
- "size_bytes": 2626376,
+ "size_bytes": 2626375,
  "git_bytes": 0,
  "limit_bytes": 1073741824,
  "warning": null,
