@@ -211,7 +211,7 @@ def main():
         print(f"watchdog: market closed (next open {clock.get('next_open')}), nothing to watch")
         return
     close_at = T.iso_utc(clock["next_close"])
-    agent, agent_t, owned, owned_t, last_save, bought_today = None, 0, set(), 0, time.time(), set()
+    agent, agent_t, owned, owned_t, last_save, bought_today, bought_at = None, 0, set(), 0, time.time(), set(), {}
     last_kick = 0
     account = T.call("GET", "/v2/account")
     status["state"] = "watching"
@@ -232,6 +232,11 @@ def main():
                 mine = [o for o in orders if (o.get("client_order_id") or "").startswith(T.TAG)]
                 owned = {o["symbol"] for o in mine if o.get("side") == "buy" and o.get("status") in ("filled", "partially_filled")}
                 bought_today = {o["symbol"] for o in mine if o.get("side") == "buy" and (o.get("filled_at") or "")[:10] == today}
+                bought_at = {}
+                for o in mine:
+                    if o.get("side") == "buy" and o.get("status") in ("filled", "partially_filled") and o.get("filled_at"):
+                        t = T.iso_utc(o["filled_at"])
+                        bought_at[o["symbol"]] = max(bought_at.get(o["symbol"], t), t)
                 account = T.call("GET", "/v2/account")
                 owned_t = time.time()
             positions = {p["symbol"]: p for p in T.call("GET", "/v2/positions")}
@@ -293,6 +298,11 @@ def main():
                 elif price <= line:
                     sell(sym, qty, "line", f"{T.GROUP_LABEL[group]}: price ${price:,.2f} reached its sell line ${line:,.2f} "
                                            f"({T.LINE_PCT[group]:g}% under the high ${peak:,.2f}), {plpc:+.1f}%")
+                elif T.TAKE_PROFIT_PCT > 0 and plpc >= T.TAKE_PROFIT_PCT:
+                    sell(sym, qty, "tp", f"Take profit: {plpc:+.2f}% (target +{T.TAKE_PROFIT_PCT:g}%)")
+                elif (T.SCALP and T.SCALP_MAX_HOLD_MIN and sym in bought_at
+                      and (now - bought_at[sym]).total_seconds() / 60 >= T.SCALP_MAX_HOLD_MIN):
+                    sell(sym, qty, "time", f"Scalp time limit: held {(now - bought_at[sym]).total_seconds() / 60:.0f} min, {plpc:+.2f}%")
                 elif group == "high" and sym not in bought_today and (board.get(sym) or {}).get("signal") == "sell":
                     sell(sym, qty, "signal", f"High risk and the checks say sell ({'; '.join(why)}), {plpc:+.1f}%")
                 elif not (T.FLATTEN and minutes_left <= T.FLATTEN_MINUTES):
