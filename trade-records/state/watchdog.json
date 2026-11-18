@@ -1,14 +1,14 @@
 {
- "started_at": "2026-11-18T14:16:21+00:00",
+ "started_at": "2026-11-18T21:00:38+00:00",
  "day": "2026-11-18",
  "mode": "on",
  "paper": true,
  "line_pct": {
-  "safe": 1.0,
-  "low": 1.0,
-  "high": 1.0
+  "safe": 0.7,
+  "low": 0.7,
+  "high": 0.7
  },
- "checks": 337,
+ "checks": 0,
  "actions_today": [
   {
    "time": "2026-11-18T16:54:01+00:00",
@@ -27,194 +27,7 @@
    "status": "pending_new"
   }
  ],
- "state": "watching",
- "next_open": "2026-11-18T14:30:00+00:00",
- "generated_at": "2026-11-18T20:06:00+00:00",
- "minutes_to_close": 54,
- "groups": [
-  {
-   "symbol": "AZO",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.0% from the buy price"
-   ],
-   "price": 3316.68,
-   "entry": 3317.45,
-   "highest": 3323.395,
-   "line": 3151.58,
-   "line_pct": 1.0,
-   "plpc": -0.02,
-   "day_pct": 1.15,
-   "to_line_pct": 5.24
-  },
-  {
-   "symbol": "CB",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.2% from the buy price",
-    "down 1.2% today"
-   ],
-   "price": 371.17,
-   "entry": 371.85,
-   "highest": 374.25,
-   "line": 353.26,
-   "line_pct": 1.0,
-   "plpc": -0.18,
-   "day_pct": -1.19,
-   "to_line_pct": 5.07
-  },
-  {
-   "symbol": "ECL",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.5% from the buy price"
-   ],
-   "price": 300.66,
-   "entry": 302.09,
-   "highest": 302.41,
-   "line": 286.99,
-   "line_pct": 1.0,
-   "plpc": -0.47,
-   "day_pct": -0.64,
-   "to_line_pct": 4.76
-  },
-  {
-   "symbol": "LIN",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.2% from the buy price"
-   ],
-   "price": 510.89,
-   "entry": 511.72,
-   "highest": 512.69,
-   "line": 486.13,
-   "line_pct": 1.0,
-   "plpc": -0.16,
-   "day_pct": -0.82,
-   "to_line_pct": 5.09
-  },
-  {
-   "symbol": "MDLZ",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.0% from the buy price"
-   ],
-   "price": 66.73,
-   "entry": 66.74,
-   "highest": 66.74,
-   "line": 63.4,
-   "line_pct": 1.0,
-   "plpc": -0.01,
-   "day_pct": -0.03,
-   "to_line_pct": 5.25
-  },
-  {
-   "symbol": "TYL",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "4 of 5 green",
-    "-0.3% from the buy price"
-   ],
-   "price": 411.975,
-   "entry": 413.05,
-   "highest": 413.05,
-   "line": 392.4,
-   "line_pct": 1.0,
-   "plpc": -0.26,
-   "day_pct": 0.62,
-   "to_line_pct": 4.99
-  },
-  {
-   "symbol": "CME",
-   "group": "safe",
-   "label": "Safe",
-   "reasons": [
-    "5 of 5 green, calm (\u00b11.5% a day)",
-    "+0.3% from the buy price"
-   ],
-   "price": 309.65,
-   "entry": 308.59,
-   "highest": 311.26,
-   "line": 293.16,
-   "line_pct": 1.0,
-   "plpc": 0.34,
-   "day_pct": -0.61,
-   "to_line_pct": 5.62
-  },
-  {
-   "symbol": "COR",
-   "group": "safe",
-   "label": "Safe",
-   "reasons": [
-    "5 of 5 green, calm (\u00b11.6% a day)",
-    "+0.1% from the buy price"
-   ],
-   "price": 348.705,
-   "entry": 348.51,
-   "highest": 349.7,
-   "line": 331.08,
-   "line_pct": 1.0,
-   "plpc": 0.06,
-   "day_pct": -0.53,
-   "to_line_pct": 5.32
-  },
-  {
-   "symbol": "ICE",
-   "group": "safe",
-   "label": "Safe",
-   "reasons": [
-    "5 of 5 green, calm (\u00b11.6% a day)",
-    "+0.5% from the buy price"
-   ],
-   "price": 172.01,
-   "entry": 171.16,
-   "highest": 172.75,
-   "line": 162.6,
-   "line_pct": 1.0,
-   "plpc": 0.5,
-   "day_pct": -0.12,
-   "to_line_pct": 5.79
-  }
- ],
- "counts": {
-  "safe": 3,
-  "low": 6,
-  "high": 0
- },
- "error": null,
- "peaks": {
-  "AZO": 3323.395,
-  "COR": 349.7,
-  "ECL": 302.41,
-  "EXC": 45.97,
-  "MTD": 1740.9,
-  "NDAQ": 105.4475,
-  "SN": 230.36,
-  "SO": 94.22,
-  "CB": 374.25,
-  "ICE": 172.75,
-  "CME": 311.26,
-  "ETR": 108.9,
-  "ADP": 307.935,
-  "ADSK": 256.01,
-  "GWW": 1463.89,
-  "TYL": 413.05,
-  "LH": 370.325,
-  "MDLZ": 66.74,
-  "MO": 76.89,
-  "PG": 170.915,
-  "WEC": 117.34,
-  "XEL": 80.79,
-  "TECH": 72.81,
-  "VRSK": 203.28,
-  "ABBV": 289.81,
-  "LIN": 512.69
- },
- "ended_at": "2026-11-18T20:07:01+00:00"
+ "state": "sleeping",
+ "next_open": "2026-11-19T14:30:00+00:00",
+ "generated_at": "2026-11-18T21:00:38+00:00"
 }
