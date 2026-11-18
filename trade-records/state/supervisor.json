@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-18T20:16:27+00:00",
- "next_check": "2026-11-18T21:16:27+00:00",
+ "generated_at": "2026-11-18T22:55:40+00:00",
+ "next_check": "2026-11-18T23:55:40+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (3 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 3 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "94% of stocks pass 'data is real'."
+     "text": "92% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -56,11 +56,7 @@
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 1 position(s)."
-    },
-    {
-     "status": "ok",
-     "text": "1 position(s), 1 open order(s), no stop-loss missed."
+     "text": "0 position(s), 0 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +67,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 869 order(s) recorded."
+     "text": "Journal complete: 890 order(s) recorded."
     },
     {
      "status": "ok",
@@ -79,7 +75,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 11.4 MB of 1 GB."
+     "text": "Repository storage 11.9 MB of 1 GB."
     }
    ]
   },
@@ -90,11 +86,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "32 run(s) in the last 3 hours, none failed, longest gap 9 min."
-    },
-    {
-     "status": "ok",
-     "text": "Every-minute watchdog alive: 337 checks today, last saved 10 min ago."
+     "text": "11 run(s) in the last 3 hours, none failed, longest gap 121 min."
     }
    ]
   }
