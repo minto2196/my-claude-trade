@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-18T16:23:51+00:00",
- "next_check": "2026-11-18T17:23:51+00:00",
+ "generated_at": "2026-11-18T17:23:57+00:00",
+ "next_check": "2026-11-18T18:23:57+00:00",
  "overall": "ok",
  "supervisors": [
   {
@@ -29,7 +29,7 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,195 \u2192 5,000 \u2192 500 \u2192 31 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,195 \u2192 5,000 \u2192 500 \u2192 27 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -56,11 +56,11 @@
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 8 position(s)."
+     "text": "Alpaca stop orders at \u22125% protect 11 position(s)."
     },
     {
      "status": "ok",
-     "text": "8 position(s), 8 open order(s), no stop-loss missed."
+     "text": "11 position(s), 11 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 784 order(s) recorded."
+     "text": "Journal complete: 807 order(s) recorded."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 11.8 MB of 1 GB."
+     "text": "Repository storage 12.0 MB of 1 GB."
     }
    ]
   },
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "ok",
-     "text": "22 run(s) in the last 3 hours, none failed, longest gap 12 min."
+     "text": "32 run(s) in the last 3 hours, none failed, longest gap 12 min."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 110 checks today, last saved 5 min ago."
+     "text": "Every-minute watchdog alive: 164 checks today, last saved 11 min ago."
     }
    ]
   }
