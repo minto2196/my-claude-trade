@@ -41,12 +41,21 @@ jobs:
       AUTOTRADE_TAKE_PROFIT_PCT: ${{ vars.AUTOTRADE_TAKE_PROFIT_PCT || '0' }}
       AUTOTRADE_TRAIL_ARM_PCT: ${{ vars.AUTOTRADE_TRAIL_ARM_PCT || '1' }}
       AUTOTRADE_TRAIL_PCT: ${{ vars.AUTOTRADE_TRAIL_PCT || '5' }}
-      AUTOTRADE_FLATTEN: ${{ vars.AUTOTRADE_FLATTEN || 'true' }}
+      AUTOTRADE_FLATTEN: ${{ vars.AUTOTRADE_FLATTEN || 'false' }}
       AUTOTRADE_FLATTEN_MINUTES: ${{ vars.AUTOTRADE_FLATTEN_MINUTES || '30' }}
       AUTOTRADE_KEEP_OVERNIGHT_PCT: ${{ vars.AUTOTRADE_KEEP_OVERNIGHT_PCT || '5' }}
-      AUTOTRADE_LINE_SAFE_PCT: ${{ vars.AUTOTRADE_LINE_SAFE_PCT || '1' }}
-      AUTOTRADE_LINE_LOW_PCT: ${{ vars.AUTOTRADE_LINE_LOW_PCT || '1' }}
-      AUTOTRADE_LINE_HIGH_PCT: ${{ vars.AUTOTRADE_LINE_HIGH_PCT || '1' }}
+      # Style: swing (hold for days) | scalp (minutes, +1% target, -0.7% stop, bigger trades after wins)
+      AUTOTRADE_STYLE: ${{ vars.AUTOTRADE_STYLE || 'scalp' }}
+      AUTOTRADE_SCALP_TP_PCT: ${{ vars.AUTOTRADE_SCALP_TP_PCT || '1' }}
+      AUTOTRADE_SCALP_SL_PCT: ${{ vars.AUTOTRADE_SCALP_SL_PCT || '0.7' }}
+      AUTOTRADE_SCALP_MAX_HOLD_MIN: ${{ vars.AUTOTRADE_SCALP_MAX_HOLD_MIN || '60' }}
+      AUTOTRADE_SCALP_COOLDOWN_MIN: ${{ vars.AUTOTRADE_SCALP_COOLDOWN_MIN || '30' }}
+      AUTOTRADE_SCALP_MAX_LOSSES: ${{ vars.AUTOTRADE_SCALP_MAX_LOSSES || '3' }}
+      AUTOTRADE_STREAK_STEP_PCT: ${{ vars.AUTOTRADE_STREAK_STEP_PCT || '25' }}
+      AUTOTRADE_STREAK_MAX_MULT: ${{ vars.AUTOTRADE_STREAK_MAX_MULT || '2' }}
+      AUTOTRADE_LINE_SAFE_PCT: ${{ vars.AUTOTRADE_LINE_SAFE_PCT || '5' }}
+      AUTOTRADE_LINE_LOW_PCT: ${{ vars.AUTOTRADE_LINE_LOW_PCT || '5' }}
+      AUTOTRADE_LINE_HIGH_PCT: ${{ vars.AUTOTRADE_LINE_HIGH_PCT || '5' }}
       AUTOTRADE_SLOT_PCT: ${{ vars.AUTOTRADE_SLOT_PCT || '8.33' }}
       AUTOTRADE_SLOT_OF: ${{ vars.AUTOTRADE_SLOT_OF || 'account' }}   # account = always 12 equal stocks | split | cash
       AUTOTRADE_MAX_POSITIONS: ${{ vars.AUTOTRADE_MAX_POSITIONS || '12' }}
@@ -54,8 +63,8 @@ jobs:
       AUTOTRADE_BAD_DAY_PCT: ${{ vars.AUTOTRADE_BAD_DAY_PCT || '3' }}
       AUTOTRADE_DAILY_LOSS_PCT: ${{ vars.AUTOTRADE_DAILY_LOSS_PCT || '5' }}
       AUTOTRADE_DAILY_TARGET_PCT: ${{ vars.AUTOTRADE_DAILY_TARGET_PCT || '20' }}   # up this much today -> sell all, stop for the day
-      # Safety switch: on | off | auto (auto = off on paper, on with real money)
-      AUTOTRADE_SAFETY_SWITCH: ${{ vars.AUTOTRADE_SAFETY_SWITCH || secrets.AUTOTRADE_SAFETY_SWITCH || 'auto' }}
+      # Safety switch: on | off | auto. Default on: no buys while the 6-month replay loses money (paper too)
+      AUTOTRADE_SAFETY_SWITCH: ${{ vars.AUTOTRADE_SAFETY_SWITCH || secrets.AUTOTRADE_SAFETY_SWITCH || 'on' }}
       DATA: site/trader-skill/trader-skill/data
     steps:
       - uses: actions/checkout@v4
