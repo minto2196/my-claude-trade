@@ -1,6 +1,6 @@
 {
- "started_at": "2026-11-19T02:45:48+00:00",
- "day": "2026-11-18",
+ "started_at": "2026-11-19T08:31:05+00:00",
+ "day": "2026-11-19",
  "mode": "on",
  "paper": true,
  "line_pct": {
@@ -9,25 +9,8 @@
   "high": 0.7
  },
  "checks": 0,
- "actions_today": [
-  {
-   "time": "2026-11-18T16:54:01+00:00",
-   "symbol": "ICE",
-   "side": "sell",
-   "qty": "46.237535112",
-   "reason": "Low risk: price $170.79 reached its sell line $171.02 (1% under the high $172.75), -0.0%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-18T19:13:01+00:00",
-   "symbol": "GWW",
-   "side": "sell",
-   "qty": "5.460281841",
-   "reason": "Low risk: price $1,447.71 reached its sell line $1,449.25 (1% under the high $1,463.89), -0.0%",
-   "status": "pending_new"
-  }
- ],
+ "actions_today": [],
  "state": "sleeping",
  "next_open": "2026-11-19T14:30:00+00:00",
- "generated_at": "2026-11-19T02:45:48+00:00"
+ "generated_at": "2026-11-19T08:31:05+00:00"
 }
