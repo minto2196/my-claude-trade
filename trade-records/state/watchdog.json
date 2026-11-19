@@ -8,7 +8,7 @@
   "low": 0.7,
   "high": 0.7
  },
- "checks": 43,
+ "checks": 54,
  "actions_today": [
   {
    "time": "2026-11-19T14:33:01+00:00",
@@ -109,8 +109,8 @@
  ],
  "state": "watching",
  "next_open": "2026-11-19T14:30:00+00:00",
- "generated_at": "2026-11-19T15:12:00+00:00",
- "minutes_to_close": 348,
+ "generated_at": "2026-11-19T15:23:00+00:00",
+ "minutes_to_close": 337,
  "groups": [],
  "counts": {
   "safe": 0,
