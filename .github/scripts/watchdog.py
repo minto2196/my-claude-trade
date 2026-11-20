@@ -211,7 +211,7 @@ def main():
         print(f"watchdog: market closed (next open {clock.get('next_open')}), nothing to watch")
         return
     close_at = T.iso_utc(clock["next_close"])
-    agent, agent_t, owned, owned_t, last_save, bought_today, bought_at = None, 0, set(), 0, time.time(), set(), {}
+    agent, agent_t, owned, owned_t, last_save, bought_today, bought_at, last_sig = None, 0, set(), 0, time.time(), set(), {}, None
     last_kick = 0
     account = T.call("GET", "/v2/account")
     status["state"] = "watching"
@@ -227,7 +227,12 @@ def main():
             if time.time() - agent_t > 240:
                 agent = fetch_json(agent_url) or agent
                 agent_t = time.time()
-            if time.time() - owned_t > 600:
+            positions = {p["symbol"]: p for p in T.call("GET", "/v2/positions")}
+            # re-read order history every 10 min, AND whenever a position appeared or its entry price changed
+            # (a re-bought stock otherwise kept its old buy time and was sold by the time limit within a minute)
+            pos_sig = {s: p.get("avg_entry_price") for s, p in positions.items()}
+            if time.time() - owned_t > 600 or pos_sig != last_sig:
+                last_sig = pos_sig
                 orders = T.fetch_orders(60)
                 mine = [o for o in orders if (o.get("client_order_id") or "").startswith(T.TAG)]
                 owned = {o["symbol"] for o in mine if o.get("side") == "buy" and o.get("status") in ("filled", "partially_filled")}
@@ -239,7 +244,6 @@ def main():
                         bought_at[o["symbol"]] = max(bought_at.get(o["symbol"], t), t)
                 account = T.call("GET", "/v2/account")
                 owned_t = time.time()
-            positions = {p["symbol"]: p for p in T.call("GET", "/v2/positions")}
             open_orders = T.call("GET", "/v2/orders", {"status": "open", "limit": 500})
             stops, busy = {}, set()
             for o in open_orders:
