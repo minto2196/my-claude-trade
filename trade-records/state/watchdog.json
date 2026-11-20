@@ -8,7 +8,7 @@
   "low": 0.7,
   "high": 0.7
  },
- "checks": 75,
+ "checks": 85,
  "actions_today": [
   {
    "time": "2026-11-20T14:33:01+00:00",
@@ -209,31 +209,39 @@
    "qty": "46.126338203",
    "reason": "Scalp time limit: held 60 min, -0.83%",
    "status": "pending_new"
+  },
+  {
+   "time": "2026-11-20T17:49:17+00:00",
+   "symbol": "ECL",
+   "side": "sell",
+   "qty": "26.248710079",
+   "reason": "Scalp time limit: held 60 min, -0.10%",
+   "status": "pending_new"
   }
  ],
  "state": "watching",
  "style": "scalp",
- "style_why": "last 10 scalp trade(s): -$364.62",
- "generated_at": "2026-11-20T17:44:16+00:00",
- "minutes_to_close": 196,
+ "style_why": "last 11 scalp trade(s): -$379.84",
+ "generated_at": "2026-11-20T17:54:16+00:00",
+ "minutes_to_close": 186,
  "groups": [
   {
    "symbol": "LLY",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.1% from the buy price"
+    "-0.2% from the buy price"
    ],
-   "price": 1353.27,
+   "price": 1352.065,
    "entry": 1354.64,
    "highest": 1357.985,
    "line": 1346.38,
    "line_pct": 0.61,
    "take_profit_pct": 0.61,
    "hourly_move_pct": 0.61,
-   "plpc": -0.1,
-   "day_pct": 0.16,
-   "to_line_pct": 0.51
+   "plpc": -0.19,
+   "day_pct": 0.07,
+   "to_line_pct": 0.42
   },
   {
    "symbol": "MDLZ",
@@ -242,16 +250,16 @@
    "reasons": [
     "-0.3% from the buy price"
    ],
-   "price": 66.91,
+   "price": 66.89,
    "entry": 67.1,
    "highest": 67.255,
    "line": 66.73,
    "line_pct": 0.55,
    "take_profit_pct": 0.55,
    "hourly_move_pct": 0.55,
-   "plpc": -0.28,
-   "day_pct": 1.86,
-   "to_line_pct": 0.27
+   "plpc": -0.31,
+   "day_pct": 1.83,
+   "to_line_pct": 0.24
   },
   {
    "symbol": "SN",
@@ -260,42 +268,23 @@
    "reasons": [
     "4 of 5 green",
     "swings \u00b12.6% a day",
-    "-0.1% from the buy price",
+    "-0.0% from the buy price",
     "down 1.2% today"
    ],
-   "price": 214.15,
+   "price": 214.235,
    "entry": 214.26,
    "highest": 215.055,
    "line": 212.22,
    "line_pct": 0.95,
    "take_profit_pct": 0.95,
    "hourly_move_pct": 0.95,
-   "plpc": -0.05,
-   "day_pct": -1.22,
-   "to_line_pct": 0.91
-  },
-  {
-   "symbol": "ECL",
-   "group": "safe",
-   "label": "Safe",
-   "reasons": [
-    "5 of 5 green, calm (\u00b11.2% a day)",
-    "+0.0% from the buy price"
-   ],
-   "price": 296.58,
-   "entry": 296.53,
-   "highest": 297.3,
-   "line": 295.84,
-   "line_pct": 0.49,
-   "take_profit_pct": 0.49,
-   "hourly_move_pct": 0.49,
-   "plpc": 0.02,
-   "day_pct": -0.25,
-   "to_line_pct": 0.25
+   "plpc": -0.01,
+   "day_pct": -1.18,
+   "to_line_pct": 0.95
   }
  ],
  "counts": {
-  "safe": 1,
+  "safe": 0,
   "low": 3,
   "high": 0
  },
