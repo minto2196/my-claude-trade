@@ -386,18 +386,21 @@ def streaks(orders):
     fills = sorted((o for o in orders if (o.get("client_order_id") or "").startswith(TAG)
                     and o.get("status") in ("filled", "partially_filled") and o.get("filled_at")),
                    key=lambda o: o["filled_at"])
+    # with the adaptive scalp style only tagged scalp trades count (older/bug-era trades don't trip the pause)
+    tagged_only = ADAPTIVE and CONFIG_STYLE == "scalp"
     cost, results = {}, []
     for o in fills:
         q, px = num(o.get("filled_qty")), num(o.get("filled_avg_price"))
         s = o["symbol"]
         if o.get("side") == "buy":
-            c = cost.get(s, [0.0, 0.0])
-            cost[s] = [c[0] + q, c[1] + q * px]
+            c = cost.get(s, [0.0, 0.0, False])
+            cost[s] = [c[0] + q, c[1] + q * px, c[2] or bool(SCALP_MARK.match(o.get("client_order_id") or ""))]
         elif s in cost and cost[s][0] > 0:
             avg = cost[s][1] / cost[s][0]
-            results.append((o["filled_at"][:10], px > avg))
+            if cost[s][2] or not tagged_only:
+                results.append((o["filled_at"][:10], px > avg))
             left = max(0.0, cost[s][0] - q)
-            cost[s] = [left, avg * left]
+            cost[s] = [left, avg * left, cost[s][2] if left > 1e-9 else False]
     wins = 0
     for _, won in reversed(results):
         if not won:
