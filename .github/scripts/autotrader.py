@@ -349,17 +349,18 @@ def decide_style(orders, now=None):
     fills = sorted((o for o in orders if (o.get("client_order_id") or "").startswith(TAG)
                     and o.get("status") in ("filled", "partially_filled") and o.get("filled_at")),
                    key=lambda o: o["filled_at"])
-    lots, res = {}, []
+    lots, res, last_buy = {}, [], {}
     for o in fills:
         q, px, s = num(o.get("filled_qty")), num(o.get("filled_avg_price")), o["symbol"]
         lot = lots.setdefault(s, [0.0, 0.0, False])
         if o.get("side") == "buy":
+            last_buy[s] = iso_utc(o["filled_at"])
             lot[0] += q
             lot[1] += q * px
             lot[2] = lot[2] or bool(SCALP_MARK.match(o.get("client_order_id") or ""))
         elif lot[0] > 0:
             avg, take = lot[1] / lot[0], min(q, lot[0])
-            if lot[2]:
+            if lot[2] and not bug_sell(o, last_buy.get(s)):
                 res.append((iso_utc(o["filled_at"]), take * (px - avg)))
             lot[0] -= take
             lot[1] = avg * lot[0]
@@ -380,6 +381,15 @@ def decide_style(orders, now=None):
     return "scalp", f"last {len(last)} scalp trade(s): {'+' if pnl >= 0 else '-'}${abs(pnl):,.2f}"
 
 
+def bug_sell(o, last_buy_at):
+    """A watchdog time-limit sell before the time limit could be reached: the stale-history bug fixed on
+    2026-11-20 (a long-running old watchdog kept doing it). It says nothing about the strategy, so it's left out."""
+    cid = o.get("client_order_id") or ""
+    if not cid.startswith(TAG + "wd-time-") or not last_buy_at or not o.get("filled_at"):
+        return False
+    return (iso_utc(o["filled_at"]) - last_buy_at).total_seconds() / 60 < SCALP_MAX_HOLD_MIN - 1
+
+
 def streaks(orders):
     """(wins in a row, losses in a row today) from the auto-trader's own filled round trips, newest last.
     A sell counts as a win when it filled above the average price of the buys before it."""
@@ -388,16 +398,17 @@ def streaks(orders):
                    key=lambda o: o["filled_at"])
     # with the adaptive scalp style only tagged scalp trades count (older/bug-era trades don't trip the pause)
     tagged_only = ADAPTIVE and CONFIG_STYLE == "scalp"
-    cost, results = {}, []
+    cost, results, last_buy = {}, [], {}
     for o in fills:
         q, px = num(o.get("filled_qty")), num(o.get("filled_avg_price"))
         s = o["symbol"]
         if o.get("side") == "buy":
+            last_buy[s] = iso_utc(o["filled_at"])
             c = cost.get(s, [0.0, 0.0, False])
             cost[s] = [c[0] + q, c[1] + q * px, c[2] or bool(SCALP_MARK.match(o.get("client_order_id") or ""))]
         elif s in cost and cost[s][0] > 0:
             avg = cost[s][1] / cost[s][0]
-            if cost[s][2] or not tagged_only:
+            if (cost[s][2] or not tagged_only) and not bug_sell(o, last_buy.get(s)):
                 results.append((o["filled_at"][:10], px > avg))
             left = max(0.0, cost[s][0] - q)
             cost[s] = [left, avg * left, cost[s][2] if left > 1e-9 else False]
