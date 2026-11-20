@@ -1,6 +1,6 @@
 {
- "started_at": "2026-11-20T02:45:50+00:00",
- "day": "2026-11-19",
+ "started_at": "2026-11-20T08:31:01+00:00",
+ "day": "2026-11-20",
  "mode": "on",
  "paper": true,
  "line_pct": {
@@ -9,105 +9,8 @@
   "high": 0.7
  },
  "checks": 0,
- "actions_today": [
-  {
-   "time": "2026-11-19T14:33:01+00:00",
-   "symbol": "AZO",
-   "side": "sell",
-   "qty": "2.388856027",
-   "reason": "Low risk: price $3,267.17 reached its sell line $3,273.59 (0.7% under the high $3,296.67), -0.9%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:33:02+00:00",
-   "symbol": "GWW",
-   "side": "sell",
-   "qty": "5.445717565",
-   "reason": "Scalp time limit: held 1105 min, -0.20%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:33:03+00:00",
-   "symbol": "LH",
-   "side": "sell",
-   "qty": "21.08506024",
-   "reason": "Scalp time limit: held 1093 min, -0.52%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:34:01+00:00",
-   "symbol": "ADP",
-   "side": "sell",
-   "qty": "25.744589735",
-   "reason": "Scalp time limit: held 1094 min, -0.15%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:34:02+00:00",
-   "symbol": "CB",
-   "side": "sell",
-   "qty": "21.254642124",
-   "reason": "Scalp time limit: held 1162 min, -0.17%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:34:03+00:00",
-   "symbol": "ICE",
-   "side": "sell",
-   "qty": "45.576306499",
-   "reason": "Scalp time limit: held 1167 min, -0.24%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:34:04+00:00",
-   "symbol": "TXRH",
-   "side": "sell",
-   "qty": "41.704159839",
-   "reason": "Scalp time limit: held 14125 min, -0.39%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:34:05+00:00",
-   "symbol": "TYL",
-   "side": "sell",
-   "qty": "19.024229394",
-   "reason": "Low risk: price $410.12 reached its sell line $411.06 (0.7% under the high $413.96), -0.9%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:34:06+00:00",
-   "symbol": "VRSK",
-   "side": "sell",
-   "qty": "39.030926302",
-   "reason": "Low risk: price $199.63 reached its sell line $200.36 (0.7% under the high $201.77), -1.1%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:34:07+00:00",
-   "symbol": "WEC",
-   "side": "sell",
-   "qty": "67.38487208",
-   "reason": "Scalp time limit: held 1094 min, -0.08%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:35:01+00:00",
-   "symbol": "TECH",
-   "side": "sell",
-   "qty": "108.246564046",
-   "reason": "Scalp time limit: held 1095 min, -0.00%",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-19T14:35:02+00:00",
-   "symbol": "XEL",
-   "side": "sell",
-   "qty": "98.15971617",
-   "reason": "Scalp time limit: held 1107 min, +0.03%",
-   "status": "pending_new"
-  }
- ],
+ "actions_today": [],
  "state": "sleeping",
  "next_open": "2026-11-20T14:30:00+00:00",
- "generated_at": "2026-11-20T02:45:50+00:00"
+ "generated_at": "2026-11-20T08:31:01+00:00"
 }
