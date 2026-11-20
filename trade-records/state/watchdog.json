@@ -8,7 +8,7 @@
   "low": 0.7,
   "high": 0.7
  },
- "checks": 53,
+ "checks": 64,
  "actions_today": [
   {
    "time": "2026-11-20T14:33:01+00:00",
@@ -201,87 +201,39 @@
    "qty": "102.802766798",
    "reason": "Scalp time limit: held 61 min, -0.18%",
    "status": "pending_new"
+  },
+  {
+   "time": "2026-11-20T17:30:18+00:00",
+   "symbol": "TGT",
+   "side": "sell",
+   "qty": "46.126338203",
+   "reason": "Scalp time limit: held 60 min, -0.83%",
+   "status": "pending_new"
   }
  ],
  "state": "watching",
  "style": "scalp",
- "style_why": "last 2 scalp trade(s): -$96.20",
- "generated_at": "2026-11-20T17:22:22+00:00",
- "minutes_to_close": 218,
+ "style_why": "last 8 scalp trade(s): -$258.42",
+ "generated_at": "2026-11-20T17:33:16+00:00",
+ "minutes_to_close": 207,
  "groups": [
-  {
-   "symbol": "CMCSA",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.1% from the buy price"
-   ],
-   "price": 25.325,
-   "entry": 25.34,
-   "highest": 25.43,
-   "line": 25.16,
-   "line_pct": 0.73,
-   "take_profit_pct": 0.73,
-   "hourly_move_pct": 0.73,
-   "plpc": -0.06,
-   "day_pct": 1.87,
-   "to_line_pct": 0.66
-  },
-  {
-   "symbol": "DIS",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "4 of 5 green",
-    "-0.6% from the buy price",
-    "down 1.3% today"
-   ],
-   "price": 118.71,
-   "entry": 119.4,
-   "highest": 119.4,
-   "line": 118.46,
-   "line_pct": 0.79,
-   "take_profit_pct": 0.79,
-   "hourly_move_pct": 0.79,
-   "plpc": -0.58,
-   "day_pct": -1.28,
-   "to_line_pct": 0.21
-  },
   {
    "symbol": "ECL",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.1% from the buy price"
+    "-0.0% from the buy price"
    ],
-   "price": 296.37,
+   "price": 296.495,
    "entry": 296.53,
    "highest": 297.3,
    "line": 295.84,
    "line_pct": 0.49,
    "take_profit_pct": 0.49,
    "hourly_move_pct": 0.49,
-   "plpc": -0.05,
-   "day_pct": -0.32,
-   "to_line_pct": 0.18
-  },
-  {
-   "symbol": "KR",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.2% from the buy price"
-   ],
-   "price": 69.55,
-   "entry": 69.68,
-   "highest": 69.85,
-   "line": 69.21,
-   "line_pct": 0.67,
-   "take_profit_pct": 0.67,
-   "hourly_move_pct": 0.67,
-   "plpc": -0.19,
-   "day_pct": 2.37,
-   "to_line_pct": 0.49
+   "plpc": -0.01,
+   "day_pct": -0.28,
+   "to_line_pct": 0.22
   },
   {
    "symbol": "LLY",
@@ -290,70 +242,34 @@
    "reasons": [
     "-0.1% from the buy price"
    ],
-   "price": 1352.735,
+   "price": 1353.39,
    "entry": 1354.64,
    "highest": 1357.985,
    "line": 1346.38,
    "line_pct": 0.61,
    "take_profit_pct": 0.61,
    "hourly_move_pct": 0.61,
-   "plpc": -0.14,
-   "day_pct": 0.12,
-   "to_line_pct": 0.47
-  },
-  {
-   "symbol": "MCK",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.1% from the buy price"
-   ],
-   "price": 1083.54,
-   "entry": 1084.94,
-   "highest": 1088.14,
-   "line": 1082.05,
-   "line_pct": 0.56,
-   "take_profit_pct": 0.56,
-   "hourly_move_pct": 0.56,
-   "plpc": -0.13,
-   "day_pct": 2.01,
-   "to_line_pct": 0.14
+   "plpc": -0.09,
+   "day_pct": 0.17,
+   "to_line_pct": 0.52
   },
   {
    "symbol": "MDLZ",
    "group": "low",
    "label": "Low risk",
    "reasons": [
-    "-0.0% from the buy price"
+    "-0.3% from the buy price"
    ],
-   "price": 67.075,
+   "price": 66.93,
    "entry": 67.1,
    "highest": 67.255,
    "line": 66.73,
    "line_pct": 0.55,
    "take_profit_pct": 0.55,
    "hourly_move_pct": 0.55,
-   "plpc": -0.04,
-   "day_pct": 2.11,
-   "to_line_pct": 0.52
-  },
-  {
-   "symbol": "MO",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "-0.2% from the buy price"
-   ],
-   "price": 75.76,
-   "entry": 75.9,
-   "highest": 76.02,
-   "line": 75.49,
-   "line_pct": 0.54,
-   "take_profit_pct": 0.54,
-   "hourly_move_pct": 0.54,
-   "plpc": -0.18,
-   "day_pct": 1.45,
-   "to_line_pct": 0.36
+   "plpc": -0.25,
+   "day_pct": 1.89,
+   "to_line_pct": 0.3
   },
   {
    "symbol": "REGN",
@@ -364,16 +280,16 @@
     "swings \u00b12.6% a day",
     "-0.3% from the buy price"
    ],
-   "price": 929.9,
+   "price": 930.455,
    "entry": 932.87,
    "highest": 934.63,
-   "line": 927.09,
-   "line_pct": 0.62,
-   "take_profit_pct": 0.62,
-   "hourly_move_pct": 0.62,
-   "plpc": -0.32,
-   "day_pct": 0.71,
-   "to_line_pct": 0.3
+   "line": 926.9,
+   "line_pct": 0.64,
+   "take_profit_pct": 0.64,
+   "hourly_move_pct": 0.64,
+   "plpc": -0.26,
+   "day_pct": 0.77,
+   "to_line_pct": 0.38
   },
   {
    "symbol": "SN",
@@ -382,38 +298,19 @@
    "reasons": [
     "4 of 5 green",
     "swings \u00b12.6% a day",
-    "-0.2% from the buy price",
-    "down 1.3% today"
+    "-0.0% from the buy price",
+    "down 1.2% today"
    ],
-   "price": 213.9,
+   "price": 214.18,
    "entry": 214.26,
    "highest": 215.055,
    "line": 212.22,
    "line_pct": 0.95,
    "take_profit_pct": 0.95,
    "hourly_move_pct": 0.95,
-   "plpc": -0.17,
-   "day_pct": -1.34,
-   "to_line_pct": 0.79
-  },
-  {
-   "symbol": "TGT",
-   "group": "low",
-   "label": "Low risk",
-   "reasons": [
-    "4 of 5 green",
-    "-0.7% from the buy price"
-   ],
-   "price": 167.9,
-   "entry": 169.07,
-   "highest": 169.1593,
-   "line": 167.41,
-   "line_pct": 0.98,
-   "take_profit_pct": 0.98,
-   "hourly_move_pct": 0.98,
-   "plpc": -0.69,
-   "day_pct": 0.26,
-   "to_line_pct": 0.29
+   "plpc": -0.04,
+   "day_pct": -1.21,
+   "to_line_pct": 0.92
   },
   {
    "symbol": "UPS",
@@ -421,24 +318,24 @@
    "label": "Low risk",
    "reasons": [
     "4 of 5 green",
-    "-0.2% from the buy price",
-    "down 1.2% today"
+    "-0.3% from the buy price",
+    "down 1.3% today"
    ],
-   "price": 107.795,
+   "price": 107.7,
    "entry": 108.0383,
    "highest": 108.05,
    "line": 107.39,
    "line_pct": 0.6,
    "take_profit_pct": 0.6,
    "hourly_move_pct": 0.6,
-   "plpc": -0.23,
-   "day_pct": -1.21,
-   "to_line_pct": 0.38
+   "plpc": -0.31,
+   "day_pct": -1.29,
+   "to_line_pct": 0.29
   }
  ],
  "counts": {
   "safe": 0,
-  "low": 12,
+  "low": 6,
   "high": 0
  },
  "error": null,
