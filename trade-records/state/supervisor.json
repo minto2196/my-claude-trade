@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-20T16:20:40+00:00",
- "next_check": "2026-11-20T17:20:40+00:00",
- "overall": "ok",
+ "generated_at": "2026-11-20T17:18:57+00:00",
+ "next_check": "2026-11-20T18:18:57+00:00",
+ "overall": "alert",
  "supervisors": [
   {
    "name": "Data watch",
@@ -29,7 +29,7 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,200 \u2192 5,000 \u2192 500 \u2192 28 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,200 \u2192 5,000 \u2192 500 \u2192 15 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
@@ -56,7 +56,11 @@
     },
     {
      "status": "ok",
-     "text": "0 position(s), 0 open order(s), no stop-loss missed."
+     "text": "Alpaca stop orders at \u22125% protect 12 position(s)."
+    },
+    {
+     "status": "ok",
+     "text": "12 position(s), 12 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -67,7 +71,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 958 order(s) recorded."
+     "text": "Journal complete: 984 order(s) recorded."
     },
     {
      "status": "ok",
@@ -75,25 +79,31 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 12.7 MB of 1 GB."
+     "text": "Repository storage 13.1 MB of 1 GB."
     }
    ]
   },
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "ok",
+   "status": "alert",
    "checks": [
     {
-     "status": "ok",
-     "text": "24 run(s) in the last 3 hours, none failed, longest gap 6 min."
+     "status": "alert",
+     "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/44772469258"
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 109 checks today, last saved 3 min ago."
+     "text": "Every-minute watchdog alive: 43 checks today, last saved 7 min ago."
     }
    ]
   }
  ],
- "comments": []
+ "comments": [
+  {
+   "level": "alert",
+   "supervisor": "Schedule watch",
+   "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/44772469258"
+  }
+ ]
 }
