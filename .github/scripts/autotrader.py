@@ -222,15 +222,162 @@ SCALP_COOLDOWN_MIN = float(os.environ.get("AUTOTRADE_SCALP_COOLDOWN_MIN", "30") 
 SCALP_MAX_LOSSES = int(os.environ.get("AUTOTRADE_SCALP_MAX_LOSSES", "3") or 0)
 STREAK_STEP_PCT = float(os.environ.get("AUTOTRADE_STREAK_STEP_PCT", "25") or 0)
 STREAK_MAX_MULT = max(1.0, float(os.environ.get("AUTOTRADE_STREAK_MAX_MULT", "2") or 1))
-if SCALP:
-    STOP_LOSS_PCT = SCALP_SL_PCT
-    TRAIL_PCT = SCALP_SL_PCT
-    TRAIL_ARM_PCT = SCALP_SL_PCT / 2          # once up half the stop distance, the line trails the high
-    LINE_PCT = {k: SCALP_SL_PCT for k in LINE_PCT}
-    TAKE_PROFIT_PCT = SCALP_TP_PCT
-    FLATTEN = True
-    KEEP_OVERNIGHT_PCT = 1e9                  # nothing is kept overnight
-    BAD_DAY_PCT = 1e9                         # the tight stop already covers it
+
+# ---- ADAPTIVE (scalp style only; AUTOTRADE_ADAPTIVE=off turns all three off)
+# 1. Each stock gets its own target and stop from its typical hourly move (median high-low range of its
+#    regular-hours 1-hour bars over the last week): target = AUTOTRADE_SCALP_TP_MULT x move (1.0),
+#    stop = AUTOTRADE_SCALP_SL_MULT x move (1.0), kept between 0.4-3% and 0.3-2%. Stocks that move less than
+#    AUTOTRADE_SCALP_MIN_MOVE_PCT (0.5%) an hour aren't scalped: the target can't beat the costs.
+# 2. The bot picks its own style: if the last AUTOTRADE_ADAPT_TRADES (20) scalp trades lost money overall it
+#    trades swing (hold for days) instead. It retries scalp once no scalp trade has happened for
+#    AUTOTRADE_ADAPT_RETRY_DAYS (4) days, judging only the trades made after that break.
+# 3. No scalp buys in the first AUTOTRADE_SCALP_SKIP_OPEN_MIN (30) minutes after the open or the last
+#    60 minutes before the close (the open swings most, and the close forces every sale).
+ADAPTIVE = os.environ.get("AUTOTRADE_ADAPTIVE", "on").strip().lower() != "off"
+SCALP_TP_MULT = float(os.environ.get("AUTOTRADE_SCALP_TP_MULT", "1") or 1)
+SCALP_SL_MULT = float(os.environ.get("AUTOTRADE_SCALP_SL_MULT", "1") or 1)
+SCALP_MIN_MOVE_PCT = float(os.environ.get("AUTOTRADE_SCALP_MIN_MOVE_PCT", "0.5") or 0)
+ADAPT_TRADES = max(1, int(os.environ.get("AUTOTRADE_ADAPT_TRADES", "20") or 20))
+ADAPT_RETRY_DAYS = float(os.environ.get("AUTOTRADE_ADAPT_RETRY_DAYS", "4") or 4)
+SCALP_SKIP_OPEN_MIN = float(os.environ.get("AUTOTRADE_SCALP_SKIP_OPEN_MIN", "30") or 0)
+CONFIG_STYLE = STYLE
+DATA = "https://data.alpaca.markets"
+MOVES = {}            # symbol -> typical hourly move in %, this run
+MOVES_AT = {}         # symbol -> when it was measured
+_BASE = dict(STOP_LOSS_PCT=STOP_LOSS_PCT, TRAIL_PCT=TRAIL_PCT, TRAIL_ARM_PCT=TRAIL_ARM_PCT, LINE_PCT=dict(LINE_PCT),
+             TAKE_PROFIT_PCT=TAKE_PROFIT_PCT, FLATTEN=FLATTEN, KEEP_OVERNIGHT_PCT=KEEP_OVERNIGHT_PCT,
+             BAD_DAY_PCT=BAD_DAY_PCT, NO_BUY_MINUTES=NO_BUY_MINUTES)
+
+
+def apply_style(style):
+    """Switch every rule that differs between swing and scalp (used at start-up and by the adaptive switch)."""
+    global STYLE, SCALP, STOP_LOSS_PCT, TRAIL_PCT, TRAIL_ARM_PCT, LINE_PCT, TAKE_PROFIT_PCT, FLATTEN
+    global KEEP_OVERNIGHT_PCT, BAD_DAY_PCT, NO_BUY_MINUTES
+    STYLE, SCALP = style, style == "scalp"
+    b = _BASE
+    STOP_LOSS_PCT, TRAIL_PCT, TRAIL_ARM_PCT, LINE_PCT = b["STOP_LOSS_PCT"], b["TRAIL_PCT"], b["TRAIL_ARM_PCT"], dict(b["LINE_PCT"])
+    TAKE_PROFIT_PCT, FLATTEN, KEEP_OVERNIGHT_PCT = b["TAKE_PROFIT_PCT"], b["FLATTEN"], b["KEEP_OVERNIGHT_PCT"]
+    BAD_DAY_PCT, NO_BUY_MINUTES = b["BAD_DAY_PCT"], b["NO_BUY_MINUTES"]
+    if SCALP:
+        STOP_LOSS_PCT = TRAIL_PCT = SCALP_SL_PCT   # fallback when a stock's own move isn't known
+        TRAIL_ARM_PCT = SCALP_SL_PCT / 2          # once up half the stop distance, the line trails the high
+        LINE_PCT = {k: SCALP_SL_PCT for k in LINE_PCT}
+        TAKE_PROFIT_PCT = SCALP_TP_PCT
+        FLATTEN = True
+        KEEP_OVERNIGHT_PCT = 1e9                  # nothing is kept overnight
+        BAD_DAY_PCT = 1e9                         # the tight stop already covers it
+        NO_BUY_MINUTES = max(NO_BUY_MINUTES, 60)
+
+
+apply_style(STYLE)
+
+
+def data_get(path, params):
+    req = urllib.request.Request(DATA + path + "?" + urllib.parse.urlencode(params), headers={
+        "APCA-API-KEY-ID": KEY, "APCA-API-SECRET-KEY": SECRET, "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read().decode())
+
+
+def et_now():
+    try:
+        from zoneinfo import ZoneInfo
+        return dt.datetime.now(ZoneInfo("America/New_York"))
+    except Exception:
+        return dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=5)
+
+
+def load_moves(symbols, max_age_min=30):
+    """Typical hourly move (%) per stock: median high-low range of regular-hours 1-hour bars, last 7 days."""
+    now = dt.datetime.now(dt.timezone.utc)
+    need = sorted({s for s in symbols if s and "/" not in s
+                   and (s not in MOVES or (now - MOVES_AT[s]).total_seconds() > max_age_min * 60)})
+    for i in range(0, len(need), 50):
+        batch, ranges, token = need[i:i + 50], {}, None
+        try:
+            for _ in range(20):
+                p = {"symbols": ",".join(batch), "timeframe": "1Hour", "feed": "iex", "limit": 10000,
+                     "start": (now - dt.timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")}
+                if token:
+                    p["page_token"] = token
+                d = data_get("/v2/stocks/bars", p)
+                for sym, bars in (d.get("bars") or {}).items():
+                    for b in bars:
+                        try:
+                            from zoneinfo import ZoneInfo
+                            h = iso_utc(b["t"]).astimezone(ZoneInfo("America/New_York")).hour
+                        except Exception:
+                            h = (iso_utc(b["t"]) - dt.timedelta(hours=5)).hour
+                        if 10 <= h <= 15 and num(b.get("o")) > 0:      # regular hours, without the wild first bar
+                            ranges.setdefault(sym, []).append((num(b["h"]) - num(b["l"])) / num(b["o"]) * 100)
+                token = d.get("next_page_token")
+                if not token:
+                    break
+        except Exception as e:
+            print(f"autotrader: hourly bars unavailable ({str(e)[:100]}); fixed scalp levels used")
+            continue
+        for sym in batch:
+            r = sorted(ranges.get(sym, []))[-30:] if ranges.get(sym) else []
+            if len(r) >= 5:
+                MOVES[sym], MOVES_AT[sym] = r[len(r) // 2], now
+
+
+def levels(sym):
+    """(take-profit %, stop %, hourly move % or None) for a scalp position."""
+    m = MOVES.get(sym)
+    if not (SCALP and ADAPTIVE and m):
+        return TAKE_PROFIT_PCT, None, None
+    return (round(min(3.0, max(0.4, m * SCALP_TP_MULT)), 2), round(min(2.0, max(0.3, m * SCALP_SL_MULT)), 2), round(m, 2))
+
+
+def line_for(sym, entry, peak, group):
+    """The sell line for a held stock: its own scalp stop when known, else its risk group's line."""
+    tp, sl, _ = levels(sym)
+    if sl:
+        return stop_line(entry, peak, sl, floor_pct=sl, arm_pct=sl / 2), sl
+    return stop_line(entry, peak, LINE_PCT[group]), LINE_PCT[group]
+
+
+SCALP_MARK = re.compile(r"^" + re.escape(TAG) + r"buy-.+-s\d+$")
+
+
+def decide_style(orders, now=None):
+    """Adaptive style: (style, reason). Scalp round trips are the buys marked -s and the sells that close them."""
+    if not (ADAPTIVE and CONFIG_STYLE == "scalp"):
+        return CONFIG_STYLE, None
+    now = now or dt.datetime.now(dt.timezone.utc)
+    fills = sorted((o for o in orders if (o.get("client_order_id") or "").startswith(TAG)
+                    and o.get("status") in ("filled", "partially_filled") and o.get("filled_at")),
+                   key=lambda o: o["filled_at"])
+    lots, res = {}, []
+    for o in fills:
+        q, px, s = num(o.get("filled_qty")), num(o.get("filled_avg_price")), o["symbol"]
+        lot = lots.setdefault(s, [0.0, 0.0, False])
+        if o.get("side") == "buy":
+            lot[0] += q
+            lot[1] += q * px
+            lot[2] = lot[2] or bool(SCALP_MARK.match(o.get("client_order_id") or ""))
+        elif lot[0] > 0:
+            avg, take = lot[1] / lot[0], min(q, lot[0])
+            if lot[2]:
+                res.append((iso_utc(o["filled_at"]), take * (px - avg)))
+            lot[0] -= take
+            lot[1] = avg * lot[0]
+            if lot[0] <= 1e-9:
+                lots[s] = [0.0, 0.0, False]
+    if not res:
+        return "scalp", "no scalp trades yet"
+    if (now - res[-1][0]).days >= ADAPT_RETRY_DAYS:
+        return "scalp", f"retrying scalp: no scalp trade for {ADAPT_RETRY_DAYS:g}+ days"
+    start = 0
+    for i in range(1, len(res)):               # judge only the trades since the last break of RETRY days
+        if (res[i][0] - res[i - 1][0]).days >= ADAPT_RETRY_DAYS:
+            start = i
+    last = res[start:][-ADAPT_TRADES:]
+    pnl = sum(x for _, x in last)
+    if len(last) >= ADAPT_TRADES and pnl < 0:
+        return "swing", f"the last {len(last)} scalp trades lost ${-pnl:,.2f}, so the bot holds for days instead"
+    return "scalp", f"last {len(last)} scalp trade(s): {'+' if pnl >= 0 else '-'}${abs(pnl):,.2f}"
 
 
 def streaks(orders):
@@ -265,14 +412,14 @@ def streaks(orders):
 GROUP_LABEL = {"safe": "Safe", "low": "Low risk", "high": "High risk"}
 
 
-def stop_line(entry, peak=None, pct=None):
+def stop_line(entry, peak=None, pct=None, floor_pct=None, arm_pct=None):
     """The sell line: pct (5% for every group by default) below the highest price since buying,
     never lower than STOP_LOSS_PCT under the buy price. Bought 100, high 200, safe -> 190."""
     pct = TRAIL_PCT if pct is None else pct
-    px = entry * (1 - STOP_LOSS_PCT / 100)
+    px = entry * (1 - (STOP_LOSS_PCT if floor_pct is None else floor_pct) / 100)
     if peak is None:
         peak = entry
-    if peak >= entry * (1 + TRAIL_ARM_PCT / 100):
+    if peak >= entry * (1 + (TRAIL_ARM_PCT if arm_pct is None else arm_pct) / 100):
         px = max(px, peak * (1 - pct / 100))
     return round(px, 2) if px >= 1 else round(px, 4)
 
@@ -356,6 +503,13 @@ def run(agent, previous, backtest=None):
     clock = call("GET", "/v2/clock")
     positions = {p["symbol"]: p for p in call("GET", "/v2/positions")}
     orders = fetch_orders(180)
+    style, style_why = decide_style(orders, now)
+    apply_style(style)
+    out["rules"].update(style=STYLE, configured_style=CONFIG_STYLE, adaptive=ADAPTIVE, take_profit_pct=TAKE_PROFIT_PCT,
+                        sell_all_before_close=FLATTEN, line_pct=LINE_PCT, no_buy_minutes_before_close=NO_BUY_MINUTES)
+    out["style"] = {"now": STYLE, "configured": CONFIG_STYLE, "why": style_why}
+    if style_why:
+        out["notes"].append(f"Style: {STYLE.upper()} ({style_why}).")
     equity, cash = num(account.get("equity")), num(account.get("cash"))
     last_equity = num(account.get("last_equity"), equity)
     out["account"] = {"equity": equity, "cash": cash}
@@ -424,6 +578,11 @@ def run(agent, previous, backtest=None):
     cols = agent.get("board_columns", [])
     board = {r[cols.index("symbol")]: dict(zip(cols, r)) for r in agent.get("board", [])}
     detail = {d["symbol"]: d for d in agent.get("symbols", [])}
+    if SCALP and ADAPTIVE:
+        load_moves(set(owned) | {s.get("symbol") for s in agent.get("symbols", []) if s.get("signal") == "buy"})
+        out["hourly_moves"] = {k: round(v, 2) for k, v in sorted(MOVES.items())}
+    et = et_now()
+    since_open = (et.hour * 60 + et.minute) - (9 * 60 + 30)
 
     def context(sym, side, reason, rule, asset=None):
         d, b, pos = detail.get(sym) or {}, board.get(sym) or {}, positions.get(sym) or {}
@@ -480,7 +639,7 @@ def run(agent, previous, backtest=None):
         if side == "sell":
             cancel_stops(sym)
         body = {"symbol": sym, "side": side, "type": "market", "time_in_force": "day",
-                "client_order_id": f"{TAG}{side}-{sym}-{int(time.time()*1000)}"[:48]}
+                "client_order_id": f"{TAG}{side}-{sym}-{'s' if SCALP and side == 'buy' else ''}{int(time.time()*1000)}"[:48]}
         if notional is not None:
             body["notional"] = f"{notional:.2f}"
         else:
@@ -524,11 +683,13 @@ def run(agent, previous, backtest=None):
         sig = b.get("signal") if b else None
         st_in, vol = group_inputs(sym, board, detail)
         group, why = risk_group(st_in, price, entry, peak, day, vol)
-        line = stop_line(entry, peak, LINE_PCT[group]) if entry else None
+        line, line_pct = line_for(sym, entry, peak, group) if entry else (None, LINE_PCT[group])
+        tp_pct, sl_pct, move = levels(sym)
         GROUPS[sym] = {"symbol": sym, "group": group, "label": GROUP_LABEL[group], "reasons": why, "price": price,
-                       "entry": round(entry, 4), "highest": round(peak, 4), "line": line, "line_pct": LINE_PCT[group],
+                       "entry": round(entry, 4), "highest": round(peak, 4), "line": line, "line_pct": line_pct,
+                       "take_profit_pct": tp_pct or None, "hourly_move_pct": move,
                        "plpc": round(plpc, 2), "day_pct": round(day, 2), "to_line_pct": round((price / line - 1) * 100, 2) if line else None}
-        trailing = line is not None and line > entry * (1 - STOP_LOSS_PCT / 100) + 1e-9
+        trailing = line is not None and line > entry * (1 - (sl_pct or STOP_LOSS_PCT) / 100) + 1e-9
         last_close = num(p.get("lastday_price"))
         closed_pl = (last_close / entry - 1) * 100 if last_close and entry else None
         if flatten_now and plpc < KEEP_OVERNIGHT_PCT:
@@ -541,7 +702,7 @@ def run(agent, previous, backtest=None):
             place(sym, "sell", f"Held overnight at {closed_pl:+.1f}% although the evening rule sells under +{KEEP_OVERNIGHT_PCT:g}% "
                                f"(the evening run was missed): sold at the first run, now {plpc:+.1f}%", qty=qty, rule="overnight catch-up")
         elif line is not None and price <= line and trailing:
-            place(sym, "sell", f"{GROUP_LABEL[group]} sell line ({LINE_PCT[group]:g}%): highest ${peak:,.2f}, fell {drop_from_peak:.1f}% to ${price:,.2f} "
+            place(sym, "sell", f"{GROUP_LABEL[group]} sell line ({line_pct:g}%): highest ${peak:,.2f}, fell {drop_from_peak:.1f}% to ${price:,.2f} "
                                f"(line ${line:,.2f}), {plpc:+.1f}% from the buy price", qty=qty, rule="trailing stop")
         elif line is not None and price <= line:
             place(sym, "sell", f"{GROUP_LABEL[group]} sell line: down {abs(plpc):.1f}% from the buy price (line ${line:,.2f})", qty=qty, rule="stop-loss")
@@ -550,8 +711,9 @@ def run(agent, previous, backtest=None):
             # isn't sold just because of the drop that happened before we bought it
             place(sym, "sell", f"Bad day: down {abs(day):.1f}% today, {plpc:+.1f}% from the buy price, only "
                                f"{greens if greens is not None else '?'} of 5 green", qty=qty, rule="bad day")
-        elif TAKE_PROFIT_PCT > 0 and plpc >= TAKE_PROFIT_PCT:
-            place(sym, "sell", f"Take profit: up {plpc:.1f}% from entry", qty=qty, rule="take-profit")
+        elif tp_pct and tp_pct > 0 and plpc >= tp_pct:
+            place(sym, "sell", f"Take profit: up {plpc:.2f}% from entry (target +{tp_pct:g}%"
+                               + (f", {SCALP_TP_MULT:g}x its {move:g}% hourly move)" if move else ")"), qty=qty, rule="take-profit")
         elif SCALP and SCALP_MAX_HOLD_MIN and sym in bought_at and (now - bought_at[sym]).total_seconds() / 60 >= SCALP_MAX_HOLD_MIN:
             held = (now - bought_at[sym]).total_seconds() / 60
             place(sym, "sell", f"Scalp time limit: held {held:.0f} min (limit {SCALP_MAX_HOLD_MIN:g}), {plpc:+.2f}%", qty=qty, rule="scalp time limit")
@@ -593,6 +755,9 @@ def run(agent, previous, backtest=None):
         out["notes"].append(f"Scalp: {loss_streak} losing trades in a row today. No new buys until tomorrow.")
     elif closing:
         out["notes"].append(f"{round(minutes_left)} min to the close: no new buys, sells only.")
+    elif SCALP and ADAPTIVE and 0 <= since_open < SCALP_SKIP_OPEN_MIN:
+        out["notes"].append(f"Scalp: {since_open} min after the open, prices swing most now. Buying starts "
+                            f"{SCALP_SKIP_OPEN_MIN:g} min after the open.")
     elif last_equity and (equity / last_equity - 1) * 100 <= -DAILY_LOSS_PCT:
         out["notes"].append(f"Account down {(equity/last_equity-1)*100:.1f}% today. No new buys until tomorrow.")
     else:
@@ -609,7 +774,7 @@ def run(agent, previous, backtest=None):
             free = min(free, SLOTS)              # at most 12 new stocks per run, each 1/12 of the free cash
         candidates = [s for s in agent.get("symbols", []) if s.get("signal") == "buy" and (s.get("greens") or 0) >= BUY_MIN_GREENS]
         candidates.sort(key=lambda s: s.get("rank") or 999)
-        bought = 0
+        bought, skipped_calm = 0, []
         for c in candidates:
             if bought >= free:
                 break
@@ -618,6 +783,11 @@ def run(agent, previous, backtest=None):
                 continue
             if sym in sold_recently:
                 continue   # sold within AUTOTRADE_REBUY_COOLDOWN_DAYS
+            if SCALP and ADAPTIVE and SCALP_MIN_MOVE_PCT:
+                m = MOVES.get(sym)
+                if (m is None and MOVES) or (m is not None and m < SCALP_MIN_MOVE_PCT):   # no data at all: fixed levels
+                    skipped_calm.append(f"{sym} {m:.2f}%" if m is not None else f"{sym} ?")
+                    continue
             try:
                 asset = call("GET", f"/v2/assets/{urllib.parse.quote(sym)}")
             except Exception:
@@ -650,6 +820,9 @@ def run(agent, previous, backtest=None):
             if act.get("status") != "rejected":
                 spend -= amount
                 bought += 1
+        if skipped_calm:
+            out["notes"].append(f"Scalp: skipped stocks that move less than {SCALP_MIN_MOVE_PCT:g}% an hour "
+                                f"(target can't beat the costs): {', '.join(skipped_calm[:15])}.")
         if not candidates:
             out["notes"].append("No stock is buy-ready right now. Nothing to buy.")
         elif bought == 0 and free <= 0:
@@ -675,9 +848,8 @@ def run(agent, previous, backtest=None):
             if qty <= 0 or not entry:
                 continue
             PEAKS[sym] = max(num(PEAKS.get(sym)), price, entry)
-            sp = stop_price(entry, PEAKS[sym])
             g = GROUPS.get(sym, {}).get("group") or "low"
-            sp = stop_price(entry, PEAKS[sym], LINE_PCT[g])
+            sp, _ = line_for(sym, entry, PEAKS[sym], g)
             if price and price <= sp:
                 continue   # already below the line; the exit rules above handle it
             if flatten_now:

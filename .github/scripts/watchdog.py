@@ -244,6 +244,13 @@ def main():
                         bought_at[o["symbol"]] = max(bought_at.get(o["symbol"], t), t)
                 account = T.call("GET", "/v2/account")
                 owned_t = time.time()
+                style, style_why = T.decide_style(orders, now)      # same adaptive choice as the 5-minute run
+                if style != T.STYLE:
+                    print(f"watchdog: style {T.STYLE} -> {style} ({style_why})")
+                T.apply_style(style)
+                status.update(style=T.STYLE, style_why=style_why)
+            if T.SCALP and T.ADAPTIVE:
+                T.load_moves(owned & set(positions))                 # cached 30 min per stock
             open_orders = T.call("GET", "/v2/orders", {"status": "open", "limit": 500})
             stops, busy = {}, set()
             for o in open_orders:
@@ -289,9 +296,11 @@ def main():
                 plpc = (price / entry - 1) * 100
                 st, vol = T.group_inputs(sym, board, detail)
                 group, why = T.risk_group(st, price, entry, peak, day, vol)
-                line = T.stop_line(entry, peak, T.LINE_PCT[group])
+                line, line_pct = T.line_for(sym, entry, peak, group)
+                tp_pct, _, move = T.levels(sym)
                 groups.append({"symbol": sym, "group": group, "label": T.GROUP_LABEL[group], "reasons": why, "price": price,
-                               "entry": round(entry, 4), "highest": round(peak, 4), "line": line, "line_pct": T.LINE_PCT[group],
+                               "entry": round(entry, 4), "highest": round(peak, 4), "line": line, "line_pct": line_pct,
+                               "take_profit_pct": tp_pct or None, "hourly_move_pct": move,
                                "plpc": round(plpc, 2), "day_pct": round(day, 2), "to_line_pct": round((price / line - 1) * 100, 2)})
                 if T.MODE in ("off", "sell-all") or sym in busy:   # sell-all: the 5-minute run sells everything
                     continue
@@ -301,9 +310,9 @@ def main():
                     sell(sym, qty, "evening", f"Evening: {plpc:+.1f}% (under +{T.KEEP_OVERNIGHT_PCT:g}%), {round(minutes_left)} min before the close")
                 elif price <= line:
                     sell(sym, qty, "line", f"{T.GROUP_LABEL[group]}: price ${price:,.2f} reached its sell line ${line:,.2f} "
-                                           f"({T.LINE_PCT[group]:g}% under the high ${peak:,.2f}), {plpc:+.1f}%")
-                elif T.TAKE_PROFIT_PCT > 0 and plpc >= T.TAKE_PROFIT_PCT:
-                    sell(sym, qty, "tp", f"Take profit: {plpc:+.2f}% (target +{T.TAKE_PROFIT_PCT:g}%)")
+                                           f"({line_pct:g}% under the high ${peak:,.2f}), {plpc:+.1f}%")
+                elif tp_pct and tp_pct > 0 and plpc >= tp_pct:
+                    sell(sym, qty, "tp", f"Take profit: {plpc:+.2f}% (target +{tp_pct:g}%)")
                 elif (T.SCALP and T.SCALP_MAX_HOLD_MIN and sym in bought_at
                       and (now - bought_at[sym]).total_seconds() / 60 >= T.SCALP_MAX_HOLD_MIN):
                     sell(sym, qty, "time", f"Scalp time limit: held {(now - bought_at[sym]).total_seconds() / 60:.0f} min, {plpc:+.2f}%")

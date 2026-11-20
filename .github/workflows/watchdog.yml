@@ -46,6 +46,14 @@ jobs:
       AUTOTRADE_SCALP_MAX_LOSSES: ${{ vars.AUTOTRADE_SCALP_MAX_LOSSES || '3' }}
       AUTOTRADE_STREAK_STEP_PCT: ${{ vars.AUTOTRADE_STREAK_STEP_PCT || '25' }}
       AUTOTRADE_STREAK_MAX_MULT: ${{ vars.AUTOTRADE_STREAK_MAX_MULT || '2' }}
+      # Adaptive scalp: own target/stop per stock, auto switch to swing while scalp loses, no buys at the open
+      AUTOTRADE_ADAPTIVE: ${{ vars.AUTOTRADE_ADAPTIVE || 'on' }}
+      AUTOTRADE_SCALP_TP_MULT: ${{ vars.AUTOTRADE_SCALP_TP_MULT || '1' }}
+      AUTOTRADE_SCALP_SL_MULT: ${{ vars.AUTOTRADE_SCALP_SL_MULT || '1' }}
+      AUTOTRADE_SCALP_MIN_MOVE_PCT: ${{ vars.AUTOTRADE_SCALP_MIN_MOVE_PCT || '0.5' }}
+      AUTOTRADE_ADAPT_TRADES: ${{ vars.AUTOTRADE_ADAPT_TRADES || '20' }}
+      AUTOTRADE_ADAPT_RETRY_DAYS: ${{ vars.AUTOTRADE_ADAPT_RETRY_DAYS || '4' }}
+      AUTOTRADE_SCALP_SKIP_OPEN_MIN: ${{ vars.AUTOTRADE_SCALP_SKIP_OPEN_MIN || '30' }}
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
