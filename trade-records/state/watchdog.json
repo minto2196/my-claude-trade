@@ -8,7 +8,7 @@
   "low": 0.7,
   "high": 0.7
  },
- "checks": 54,
+ "checks": 65,
  "actions_today": [
   {
    "time": "2026-11-20T14:33:01+00:00",
@@ -77,46 +77,29 @@
  ],
  "state": "watching",
  "next_open": "2026-11-20T14:30:00+00:00",
- "generated_at": "2026-11-20T15:23:00+00:00",
- "minutes_to_close": 337,
+ "generated_at": "2026-11-20T15:34:00+00:00",
+ "minutes_to_close": 326,
  "groups": [
-  {
-   "symbol": "RPRX",
-   "group": "safe",
-   "label": "Safe",
-   "reasons": [
-    "5 of 5 green, calm (\u00b11.5% a day)",
-    "+0.0% from the buy price"
-   ],
-   "price": 68.355,
-   "entry": 68.34,
-   "highest": 68.7785,
-   "line": 68.3,
-   "line_pct": 0.7,
-   "plpc": 0.02,
-   "day_pct": 0.94,
-   "to_line_pct": 0.08
-  },
   {
    "symbol": "SONY",
    "group": "safe",
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.6% a day)",
-    "+0.5% from the buy price"
+    "+0.6% from the buy price"
    ],
-   "price": 27.615,
+   "price": 27.655,
    "entry": 27.485,
    "highest": 27.725,
    "line": 27.53,
    "line_pct": 0.7,
-   "plpc": 0.47,
-   "day_pct": 1.53,
-   "to_line_pct": 0.31
+   "plpc": 0.62,
+   "day_pct": 1.67,
+   "to_line_pct": 0.45
   }
  ],
  "counts": {
-  "safe": 2,
+  "safe": 1,
   "low": 0,
   "high": 0
  },
