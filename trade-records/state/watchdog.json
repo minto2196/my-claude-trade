@@ -8,9 +8,92 @@
   "low": 0.7,
   "high": 0.7
  },
- "checks": 0,
- "actions_today": [],
- "state": "sleeping",
+ "checks": 11,
+ "actions_today": [
+  {
+   "time": "2026-11-20T14:33:01+00:00",
+   "symbol": "AZO",
+   "side": "sell",
+   "qty": "2.343635759",
+   "reason": "Scalp time limit: held 1440 min, +0.00%",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-20T14:33:03+00:00",
+   "symbol": "D",
+   "side": "sell",
+   "qty": "116.207244655",
+   "reason": "Scalp time limit: held 10079 min, -0.14%",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-20T14:33:04+00:00",
+   "symbol": "SO",
+   "side": "sell",
+   "qty": "82.885641677",
+   "reason": "Scalp time limit: held 2533 min, -0.19%",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-20T14:33:05+00:00",
+   "symbol": "TYL",
+   "side": "sell",
+   "qty": "19.10178384",
+   "reason": "Scalp time limit: held 1440 min, +0.05%",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-20T14:33:06+00:00",
+   "symbol": "WEC",
+   "side": "sell",
+   "qty": "66.64725415",
+   "reason": "Scalp time limit: held 1440 min, -0.12%",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-20T14:34:01+00:00",
+   "symbol": "CBOE",
+   "side": "sell",
+   "qty": "21.56184573",
+   "reason": "Scalp time limit: held 5759 min, -0.10%",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-20T14:35:02+00:00",
+   "symbol": "DLTR",
+   "side": "sell",
+   "qty": "55.024385101",
+   "reason": "Scalp time limit: held 4323 min, -0.15%",
+   "status": "pending_new"
+  },
+  {
+   "time": "2026-11-20T14:35:03+00:00",
+   "symbol": "MCK",
+   "side": "sell",
+   "qty": "7.254698795",
+   "reason": "Scalp time limit: held 11522 min, -0.12%",
+   "status": "pending_new"
+  }
+ ],
+ "state": "watching",
  "next_open": "2026-11-20T14:30:00+00:00",
- "generated_at": "2026-11-20T14:16:12+00:00"
+ "generated_at": "2026-11-20T14:40:01+00:00",
+ "minutes_to_close": 380,
+ "groups": [],
+ "counts": {
+  "safe": 0,
+  "low": 0,
+  "high": 0
+ },
+ "error": null,
+ "peaks": {
+  "AZO": 3341.965,
+  "CBOE": 363.77,
+  "D": 67.36,
+  "DLTR": 142.259109,
+  "SO": 94.44,
+  "TYL": 409.99,
+  "WEC": 117.45,
+  "MCK": 1078.986216
+ }
 }
