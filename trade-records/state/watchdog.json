@@ -8,7 +8,7 @@
   "low": 0.7,
   "high": 0.7
  },
- "checks": 32,
+ "checks": 43,
  "actions_today": [
   {
    "time": "2026-11-20T14:33:01+00:00",
@@ -77,8 +77,8 @@
  ],
  "state": "watching",
  "next_open": "2026-11-20T14:30:00+00:00",
- "generated_at": "2026-11-20T15:01:00+00:00",
- "minutes_to_close": 359,
+ "generated_at": "2026-11-20T15:12:02+00:00",
+ "minutes_to_close": 348,
  "groups": [
   {
    "symbol": "RPRX",
@@ -86,16 +86,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.5% a day)",
-    "+0.1% from the buy price"
+    "+0.3% from the buy price"
    ],
-   "price": 68.42,
+   "price": 68.55,
    "entry": 68.34,
    "highest": 68.7785,
    "line": 68.3,
    "line_pct": 0.7,
-   "plpc": 0.12,
-   "day_pct": 1.03,
-   "to_line_pct": 0.18
+   "plpc": 0.31,
+   "day_pct": 1.23,
+   "to_line_pct": 0.37
   },
   {
    "symbol": "SONY",
@@ -103,16 +103,16 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.6% a day)",
-    "+0.2% from the buy price"
+    "+0.5% from the buy price"
    ],
-   "price": 27.53,
+   "price": 27.635,
    "entry": 27.485,
-   "highest": 27.53,
-   "line": 27.29,
+   "highest": 27.635,
+   "line": 27.44,
    "line_pct": 0.7,
-   "plpc": 0.16,
-   "day_pct": 1.21,
-   "to_line_pct": 0.88
+   "plpc": 0.55,
+   "day_pct": 1.6,
+   "to_line_pct": 0.71
   }
  ],
  "counts": {
@@ -132,6 +132,6 @@
   "MCK": 1078.986216,
   "NBIX": 157.435,
   "RPRX": 68.7785,
-  "SONY": 27.53
+  "SONY": 27.635
  }
 }
