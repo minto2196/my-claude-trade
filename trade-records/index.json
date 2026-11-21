@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-21T15:29:43+00:00",
+ "generated_at": "2026-11-21T17:16:17+00:00",
  "branch": "main",
  "folder": "trade-records",
  "files": [
@@ -58,13 +58,11 @@
    "name": "2026-W45_2026-11-02.xlsx"
   }
  ],
- "size_bytes": 3250151,
+ "size_bytes": 3250478,
  "git_bytes": 0,
  "limit_bytes": 1073741824,
  "warning": null,
- "made_this_run": [
-  "reports/2026/11-November/week-47_2026-11-16_to_2026-11-22.pdf"
- ],
+ "made_this_run": [],
  "removed_this_run": [],
  "journal_orders": 996
 }
