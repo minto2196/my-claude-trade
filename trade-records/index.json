@@ -1,8 +1,14 @@
 {
- "generated_at": "2026-11-21T07:20:24+00:00",
+ "generated_at": "2026-11-21T15:29:43+00:00",
  "branch": "main",
  "folder": "trade-records",
  "files": [
+  {
+   "path": "reports/2026/11-November/week-47_2026-11-16_to_2026-11-22.pdf",
+   "kind": "weekly_pdf",
+   "bytes": 85861,
+   "name": "week-47_2026-11-16_to_2026-11-22.pdf"
+  },
   {
    "path": "reports/2026/11-November/week-46_2026-11-09_to_2026-11-15.pdf",
    "kind": "weekly_pdf",
@@ -52,11 +58,13 @@
    "name": "2026-W45_2026-11-02.xlsx"
   }
  ],
- "size_bytes": 3100391,
+ "size_bytes": 3250151,
  "git_bytes": 0,
  "limit_bytes": 1073741824,
  "warning": null,
- "made_this_run": [],
+ "made_this_run": [
+  "reports/2026/11-November/week-47_2026-11-16_to_2026-11-22.pdf"
+ ],
  "removed_this_run": [],
  "journal_orders": 996
 }
