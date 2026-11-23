@@ -8,14 +8,14 @@
   "low": 0.7,
   "high": 0.7
  },
- "checks": 22,
+ "checks": 33,
  "actions_today": [],
  "state": "watching",
  "next_open": "2026-11-23T14:30:00+00:00",
- "generated_at": "2026-11-23T14:51:00+00:00",
+ "generated_at": "2026-11-23T15:02:00+00:00",
  "style": "scalp",
  "style_why": "last 14 scalp trade(s): -$434.95",
- "minutes_to_close": 369,
+ "minutes_to_close": 358,
  "groups": [],
  "counts": {
   "safe": 0,
