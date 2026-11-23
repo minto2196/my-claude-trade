@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-23T18:14:38+00:00",
- "next_check": "2026-11-23T19:14:38+00:00",
+ "generated_at": "2026-11-23T19:09:50+00:00",
+ "next_check": "2026-11-23T20:09:50+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "93% of stocks pass 'data is real'."
+     "text": "94% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 14.1 MB of 1 GB."
+     "text": "Repository storage 13.9 MB of 1 GB."
     }
    ]
   },
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "alert",
-     "text": "9 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45228146955"
+     "text": "8 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45244841280"
     },
     {
-     "status": "ok",
-     "text": "Every-minute watchdog alive: 218 checks today, last saved 8 min ago."
+     "status": "alert",
+     "text": "The every-minute watchdog hasn't reported for 63 minutes while the market is open. Held stocks are only checked every 5 minutes."
     }
    ]
   }
@@ -103,7 +103,12 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "9 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45228146955"
+   "text": "8 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45244841280"
+  },
+  {
+   "level": "alert",
+   "supervisor": "Schedule watch",
+   "text": "The every-minute watchdog hasn't reported for 63 minutes while the market is open. Held stocks are only checked every 5 minutes."
   }
  ]
 }
