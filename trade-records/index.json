@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-11-23T16:25:43+00:00",
+ "generated_at": "2026-11-23T16:31:23+00:00",
  "branch": "main",
  "folder": "trade-records",
  "files": [
@@ -42,7 +42,7 @@
   {
    "path": "excel/2026-W48_2026-11-23.xlsx",
    "kind": "weekly_excel",
-   "bytes": 24413,
+   "bytes": 25333,
    "name": "2026-W48_2026-11-23.xlsx"
   },
   {
@@ -58,11 +58,13 @@
    "name": "2026-W46_2026-11-09.xlsx"
   }
  ],
- "size_bytes": 3182683,
+ "size_bytes": 3185762,
  "git_bytes": 0,
  "limit_bytes": 1073741824,
  "warning": null,
- "made_this_run": [],
+ "made_this_run": [
+  "excel/2026-W48_2026-11-23.xlsx"
+ ],
  "removed_this_run": [],
- "journal_orders": 1020
+ "journal_orders": 1022
 }
