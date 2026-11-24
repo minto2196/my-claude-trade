@@ -1,6 +1,6 @@
 {
- "started_at": "2026-11-24T02:45:52+00:00",
- "day": "2026-11-23",
+ "started_at": "2026-11-24T08:31:10+00:00",
+ "day": "2026-11-24",
  "mode": "on",
  "paper": true,
  "line_pct": {
@@ -9,41 +9,8 @@
   "high": 0.7
  },
  "checks": 0,
- "actions_today": [
-  {
-   "time": "2026-11-23T15:16:01+00:00",
-   "symbol": "AZO",
-   "side": "sell",
-   "qty": "2.393922571",
-   "reason": "Take profit: +0.63% (target +0.54%)",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-23T15:22:01+00:00",
-   "symbol": "DIS",
-   "side": "sell",
-   "qty": "65.626225904",
-   "reason": "Take profit: +0.81% (target +0.81%)",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-23T15:26:01+00:00",
-   "symbol": "TGT",
-   "side": "sell",
-   "qty": "47.258873668",
-   "reason": "Take profit: +1.00% (target +0.98%)",
-   "status": "pending_new"
-  },
-  {
-   "time": "2026-11-23T15:27:05+00:00",
-   "symbol": "UPS",
-   "side": "sell",
-   "qty": "72.728098941",
-   "reason": "Take profit: +0.67% (target +0.66%)",
-   "status": "pending_new"
-  }
- ],
+ "actions_today": [],
  "state": "sleeping",
  "next_open": "2026-11-24T14:30:00+00:00",
- "generated_at": "2026-11-24T02:45:53+00:00"
+ "generated_at": "2026-11-24T08:31:10+00:00"
 }
