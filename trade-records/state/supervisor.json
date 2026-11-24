@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-24T16:20:33+00:00",
- "next_check": "2026-11-24T17:20:33+00:00",
+ "generated_at": "2026-11-24T17:20:24+00:00",
+ "next_check": "2026-11-24T18:20:24+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "95% of stocks pass 'data is real'."
+     "text": "96% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -94,11 +94,11 @@
    "checks": [
     {
      "status": "alert",
-     "text": "12 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45428158140"
+     "text": "15 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45443974586"
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 107 checks today, last saved 5 min ago."
+     "text": "Every-minute watchdog alive: 161 checks today, last saved 10 min ago."
     }
    ]
   }
@@ -112,7 +112,7 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "12 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45428158140"
+   "text": "15 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45443974586"
   }
  ]
 }
