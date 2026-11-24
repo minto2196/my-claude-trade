@@ -8,9 +8,259 @@
   "low": 0.7,
   "high": 0.7
  },
- "checks": 0,
+ "checks": 11,
  "actions_today": [],
- "state": "sleeping",
+ "state": "watching",
  "next_open": "2026-11-24T14:30:00+00:00",
- "generated_at": "2026-11-24T14:16:21+00:00"
+ "generated_at": "2026-11-24T14:40:06+00:00",
+ "style": "swing",
+ "style_why": "the last 20 scalp trades lost $276.96, so the bot holds for days instead",
+ "minutes_to_close": 380,
+ "groups": [
+  {
+   "symbol": "COST",
+   "group": "high",
+   "label": "High risk",
+   "reasons": [
+    "a red check: data",
+    "only 3 of 5 green"
+   ],
+   "price": 1077.22,
+   "entry": 1090.47,
+   "highest": 1101.135,
+   "line": 1035.95,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": -1.22,
+   "day_pct": -1.88,
+   "to_line_pct": 3.98
+  },
+  {
+   "symbol": "KR",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "4 of 5 green"
+   ],
+   "price": 68.4,
+   "entry": 67.36,
+   "highest": 68.4,
+   "line": 64.98,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": 1.54,
+   "day_pct": 1.86,
+   "to_line_pct": 5.26
+  },
+  {
+   "symbol": "NI",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "-0.1% from the buy price"
+   ],
+   "price": 44.84,
+   "entry": 44.9,
+   "highest": 45.185,
+   "line": 42.65,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": -0.13,
+   "day_pct": -0.33,
+   "to_line_pct": 5.13
+  },
+  {
+   "symbol": "PG",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "4 of 5 green"
+   ],
+   "price": 171.645,
+   "entry": 169.9606,
+   "highest": 171.645,
+   "line": 161.46,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": 0.99,
+   "day_pct": 1.21,
+   "to_line_pct": 6.31
+  },
+  {
+   "symbol": "ROP",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "4 of 5 green"
+   ],
+   "price": 464.815,
+   "entry": 456.75,
+   "highest": 464.815,
+   "line": 441.57,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": 1.77,
+   "day_pct": 1.46,
+   "to_line_pct": 5.26
+  },
+  {
+   "symbol": "SN",
+   "group": "low",
+   "label": "Low risk",
+   "reasons": [
+    "swings \u00b12.8% a day",
+    "-0.1% from the buy price",
+    "down 1.5% today"
+   ],
+   "price": 222.0,
+   "entry": 222.24,
+   "highest": 226.395,
+   "line": 215.08,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": -0.11,
+   "day_pct": -1.49,
+   "to_line_pct": 3.22
+  },
+  {
+   "symbol": "CB",
+   "group": "safe",
+   "label": "Safe",
+   "reasons": [
+    "5 of 5 green, calm (\u00b11.1% a day)",
+    "+0.4% from the buy price"
+   ],
+   "price": 371.23,
+   "entry": 369.68,
+   "highest": 371.36,
+   "line": 351.2,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": 0.42,
+   "day_pct": 0.69,
+   "to_line_pct": 5.7
+  },
+  {
+   "symbol": "CMCSA",
+   "group": "safe",
+   "label": "Safe",
+   "reasons": [
+    "5 of 5 green, calm (\u00b12.0% a day)",
+    "+3.4% from the buy price"
+   ],
+   "price": 25.135,
+   "entry": 24.3,
+   "highest": 25.135,
+   "line": 23.88,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": 3.44,
+   "day_pct": 1.68,
+   "to_line_pct": 5.26
+  },
+  {
+   "symbol": "DUK",
+   "group": "safe",
+   "label": "Safe",
+   "reasons": [
+    "5 of 5 green, calm (\u00b11.1% a day)",
+    "+1.3% from the buy price"
+   ],
+   "price": 130.115,
+   "entry": 128.43,
+   "highest": 130.115,
+   "line": 123.61,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": 1.31,
+   "day_pct": 0.5,
+   "to_line_pct": 5.26
+  },
+  {
+   "symbol": "GWW",
+   "group": "safe",
+   "label": "Safe",
+   "reasons": [
+    "5 of 5 green, calm (\u00b11.6% a day)",
+    "+0.5% from the buy price"
+   ],
+   "price": 1388.415,
+   "entry": 1382.1,
+   "highest": 1393.87,
+   "line": 1312.99,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": 0.46,
+   "day_pct": -0.12,
+   "to_line_pct": 5.74
+  },
+  {
+   "symbol": "ICE",
+   "group": "safe",
+   "label": "Safe",
+   "reasons": [
+    "5 of 5 green, calm (\u00b11.6% a day)",
+    "+0.8% from the buy price"
+   ],
+   "price": 174.21,
+   "entry": 172.79,
+   "highest": 174.21,
+   "line": 164.15,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": 0.82,
+   "day_pct": 1.17,
+   "to_line_pct": 6.13
+  },
+  {
+   "symbol": "MDLZ",
+   "group": "safe",
+   "label": "Safe",
+   "reasons": [
+    "5 of 5 green, calm (\u00b11.4% a day)",
+    "+1.3% from the buy price"
+   ],
+   "price": 66.3,
+   "entry": 65.42,
+   "highest": 66.53,
+   "line": 63.2,
+   "line_pct": 5.0,
+   "take_profit_pct": null,
+   "hourly_move_pct": null,
+   "plpc": 1.35,
+   "day_pct": 0.07,
+   "to_line_pct": 4.91
+  }
+ ],
+ "counts": {
+  "safe": 6,
+  "low": 5,
+  "high": 1
+ },
+ "error": null,
+ "peaks": {
+  "CMCSA": 25.135,
+  "MDLZ": 66.53,
+  "SN": 226.395,
+  "ROP": 464.815,
+  "GWW": 1393.87,
+  "DUK": 130.115,
+  "CB": 371.36,
+  "COST": 1101.135,
+  "NI": 45.185,
+  "ICE": 174.21,
+  "PG": 171.645,
+  "KR": 68.4
+ }
 }
