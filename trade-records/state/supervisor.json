@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-24T14:25:01+00:00",
- "next_check": "2026-11-24T15:25:01+00:00",
+ "generated_at": "2026-11-24T15:22:34+00:00",
+ "next_check": "2026-11-24T16:22:34+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -21,7 +21,7 @@
   {
    "name": "Scan watch",
    "role": "Market scan and the four checks",
-   "status": "alert",
+   "status": "ok",
    "checks": [
     {
      "status": "ok",
@@ -29,22 +29,22 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,211 \u2192 5,000 \u2192 500 \u2192 11 buy-ready (4+/5 green)."
-    },
-    {
-     "status": "alert",
-     "text": "Only 76% of stocks pass 'data is real'. The price feed itself may be broken; buys should not be trusted."
+     "text": "Funnel normal: 13,211 \u2192 5,000 \u2192 500 \u2192 13 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "Time machine judged the shortlist: 174 of 500 have a green past."
+     "text": "94% of stocks pass 'data is real'."
+    },
+    {
+     "status": "ok",
+     "text": "Time machine judged the shortlist: 175 of 501 have a green past."
     }
    ]
   },
   {
    "name": "Trade watch",
    "role": "Auto-trader rules, positions and orders",
-   "status": "alert",
+   "status": "warn",
    "checks": [
     {
      "status": "ok",
@@ -55,12 +55,16 @@
      "text": "Master switch ON: the 6-month replay returned 17.03% (S&P 500 -7.5%), max drop 3.3%."
     },
     {
-     "status": "alert",
-     "text": "Cash is negative: the account is using margin."
+     "status": "warn",
+     "text": "1 order(s) rejected in the last 24 h, e.g. COST: POST /v2/orders -> HTTP 403: {\"available\":\"0\",\"code\":40310000,\"existing_qty\":\"7.145533577\",\"held_for_orders\":\"7.14553357"
     },
     {
      "status": "ok",
-     "text": "12 position(s), 0 open order(s), no stop-loss missed."
+     "text": "Alpaca stop orders at \u22125% protect 12 position(s)."
+    },
+    {
+     "status": "ok",
+     "text": "12 position(s), 12 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -71,7 +75,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Journal complete: 1026 order(s) recorded."
+     "text": "Journal complete: 1028 order(s) recorded."
     },
     {
      "status": "ok",
@@ -79,32 +83,36 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 13.9 MB of 1 GB."
+     "text": "Repository storage 14.2 MB of 1 GB."
     }
    ]
   },
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "ok",
+   "status": "alert",
    "checks": [
     {
+     "status": "alert",
+     "text": "9 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45423518583"
+    },
+    {
      "status": "ok",
-     "text": "1 run(s) in the last 3 hours, none failed."
+     "text": "Every-minute watchdog alive: 42 checks today, last saved 11 min ago."
     }
    ]
   }
  ],
  "comments": [
   {
-   "level": "alert",
-   "supervisor": "Scan watch",
-   "text": "Only 76% of stocks pass 'data is real'. The price feed itself may be broken; buys should not be trusted."
+   "level": "warn",
+   "supervisor": "Trade watch",
+   "text": "1 order(s) rejected in the last 24 h, e.g. COST: POST /v2/orders -> HTTP 403: {\"available\":\"0\",\"code\":40310000,\"existing_qty\":\"7.145533577\",\"held_for_orders\":\"7.14553357"
   },
   {
    "level": "alert",
-   "supervisor": "Trade watch",
-   "text": "Cash is negative: the account is using margin."
+   "supervisor": "Schedule watch",
+   "text": "9 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45423518583"
   }
  ]
 }
