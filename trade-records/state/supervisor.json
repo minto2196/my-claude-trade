@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-25T01:38:41+00:00",
- "next_check": "2026-11-25T02:38:41+00:00",
- "overall": "warn",
+ "generated_at": "2026-11-25T03:07:54+00:00",
+ "next_check": "2026-11-25T04:07:54+00:00",
+ "overall": "alert",
  "supervisors": [
   {
    "name": "Data watch",
@@ -86,11 +86,11 @@
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "ok",
+   "status": "alert",
    "checks": [
     {
-     "status": "ok",
-     "text": "1 run(s) in the last 3 hours, none failed."
+     "status": "alert",
+     "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45527185590"
     }
    ]
   }
@@ -100,6 +100,11 @@
    "level": "warn",
    "supervisor": "Trade watch",
    "text": "1 order(s) rejected in the last 24 h, e.g. COST: POST /v2/orders -> HTTP 403: {\"available\":\"0\",\"code\":40310000,\"existing_qty\":\"7.145533577\",\"held_for_orders\":\"7.14553357"
+  },
+  {
+   "level": "alert",
+   "supervisor": "Schedule watch",
+   "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45527185590"
   }
  ]
 }
