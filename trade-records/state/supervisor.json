@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-25T16:20:27+00:00",
- "next_check": "2026-11-25T17:20:27+00:00",
+ "generated_at": "2026-11-25T17:17:29+00:00",
+ "next_check": "2026-11-25T18:17:29+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "97% of stocks pass 'data is real'."
+     "text": "96% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -83,7 +83,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 14.7 MB of 1 GB."
+     "text": "Repository storage 14.8 MB of 1 GB."
     }
    ]
   },
@@ -94,15 +94,15 @@
    "checks": [
     {
      "status": "alert",
-     "text": "3 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45645298765"
+     "text": "12 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45661104192"
     },
     {
      "status": "warn",
-     "text": "GitHub left a 42-minute gap between runs while the market was open. Exits can only act when a run happens."
+     "text": "GitHub left a 94-minute gap between runs while the market was open. Exits can only act when a run happens."
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 108 checks today, last saved 3 min ago."
+     "text": "Every-minute watchdog alive: 162 checks today, last saved 6 min ago."
     }
    ]
   }
@@ -116,12 +116,12 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "3 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45645298765"
+   "text": "12 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45661104192"
   },
   {
    "level": "warn",
    "supervisor": "Schedule watch",
-   "text": "GitHub left a 42-minute gap between runs while the market was open. Exits can only act when a run happens."
+   "text": "GitHub left a 94-minute gap between runs while the market was open. Exits can only act when a run happens."
   }
  ]
 }
