@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-25T03:07:54+00:00",
- "next_check": "2026-11-25T04:07:54+00:00",
- "overall": "alert",
+ "generated_at": "2026-11-25T10:30:42+00:00",
+ "next_check": "2026-11-25T11:30:42+00:00",
+ "overall": "warn",
  "supervisors": [
   {
    "name": "Data watch",
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (0 min old)."
+     "text": "Portfolio snapshot is fresh (1 min old)."
     }
    ]
   },
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 0 min ago."
+     "text": "Agent ran 1 min ago."
     },
     {
      "status": "ok",
@@ -33,7 +33,7 @@
     },
     {
      "status": "ok",
-     "text": "95% of stocks pass 'data is real'."
+     "text": "94% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -86,11 +86,11 @@
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "alert",
+   "status": "ok",
    "checks": [
     {
-     "status": "alert",
-     "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45527185590"
+     "status": "ok",
+     "text": "1 run(s) in the last 3 hours, none failed."
     }
    ]
   }
@@ -100,11 +100,6 @@
    "level": "warn",
    "supervisor": "Trade watch",
    "text": "1 order(s) rejected in the last 24 h, e.g. COST: POST /v2/orders -> HTTP 403: {\"available\":\"0\",\"code\":40310000,\"existing_qty\":\"7.145533577\",\"held_for_orders\":\"7.14553357"
-  },
-  {
-   "level": "alert",
-   "supervisor": "Schedule watch",
-   "text": "1 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45527185590"
   }
  ]
 }
