@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-26T11:39:02+00:00",
- "next_check": "2026-11-26T12:39:02+00:00",
- "overall": "warn",
+ "generated_at": "2026-11-26T17:52:09+00:00",
+ "next_check": "2026-11-26T18:52:09+00:00",
+ "overall": "ok",
  "supervisors": [
   {
    "name": "Data watch",
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -25,7 +25,7 @@
    "checks": [
     {
      "status": "ok",
-     "text": "Agent ran 1 min ago."
+     "text": "Agent ran 0 min ago."
     },
     {
      "status": "ok",
@@ -44,7 +44,7 @@
   {
    "name": "Trade watch",
    "role": "Auto-trader rules, positions and orders",
-   "status": "warn",
+   "status": "ok",
    "checks": [
     {
      "status": "ok",
@@ -53,10 +53,6 @@
     {
      "status": "ok",
      "text": "Master switch ON: the 6-month replay returned 17.03% (S&P 500 -7.5%), max drop 3.3%."
-    },
-    {
-     "status": "warn",
-     "text": "1 order(s) rejected in the last 24 h, e.g. GWW: POST /v2/orders -> HTTP 403: {\"available\":\"0\",\"code\":40310000,\"existing_qty\":\"5.648332248\",\"held_for_orders\":\"5.64833224"
     },
     {
      "status": "ok",
@@ -95,11 +91,5 @@
    ]
   }
  ],
- "comments": [
-  {
-   "level": "warn",
-   "supervisor": "Trade watch",
-   "text": "1 order(s) rejected in the last 24 h, e.g. GWW: POST /v2/orders -> HTTP 403: {\"available\":\"0\",\"code\":40310000,\"existing_qty\":\"5.648332248\",\"held_for_orders\":\"5.64833224"
-  }
- ]
+ "comments": []
 }
