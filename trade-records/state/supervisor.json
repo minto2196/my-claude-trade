@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-25T20:19:13+00:00",
- "next_check": "2026-11-25T21:19:13+00:00",
- "overall": "alert",
+ "generated_at": "2026-11-26T02:23:53+00:00",
+ "next_check": "2026-11-26T03:23:53+00:00",
+ "overall": "warn",
  "supervisors": [
   {
    "name": "Data watch",
@@ -14,7 +14,7 @@
     },
     {
      "status": "ok",
-     "text": "Portfolio snapshot is fresh (1 min old)."
+     "text": "Portfolio snapshot is fresh (0 min old)."
     }
    ]
   },
@@ -29,11 +29,11 @@
     },
     {
      "status": "ok",
-     "text": "Funnel normal: 13,209 \u2192 5,000 \u2192 500 \u2192 22 buy-ready (4+/5 green)."
+     "text": "Funnel normal: 13,202 \u2192 5,000 \u2192 500 \u2192 21 buy-ready (4+/5 green)."
     },
     {
      "status": "ok",
-     "text": "96% of stocks pass 'data is real'."
+     "text": "95% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
@@ -60,11 +60,7 @@
     },
     {
      "status": "ok",
-     "text": "Alpaca stop orders at \u22125% protect 12 position(s)."
-    },
-    {
-     "status": "ok",
-     "text": "12 position(s), 12 open order(s), no stop-loss missed."
+     "text": "12 position(s), 0 open order(s), no stop-loss missed."
     }
    ]
   },
@@ -90,19 +86,11 @@
   {
    "name": "Schedule watch",
    "role": "GitHub Actions runs and gaps",
-   "status": "alert",
+   "status": "ok",
    "checks": [
     {
-     "status": "alert",
-     "text": "16 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45691917893"
-    },
-    {
-     "status": "warn",
-     "text": "GitHub left a 35-minute gap between runs while the market was open. Exits can only act when a run happens."
-    },
-    {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 337 checks today, last saved 13 min ago."
+     "text": "1 run(s) in the last 3 hours, none failed."
     }
    ]
   }
@@ -112,16 +100,6 @@
    "level": "warn",
    "supervisor": "Trade watch",
    "text": "1 order(s) rejected in the last 24 h, e.g. GWW: POST /v2/orders -> HTTP 403: {\"available\":\"0\",\"code\":40310000,\"existing_qty\":\"5.648332248\",\"held_for_orders\":\"5.64833224"
-  },
-  {
-   "level": "alert",
-   "supervisor": "Schedule watch",
-   "text": "16 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/45691917893"
-  },
-  {
-   "level": "warn",
-   "supervisor": "Schedule watch",
-   "text": "GitHub left a 35-minute gap between runs while the market was open. Exits can only act when a run happens."
   }
  ]
 }
