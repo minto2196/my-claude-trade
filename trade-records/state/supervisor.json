@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-11-27T16:20:51+00:00",
- "next_check": "2026-11-27T17:20:51+00:00",
+ "generated_at": "2026-11-27T17:15:56+00:00",
+ "next_check": "2026-11-27T18:15:56+00:00",
  "overall": "alert",
  "supervisors": [
   {
@@ -33,11 +33,11 @@
     },
     {
      "status": "ok",
-     "text": "95% of stocks pass 'data is real'."
+     "text": "94% of stocks pass 'data is real'."
     },
     {
      "status": "ok",
-     "text": "Time machine judged the shortlist: 178 of 502 have a green past."
+     "text": "Time machine judged the shortlist: 179 of 502 have a green past."
     }
    ]
   },
@@ -79,7 +79,7 @@
     },
     {
      "status": "ok",
-     "text": "Repository storage 15.3 MB of 1 GB."
+     "text": "Repository storage 14.5 MB of 1 GB."
     }
    ]
   },
@@ -90,11 +90,11 @@
    "checks": [
     {
      "status": "alert",
-     "text": "4 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/46031127502"
+     "text": "5 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/46039636662"
     },
     {
      "status": "ok",
-     "text": "Every-minute watchdog alive: 110 checks today, last saved 2 min ago."
+     "text": "Every-minute watchdog alive: 165 checks today, last saved 2 min ago."
     }
    ]
   }
@@ -103,7 +103,7 @@
   {
    "level": "alert",
    "supervisor": "Schedule watch",
-   "text": "4 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/46031127502"
+   "text": "5 failed run(s) in the last 3 hours. Latest: https://github.com/minto2196/my-claude-trade/actions/runs/46039636662"
   }
  ]
 }
