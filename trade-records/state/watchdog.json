@@ -8,14 +8,14 @@
   "low": 0.7,
   "high": 0.7
  },
- "checks": 187,
+ "checks": 198,
  "actions_today": [],
  "state": "watching",
  "next_open": "2026-11-27T14:30:00+00:00",
- "generated_at": "2026-11-27T17:36:01+00:00",
+ "generated_at": "2026-11-27T17:47:01+00:00",
  "style": "swing",
  "style_why": "the last 20 scalp trades lost $102.45, so the bot holds for days instead",
- "minutes_to_close": 24,
+ "minutes_to_close": 13,
  "groups": [
   {
    "symbol": "COST",
@@ -24,16 +24,16 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 1099.235,
+   "price": 1099.755,
    "entry": 1090.47,
    "highest": 1101.135,
    "line": 1035.95,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 0.8,
-   "day_pct": 1.14,
-   "to_line_pct": 6.11
+   "plpc": 0.85,
+   "day_pct": 1.19,
+   "to_line_pct": 6.16
   },
   {
    "symbol": "DUK",
@@ -42,16 +42,16 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 131.875,
+   "price": 132.03,
    "entry": 128.43,
    "highest": 132.82,
    "line": 126.18,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 2.68,
-   "day_pct": -0.02,
-   "to_line_pct": 4.51
+   "plpc": 2.8,
+   "day_pct": 0.1,
+   "to_line_pct": 4.64
   },
   {
    "symbol": "GWW",
@@ -60,16 +60,16 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 1431.25,
+   "price": 1426.38,
    "entry": 1382.1,
    "highest": 1438.2788,
    "line": 1366.36,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 3.56,
-   "day_pct": 1.08,
-   "to_line_pct": 4.75
+   "plpc": 3.2,
+   "day_pct": 0.74,
+   "to_line_pct": 4.39
   },
   {
    "symbol": "ICE",
@@ -78,16 +78,16 @@
    "reasons": [
     "4 of 5 green"
    ],
-   "price": 178.485,
+   "price": 178.11,
    "entry": 172.79,
    "highest": 179.0,
    "line": 170.05,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 3.3,
-   "day_pct": 0.38,
-   "to_line_pct": 4.96
+   "plpc": 3.08,
+   "day_pct": 0.17,
+   "to_line_pct": 4.74
   },
   {
    "symbol": "CB",
@@ -95,18 +95,18 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.2% a day)",
-    "+3.1% from the buy price"
+    "+3.0% from the buy price"
    ],
-   "price": 381.0999,
+   "price": 380.865,
    "entry": 369.68,
    "highest": 383.54,
    "line": 364.36,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 3.09,
-   "day_pct": 0.15,
-   "to_line_pct": 4.59
+   "plpc": 3.03,
+   "day_pct": 0.09,
+   "to_line_pct": 4.53
   },
   {
    "symbol": "CMCSA",
@@ -114,18 +114,18 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b12.0% a day)",
-    "+6.7% from the buy price"
+    "+7.0% from the buy price"
    ],
-   "price": 25.925,
+   "price": 26.0,
    "entry": 24.3,
    "highest": 26.18,
    "line": 24.87,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 6.69,
-   "day_pct": 0.76,
-   "to_line_pct": 4.24
+   "plpc": 7.0,
+   "day_pct": 1.05,
+   "to_line_pct": 4.54
   },
   {
    "symbol": "KR",
@@ -133,18 +133,18 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.9% a day)",
-    "+3.4% from the buy price"
+    "+3.3% from the buy price"
    ],
-   "price": 69.63,
+   "price": 69.55,
    "entry": 67.36,
    "highest": 71.115,
    "line": 67.56,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 3.37,
-   "day_pct": -0.29,
-   "to_line_pct": 3.06
+   "plpc": 3.25,
+   "day_pct": -0.4,
+   "to_line_pct": 2.95
   },
   {
    "symbol": "MDLZ",
@@ -152,18 +152,18 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.4% a day)",
-    "+3.4% from the buy price"
+    "+3.3% from the buy price"
    ],
-   "price": 67.625,
+   "price": 67.57,
    "entry": 65.42,
    "highest": 68.4,
    "line": 64.98,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 3.37,
-   "day_pct": -0.27,
-   "to_line_pct": 4.07
+   "plpc": 3.29,
+   "day_pct": -0.35,
+   "to_line_pct": 3.99
   },
   {
    "symbol": "NI",
@@ -171,18 +171,18 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.1% a day)",
-    "+0.8% from the buy price"
+    "+0.9% from the buy price"
    ],
-   "price": 45.275,
+   "price": 45.325,
    "entry": 44.9,
    "highest": 45.38,
    "line": 43.11,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 0.84,
-   "day_pct": 0.37,
-   "to_line_pct": 5.02
+   "plpc": 0.95,
+   "day_pct": 0.48,
+   "to_line_pct": 5.14
   },
   {
    "symbol": "PG",
@@ -190,18 +190,18 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.3% a day)",
-    "+1.9% from the buy price"
+    "+1.8% from the buy price"
    ],
-   "price": 173.2,
+   "price": 173.065,
    "entry": 169.9606,
    "highest": 174.5402,
    "line": 165.81,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 1.91,
-   "day_pct": -0.02,
-   "to_line_pct": 4.46
+   "plpc": 1.83,
+   "day_pct": -0.1,
+   "to_line_pct": 4.38
   },
   {
    "symbol": "ROP",
@@ -209,18 +209,18 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b12.2% a day)",
-    "+6.1% from the buy price"
+    "+5.9% from the buy price"
    ],
-   "price": 484.8,
+   "price": 483.555,
    "entry": 456.75,
    "highest": 487.65,
    "line": 463.27,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 6.14,
-   "day_pct": 0.35,
-   "to_line_pct": 4.65
+   "plpc": 5.87,
+   "day_pct": 0.1,
+   "to_line_pct": 4.38
   },
   {
    "symbol": "RPRX",
@@ -228,18 +228,18 @@
    "label": "Safe",
    "reasons": [
     "5 of 5 green, calm (\u00b11.5% a day)",
-    "+0.1% from the buy price"
+    "+0.0% from the buy price"
    ],
-   "price": 70.88,
+   "price": 70.82,
    "entry": 70.8113,
    "highest": 71.36,
    "line": 67.27,
    "line_pct": 5.0,
    "take_profit_pct": null,
    "hourly_move_pct": null,
-   "plpc": 0.1,
-   "day_pct": 0.44,
-   "to_line_pct": 5.37
+   "plpc": 0.01,
+   "day_pct": 0.35,
+   "to_line_pct": 5.28
   }
  ],
  "counts": {
